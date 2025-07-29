@@ -7,37 +7,44 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Car, Eye, EyeOff, Mail, Lock, User, Phone } from "lucide-react"
 import Link from "next/link"
-import { useActionState } from "react"
-import { register } from "@/actions/auth" 
+import { register } from "@/actions/auth"
 import { useRouter } from "next/navigation"
-import { useToast } from "@/hooks/use-toast" 
+import { useToast } from "@/hooks/use-toast"
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [state, formAction, isPending] = useActionState(register, null)
+  const [isPending, setIsPending] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
 
-  useEffect(() => {
-    if (state) {
-      if (state.success) {
-        localStorage.setItem("accessToken", state.accessToken as string)
-        toast({
-          title: "Uğurlu",
-          description: state.message,
-          variant: "default",
-        })
-        router.push("/profile")
-      } else {
-        toast({
-          title: "Xəta",
-          description: state.message,
-          variant: "destructive",
-        })
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setIsPending(true)
+
+    const formData = new FormData(event.currentTarget)
+    const result = await register(formData)
+
+    setIsPending(false)
+
+    if (result.success) {
+      if (result.accessToken) {
+        localStorage.setItem("accessToken", result.accessToken)
       }
+      toast({
+        title: "Uğurlu",
+        description: result.message,
+        variant: "default",
+      })
+      router.push("/profile")
+    } else {
+      toast({
+        title: "Xəta",
+        description: result.message,
+        variant: "destructive",
+      })
     }
-  }, [state, router, toast])
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -52,7 +59,7 @@ export default function RegisterPage() {
           <CardDescription>Euro Car-da qeydiyyatdan keçin</CardDescription>
         </CardHeader>
         <CardContent>
-          <form action={formAction} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="firstName">Ad</Label>
@@ -60,7 +67,7 @@ export default function RegisterPage() {
                   <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
                     id="firstName"
-                    name="firstName" 
+                    name="firstName"
                     placeholder="Adınız"
                     className="pl-10"
                     required
@@ -72,7 +79,7 @@ export default function RegisterPage() {
                 <Label htmlFor="lastName">Soyad</Label>
                 <Input
                   id="lastName"
-                  name="lastName" 
+                  name="lastName"
                   placeholder="Soyadınız"
                   required
                 />
@@ -86,7 +93,7 @@ export default function RegisterPage() {
                 <Input
                   id="email"
                   type="email"
-                  name="email" 
+                  name="email"
                   placeholder="E-mail ünvanınız"
                   className="pl-10"
                   required
@@ -101,7 +108,7 @@ export default function RegisterPage() {
                 <Input
                   id="phone"
                   type="tel"
-                  name="phone" 
+                  name="phone"
                   placeholder="+994 50 123 45 67"
                   className="pl-10"
                   required
@@ -116,7 +123,7 @@ export default function RegisterPage() {
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  name="password" 
+                  name="password"
                   placeholder="Şifrəniz"
                   className="pl-10 pr-10"
                   required
@@ -140,7 +147,7 @@ export default function RegisterPage() {
                 <Input
                   id="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
-                  name="confirmPassword" 
+                  name="confirmPassword"
                   placeholder="Şifrəni təkrar daxil edin"
                   className="pl-10 pr-10"
                   required
@@ -158,19 +165,10 @@ export default function RegisterPage() {
             </div>
 
             <div className="flex items-center space-x-2">
-              <Checkbox
-                id="terms"
-                name="agreeToTerms" 
-              />
+              <Checkbox id="terms" name="agreeToTerms" />
               <Label htmlFor="terms" className="text-sm">
-                <Link href="/terms" className="text-blue-600 hover:underline">
-                  İstifadə şərtləri
-                </Link>{" "}
-                və{" "}
-                <Link href="/privacy" className="text-blue-600 hover:underline">
-                  Məxfilik siyasəti
-                </Link>
-                ni qəbul edirəm
+                <Link href="/terms" className="text-blue-600 hover:underline">İstifadə şərtləri</Link> və{" "}
+                <Link href="/privacy" className="text-blue-600 hover:underline">Məxfilik siyasəti</Link>-ni qəbul edirəm
               </Label>
             </div>
 

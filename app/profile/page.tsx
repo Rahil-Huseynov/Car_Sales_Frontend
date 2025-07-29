@@ -12,6 +12,7 @@ import { Phone, MapPin, Calendar, Heart, Edit, Save, Eye } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import Link from "next/link"
 import Image from "next/image"
+import NavbarProfile from "@/components/navbarProfile"
 
 const userData = {
   name: "Əli Məmmədov",
@@ -75,8 +76,6 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
-
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 md:gap-8">
           <div className="xl:col-span-1">
@@ -212,13 +211,12 @@ export default function ProfilePage() {
                               className="w-full h-48 object-cover"
                             />
                             <Badge
-                              className={`absolute top-2 right-2 ${
-                                car.status === "Aktiv"
+                              className={`absolute top-2 right-2 ${car.status === "Aktiv"
                                   ? "bg-green-500"
                                   : car.status === "Satıldı"
                                     ? "bg-blue-500"
                                     : "bg-yellow-500"
-                              }`}
+                                }`}
                             >
                               {car.status}
                             </Badge>

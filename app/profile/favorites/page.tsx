@@ -304,7 +304,6 @@ export default function FavoritesPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
         <div className="container mx-auto px-4 py-8">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-300 rounded w-1/4 mb-6"></div>
@@ -325,10 +324,6 @@ export default function FavoritesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="navbar-slide">
-        <Navbar />
-      </div>
-
       <section className="bg-gradient-to-br from-red-500 via-red-600 to-red-700 text-white py-12 md:py-16 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-red-400/10 to-transparent"></div>
         <div className="absolute top-10 right-10 w-32 h-32 bg-red-400/10 rounded-full blur-xl animate-pulse-slow"></div>
