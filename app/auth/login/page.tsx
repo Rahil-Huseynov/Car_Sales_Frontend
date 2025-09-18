@@ -11,6 +11,7 @@ import { Car, Eye, EyeOff, Mail, Lock } from "lucide-react"
 import Link from "next/link"
 import { login } from "@/actions/auth"
 import { useToast } from "@/hooks/use-toast"
+import { apiClient } from "@/lib/api-client"
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -27,20 +28,20 @@ export default function LoginPage() {
     const password = formData.get("password") as string
 
     try {
-      const result = await login({ email, password })
+      const result = await apiClient.login(email, password)
 
-      if (result?.success) {
+      if (result?.accessToken) {
         localStorage.setItem("accessToken", result.accessToken)
         toast({
           title: "Uğurlu",
-          description: result.message,
+          description: "Daxil olundu",
           variant: "default",
         })
         router.push("/profile")
       } else {
         toast({
           title: "Xəta",
-          description: result.message || "Daxil olmaq mümkün olmadı",
+          description: "Daxil olmaq mümkün olmadı",
           variant: "destructive",
         })
       }
@@ -54,6 +55,7 @@ export default function LoginPage() {
       setIsPending(false)
     }
   }
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">

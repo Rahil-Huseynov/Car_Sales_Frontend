@@ -82,16 +82,14 @@ class ApiClient {
   }
 
   async login(email: string, password: string) {
-    const formData = new FormData()
-    formData.append("email", email)
-    formData.append("password", password)
-
     return this.request("/auth/login", {
       method: "POST",
-      body: formData,
-      headers: {},
-    })
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
   }
+
+
 
   async register(formData: FormData) {
     return this.request("/auth/user/signup", {
