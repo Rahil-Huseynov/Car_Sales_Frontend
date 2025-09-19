@@ -175,8 +175,13 @@ class ApiClient {
 
 
   async getCurrentUser() {
-    return this.request("/auth/me")
+    const token = localStorage.getItem("accessToken")
+    return this.request(`/auth/me`, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}` },
+    });
   }
+
 
   async getUsers(page = 1, limit = 10) {
     return this.request(`/auth/users?page=${page}&limit=${limit}`)

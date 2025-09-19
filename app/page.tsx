@@ -29,6 +29,18 @@ import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 import { useLanguage } from "@/hooks/use-language"
 import { getTranslation } from "@/lib/i18n"
+import { apiClient } from "@/lib/api-client"
+import { useAuth } from "@/lib/auth-context"
+
+type User = {
+  id: number
+  firstName: string
+  lastName: string
+  email: string
+  phoneNumber: string
+  role: string
+  createdAt: string
+}
 
 const cars = [
   {
@@ -212,6 +224,31 @@ const cars = [
 function CarCard({ car, t, index }: { car: (typeof cars)[0]; t: (key: string) => string; index: number }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isLoaded, setIsLoaded] = useState(false)
+  const [profileData, setProfileData] = useState<User | null>(null)
+  const { logout } = useAuth()
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const token = localStorage.getItem("accessToken")
+      if (!token) {
+        setLoading(false)
+        return
+      }
+      try {
+        const data = await apiClient.getCurrentUser()
+        setProfileData(data)
+      } catch {
+        logout()
+      window.location.reload()
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchUser()
+  }, [logout])
+
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoaded(true), index * 100)

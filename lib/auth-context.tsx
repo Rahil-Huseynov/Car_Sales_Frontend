@@ -1,8 +1,9 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
-import { apiClient } from "./api-client"
+import { createContext, useContext, useEffect, useState, type ReactNode, useCallback } from "react"
 import { tokenManager } from "./token-manager"
+import { apiClient } from "./api-client"
+import { useRouter } from "next/navigation"
 
 interface User {
   id: string
@@ -10,17 +11,14 @@ interface User {
   firstName: string
   lastName: string
   role: "client" | "admin" | "superadmin"
-  organization?: string
-  position?: string
 }
 
 interface AuthContextType {
   user: User | null
   isLoading: boolean
   login: (email: string, password: string) => Promise<{ success: boolean; user?: User; error?: string }>
-  register: (userData: any) => Promise<{ success: boolean; error?: string }>
   logout: () => void
-  refreshToken: () => Promise<boolean>
+  reloadUser: () => Promise<User | null>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -28,39 +26,45 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
 
-  useEffect(() => {
-    initializeAuth()
-  }, [])
-
-  useEffect(() => {
-    if (!user) return
-
-    const interval = setInterval(() => {
-      const token = tokenManager.getAccessToken()
-      if (!token || tokenManager.isTokenExpired(token)) {
-        logout()
-      }
-    }, 1000) 
-
-    return () => clearInterval(interval)
-  }, [user])
-
-  const initializeAuth = async () => {
-    const token = tokenManager.getAccessToken()
-    if (token && !tokenManager.isTokenExpired(token)) {
-      try {
-        const userData = await apiClient.getCurrentUser()
-        setUser(userData)
-      } catch (error) {
-        tokenManager.clearTokens()
-        setUser(null)
-      }
-    } else {
-      setUser(null)
+  const logout = useCallback(() => {
+    tokenManager.clearTokens()
+    setUser(null)
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("accessToken")
+      router.push("/")
     }
-    setIsLoading(false)
-  }
+  }, [router])
+
+  const reloadUser = useCallback(async (): Promise<User | null> => {
+    const token = tokenManager.getAccessToken()
+    if (!token) return null
+    try {
+      const data = await apiClient.getCurrentUser()
+      setUser(data)
+      return data
+    } catch {
+      if (typeof window !== "undefined") localStorage.removeItem("accessToken")
+      setUser(null)
+      router.push("/")
+      return null
+    }
+  }, [router])
+
+  useEffect(() => {
+    const init = async () => {
+      await reloadUser()
+      setIsLoading(false)
+    }
+    init()
+  }, [reloadUser])
+  useEffect(() => {
+    const interval = setInterval(() => {
+      reloadUser().catch(() => { })
+    }, 10000)
+    return () => clearInterval(interval)
+  }, [reloadUser])
 
   const login = async (email: string, password: string) => {
     try {
@@ -77,54 +81,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       return { success: false, error: "Giriş məlumatları yanlışdır" }
-    } catch (error: any) {
-      return { success: false, error: error.message || "Giriş xətası" }
-    }
-  }
-
-  const register = async (userData: any) => {
-    try {
-      await apiClient.register(userData)
-      return { success: true }
-    } catch (error: any) {
-      return { success: false, error: error.message || "Qeydiyyat xətası" }
-    }
-  }
-
-  const logout = () => {
-    tokenManager.clearTokens()
-    setUser(null)
-  }
-
-  const refreshToken = async (): Promise<boolean> => {
-    try {
-      const refreshToken = tokenManager.getRefreshToken()
-      if (!refreshToken) return false
-
-      const response = await apiClient.refreshToken(refreshToken)
-      if (response.accessToken) {
-        tokenManager.setAccessToken(response.accessToken)
-        return true
-      }
-      return false
-    } catch (error) {
-      tokenManager.clearTokens()
-      setUser(null)
-      return false
+    } catch (err: any) {
+      return { success: false, error: err.message || "Giriş xətası" }
     }
   }
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isLoading,
-        login,
-        register,
-        logout,
-        refreshToken,
-      }}
-    >
+    <AuthContext.Provider value={{ user, isLoading, login, logout, reloadUser }}>
       {children}
     </AuthContext.Provider>
   )
@@ -132,8 +95,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext)
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider")
-  }
+  if (!context) throw new Error("useAuth must be used within an AuthProvider")
   return context
 }

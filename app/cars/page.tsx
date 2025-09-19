@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -27,7 +27,18 @@ import {
 import Image from "next/image"
 import Link from "next/link"
 import { Navbar } from "@/components/navbar"
+import { apiClient } from "@/lib/api-client"
+import { useAuth } from "@/lib/auth-context"
 
+type User = {
+  id: number
+  firstName: string
+  lastName: string
+  email: string
+  phoneNumber: string
+  role: string
+  createdAt: string
+}
 const cars = [
   {
     id: 1,
@@ -119,8 +130,33 @@ const cars = [
   })),
 ]
 
+
 function CarCard({ car }: { car: (typeof cars)[0] }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [profileData, setProfileData] = useState<User | null>(null)
+  const { logout } = useAuth()
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const token = localStorage.getItem("accessToken")
+      if (!token) {
+        setLoading(false)
+        return
+      }
+      try {
+        const data = await apiClient.getCurrentUser()
+        setProfileData(data)
+      } catch {
+        logout()
+        window.location.reload()
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchUser()
+  }, [logout])
 
   const nextImage = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -172,9 +208,8 @@ function CarCard({ car }: { car: (typeof cars)[0] }) {
           {car.images.map((_, index) => (
             <button
               key={index}
-              className={`w-2 h-2 rounded-full transition-all ${
-                index === currentImageIndex ? "bg-white" : "bg-white/50"
-              }`}
+              className={`w-2 h-2 rounded-full transition-all ${index === currentImageIndex ? "bg-white" : "bg-white/50"
+                }`}
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
@@ -331,7 +366,7 @@ export default function CarsPage() {
       case "mileage-high":
         return b.mileage - a.mileage
       default:
-        return b.id - a.id 
+        return b.id - a.id
     }
   })
 

@@ -1,27 +1,28 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Phone, MapPin, Calendar, Heart, Edit, Save, Eye } from "lucide-react"
-import { Navbar } from "@/components/navbar"
+import { Phone, Heart, Edit, Eye } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
-import NavbarProfile from "@/components/navbarProfile"
+import { apiClient } from "@/lib/api-client"
+import { useAuth } from "@/lib/auth-context"
 
-const userData = {
-  name: "Əli Məmmədov",
-  email: "ali@example.com",
-  phone: "+994 50 123 45 67",
-  location: "Bakı, Azərbaycan",
-  joinDate: "2024-01-15",
-  avatar: "/placeholder.svg?height=100&width=100",
+type User = {
+  id: number
+  firstName: string
+  lastName: string
+  email: string
+  phoneNumber: string
+  role: string
+  createdAt: string
 }
+
 const userCars = [
   {
     id: 1,
@@ -66,72 +67,38 @@ const favoriteCars = [
 ]
 
 export default function ProfilePage() {
-  const [isEditing, setIsEditing] = useState(false)
-  const [profileData, setProfileData] = useState(userData)
+  const [profileData, setProfileData] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+  const { logout } = useAuth()
 
-  const handleSave = () => {
-    setIsEditing(false)
-    console.log("Profil yeniləndi:", profileData)
-  }
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const data = await apiClient.getCurrentUser()
+        setProfileData(data)
+      } catch {
+        logout()
+        window.location.reload()
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchUser()
+  }, [logout])
+
+
+
+
+  if (loading) return <p>Yüklənir...</p>
+  if (!profileData) return <p>İstifadəçi məlumatı tapılmadı</p>
+
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 md:gap-8">
-          <div className="xl:col-span-1">
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <Avatar className="w-24 h-24 mx-auto mb-4">
-                    <AvatarImage src={profileData.avatar || "/placeholder.svg"} />
-                    <AvatarFallback>
-                      {profileData.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
-                    </AvatarFallback>
-                  </Avatar>
-                  <h2 className="text-xl font-bold">{profileData.name}</h2>
-                  <p className="text-gray-600">{profileData.email}</p>
-                  <div className="flex items-center justify-center gap-1 text-sm text-gray-500 mt-2">
-                    <Calendar className="h-4 w-4" />
-                    {profileData.joinDate} tarixindən bəri üzv
-                  </div>
-                </div>
-
-                <div className="mt-6 space-y-3">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Phone className="h-4 w-4 text-gray-500" />
-                    {profileData.phone}
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <MapPin className="h-4 w-4 text-gray-500" />
-                    {profileData.location}
-                  </div>
-                </div>
-
-                <Button
-                  className="w-full mt-6"
-                  variant={isEditing ? "default" : "outline"}
-                  onClick={() => (isEditing ? handleSave() : setIsEditing(true))}
-                >
-                  {isEditing ? (
-                    <>
-                      <Save className="h-4 w-4 mr-2" />
-                      Yadda saxla
-                    </>
-                  ) : (
-                    <>
-                      <Edit className="h-4 w-4 mr-2" />
-                      Profili redaktə et
-                    </>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-4">
             <Tabs defaultValue="profile" className="space-y-6">
               <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3">
                 <TabsTrigger value="profile">Profil məlumatları</TabsTrigger>
@@ -147,12 +114,19 @@ export default function ProfilePage() {
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="name">Ad Soyad</Label>
+                        <Label htmlFor="name">Ad</Label>
                         <Input
                           id="name"
-                          value={profileData.name}
-                          onChange={(e) => setProfileData((prev) => ({ ...prev, name: e.target.value }))}
-                          disabled={!isEditing}
+                          value={profileData.firstName}
+                          disabled
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="name">Soyad</Label>
+                        <Input
+                          id="name"
+                          value={profileData.lastName}
+                          disabled
                         />
                       </div>
                       <div>
@@ -161,26 +135,30 @@ export default function ProfilePage() {
                           id="email"
                           type="email"
                           value={profileData.email}
-                          onChange={(e) => setProfileData((prev) => ({ ...prev, email: e.target.value }))}
-                          disabled={!isEditing}
+                          disabled
                         />
                       </div>
                       <div>
                         <Label htmlFor="phone">Telefon</Label>
                         <Input
                           id="phone"
-                          value={profileData.phone}
-                          onChange={(e) => setProfileData((prev) => ({ ...prev, phone: e.target.value }))}
-                          disabled={!isEditing}
+                          value={profileData.phoneNumber}
+                          disabled
                         />
                       </div>
                       <div>
-                        <Label htmlFor="location">Yer</Label>
+                        <Label htmlFor="location">Qeydiyyat tarixi</Label>
                         <Input
                           id="location"
-                          value={profileData.location}
-                          onChange={(e) => setProfileData((prev) => ({ ...prev, location: e.target.value }))}
-                          disabled={!isEditing}
+                          value={new Date(profileData.createdAt).toLocaleString("az-AZ", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: false,
+                          })}
+                          disabled
                         />
                       </div>
                     </div>
@@ -212,10 +190,10 @@ export default function ProfilePage() {
                             />
                             <Badge
                               className={`absolute top-2 right-2 ${car.status === "Aktiv"
-                                  ? "bg-green-500"
-                                  : car.status === "Satıldı"
-                                    ? "bg-blue-500"
-                                    : "bg-yellow-500"
+                                ? "bg-green-500"
+                                : car.status === "Satıldı"
+                                  ? "bg-blue-500"
+                                  : "bg-yellow-500"
                                 }`}
                             >
                               {car.status}

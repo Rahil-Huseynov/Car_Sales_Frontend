@@ -5,9 +5,48 @@ import { Badge } from "@/components/ui/badge"
 import { Award, Shield, Globe, Heart, User } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { useLanguage } from "@/hooks/use-language"
+import { useEffect, useState } from "react"
+import { apiClient } from "@/lib/api-client"
+import { useAuth } from "@/lib/auth-context"
+
+type User = {
+  id: number
+  firstName: string
+  lastName: string
+  email: string
+  phoneNumber: string
+  role: string
+  createdAt: string
+}
 
 export default function AboutPage() {
   const { language } = useLanguage()
+  const [profileData, setProfileData] = useState<User | null>(null)
+  const { logout } = useAuth()
+  const [loading, setLoading] = useState(true)
+
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const token = localStorage.getItem("accessToken")
+      if (!token) {
+        setLoading(false)
+        return
+      }
+      try {
+        const data = await apiClient.getCurrentUser()
+        setProfileData(data)
+      } catch {
+        logout()
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchUser()
+  }, [logout])
+
+
 
   const content = {
     az: {
