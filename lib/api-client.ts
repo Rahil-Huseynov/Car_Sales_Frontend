@@ -182,6 +182,27 @@ class ApiClient {
     });
   }
 
+  async addcardata(formData: any) {
+    return this.request('/user-cars', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+      },
+      body: JSON.stringify(formData),
+    });
+  }
+
+  async addcarimagedata(formData: FormData) {
+    return this.request('/car-images/upload', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+      },
+      body: formData,
+    });
+  }
+
 
   async getUsers(page = 1, limit = 10) {
     return this.request(`/auth/users?page=${page}&limit=${limit}`)
