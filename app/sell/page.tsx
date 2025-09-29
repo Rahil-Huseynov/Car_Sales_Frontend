@@ -215,18 +215,24 @@ export default function SellPage() {
       }))
     }
   }
+ 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (files) {
-      const newImages = Array.from(files).map((file, index) => ({
-        id: `${Date.now()}-${index}`,
-        url: URL.createObjectURL(file),
-        name: file.name,
-        file,
-      }))
-      setImages((prev) => [...prev, ...newImages].slice(0, 5))
-    }
+  const files = e.target.files
+  if (files) {
+    const remainingSlots = 5 - images.length
+    if (remainingSlots <= 0) return 
+
+    const filesToAdd = Array.from(files).slice(0, remainingSlots)
+    const newImages = filesToAdd.map((file, index) => ({
+      id: `${Date.now()}-${index}`,
+      url: URL.createObjectURL(file),
+      name: file.name,
+      file,
+    }))
+    setImages((prev) => [...prev, ...newImages])
   }
+}
+
 
   const removeImage = (id: string) => {
     setImages((prev) => prev.filter((img) => img.id !== id))
