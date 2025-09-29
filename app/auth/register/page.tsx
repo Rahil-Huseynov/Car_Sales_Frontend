@@ -32,7 +32,7 @@ export default function RegisterPage() {
     fixedFormData.append("firstName", (formData.get("firstName") as string) || "")
     fixedFormData.append("lastName", (formData.get("lastName") as string) || "")
     fixedFormData.append("phoneNumber", (formData.get("phone") as string) || "")
-    fixedFormData.append("role", "client")
+    fixedFormData.append("role", "standart")
 
     if (formData.get("agreeToTerms") !== "on") {
       setIsPending(false)

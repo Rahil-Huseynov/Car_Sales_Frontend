@@ -75,6 +75,7 @@ export default function SellPage() {
     city: "",
     description: "",
     features: [] as string[],
+    status: 'Standart',
     name: "",
     phone: "",
     email: "",

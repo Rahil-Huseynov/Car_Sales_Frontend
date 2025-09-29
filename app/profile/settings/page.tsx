@@ -36,22 +36,14 @@ export default function SettingsPage() {
           </div>
 
           <Tabs defaultValue="profile" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="profile" className="flex items-center gap-2">
                 <User className="h-4 w-4" />
                 Profil
               </TabsTrigger>
-              <TabsTrigger value="notifications" className="flex items-center gap-2">
-                <Bell className="h-4 w-4" />
-                Bildirişlər
-              </TabsTrigger>
               <TabsTrigger value="security" className="flex items-center gap-2">
                 <Shield className="h-4 w-4" />
                 Təhlükəsizlik
-              </TabsTrigger>
-              <TabsTrigger value="language" className="flex items-center gap-2">
-                <Globe className="h-4 w-4" />
-                Dil
               </TabsTrigger>
             </TabsList>
 
@@ -114,69 +106,6 @@ export default function SettingsPage() {
                   <Button className="w-full animate-pulse">
                     <Save className="h-4 w-4 mr-2" />
                     Dəyişiklikləri Saxla
-                  </Button>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="notifications" className="animate-slideInUp">
-              <Card className="border-0 shadow-lg">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Bell className="h-5 w-5" />
-                    Bildiriş Tənzimləmələri
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <h4 className="font-medium">Email Bildirişləri</h4>
-                        <p className="text-sm text-gray-500">Yeni elanlar və mesajlar haqqında email alın</p>
-                      </div>
-                      <Switch 
-                        checked={notifications.email}
-                        onCheckedChange={(checked) => setNotifications({...notifications, email: checked})}
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <h4 className="font-medium">SMS Bildirişləri</h4>
-                        <p className="text-sm text-gray-500">Vacib məlumatlar üçün SMS alın</p>
-                      </div>
-                      <Switch 
-                        checked={notifications.sms}
-                        onCheckedChange={(checked) => setNotifications({...notifications, sms: checked})}
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <h4 className="font-medium">Push Bildirişləri</h4>
-                        <p className="text-sm text-gray-500">Brauzer bildirişləri alın</p>
-                      </div>
-                      <Switch 
-                        checked={notifications.push}
-                        onCheckedChange={(checked) => setNotifications({...notifications, push: checked})}
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <h4 className="font-medium">Marketing Bildirişləri</h4>
-                        <p className="text-sm text-gray-500">Xüsusi təkliflər və kampaniyalar</p>
-                      </div>
-                      <Switch 
-                        checked={notifications.marketing}
-                        onCheckedChange={(checked) => setNotifications({...notifications, marketing: checked})}
-                      />
-                    </div>
-                  </div>
-
-                  <Button className="w-full">
-                    <Save className="h-4 w-4 mr-2" />
-                    Tənzimləmələri Saxla
                   </Button>
                 </CardContent>
               </Card>
@@ -245,60 +174,6 @@ export default function SettingsPage() {
                   <Button className="w-full">
                     <Save className="h-4 w-4 mr-2" />
                     Şifrəni Yenilə
-                  </Button>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="language" className="animate-slideInUp">
-              <Card className="border-0 shadow-lg">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Globe className="h-5 w-5" />
-                    Dil Tənzimləmələri
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-medium">İnterfeys Dili</h4>
-                        <p className="text-sm text-gray-500">Saytın dilini seçin</p>
-                      </div>
-                      <LanguageSwitcher 
-                        currentLanguage={language} 
-                        onLanguageChange={changeLanguage}
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {[
-                        { code: "az", name: "Azərbaycan dili", flag: "🇦🇿" },
-                        { code: "en", name: "English", flag: "🇺🇸" },
-                        { code: "ru", name: "Русский", flag: "🇷🇺" }
-                      ].map((lang) => (
-                        <Card 
-                          key={lang.code}
-                          className={`cursor-pointer transition-all hover:shadow-md ${
-                            language === lang.code ? 'ring-2 ring-purple-500' : ''
-                          }`}
-                          onClick={() => changeLanguage(lang.code as any)}
-                        >
-                          <CardContent className="p-4 text-center">
-                            <div className="text-2xl mb-2">{lang.flag}</div>
-                            <h4 className="font-medium">{lang.name}</h4>
-                            {language === lang.code && (
-                              <Badge className="mt-2">Seçilmiş</Badge>
-                            )}
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  </div>
-
-                  <Button className="w-full">
-                    <Save className="h-4 w-4 mr-2" />
-                    Dil Tənzimləmələrini Saxla
                   </Button>
                 </CardContent>
               </Card>
