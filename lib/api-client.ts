@@ -1,6 +1,13 @@
 import { id } from "date-fns/locale";
 import { tokenManager } from "./token-manager"
 
+type GetAllCarsParams = {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: string;
+};
+
 class ApiClient {
   private baseURL: string
 
@@ -180,6 +187,23 @@ class ApiClient {
       method: "GET",
       headers: { Authorization: `Bearer ${token}` },
     });
+  }
+
+  async getAllCars(params: { page?: number; limit?: number; status?: string; search?: string } = {}) {
+    const query = new URLSearchParams();
+
+    if (params.page) query.append("page", params.page.toString());
+    if (params.limit) query.append("limit", params.limit.toString());
+    if (params.status) query.append("status", params.status);
+    if (params.search) query.append("search", params.search);
+
+    return this.request(`/car/all?${query.toString()}`, {
+      method: "GET",
+    });
+  }
+
+  async getPremiumCars(page = 1, limit = 100) {
+    return this.getAllCars({ page, limit, status: "premium" });
   }
 
   async addcardata(formData: any) {

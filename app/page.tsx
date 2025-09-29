@@ -1,8 +1,6 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useEffect } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -32,252 +30,80 @@ import { getTranslation } from "@/lib/i18n"
 import { apiClient } from "@/lib/api-client"
 import { useAuth } from "@/lib/auth-context"
 
-type User = {
+type CarImage = {
   id: number
-  firstName: string
-  lastName: string
-  email: string
-  phoneNumber: string
-  role: string
-  createdAt: string
+  url: string
 }
 
-const cars = [
-  {
-    id: 1,
-    brand: "BMW",
-    model: "X5",
-    year: 2022,
-    price: 85000,
-    mileage: 15000,
-    fuel: "gasoline",
-    transmission: "automatic",
-    color: "black",
-    location: "baku",
-    city: "baku",
-    images: [
-      "/placeholder.svg?height=200&width=300&text=BMW+X5+Front",
-      "/placeholder.svg?height=200&width=300&text=BMW+X5+Side",
-      "/placeholder.svg?height=200&width=300&text=BMW+X5+Interior",
-      "/placeholder.svg?height=200&width=300&text=BMW+X5+Back",
-      "/placeholder.svg?height=200&width=300&text=BMW+X5+Engine",
-    ],
-    featured: true,
-    condition: "new",
-  },
-  {
-    id: 2,
-    brand: "Mercedes",
-    model: "C-Class",
-    year: 2021,
-    price: 65000,
-    mileage: 25000,
-    fuel: "gasoline",
-    transmission: "automatic",
-    color: "white",
-    location: "baku",
-    city: "baku",
-    images: [
-      "/placeholder.svg?height=200&width=300&text=Mercedes+C+Front",
-      "/placeholder.svg?height=200&width=300&text=Mercedes+C+Side",
-      "/placeholder.svg?height=200&width=300&text=Mercedes+C+Interior",
-      "/placeholder.svg?height=200&width=300&text=Mercedes+C+Back",
-      "/placeholder.svg?height=200&width=300&text=Mercedes+C+Engine",
-    ],
-    featured: false,
-    condition: "used",
-  },
-  {
-    id: 3,
-    brand: "Toyota",
-    model: "Camry",
-    year: 2023,
-    price: 45000,
-    mileage: 5000,
-    fuel: "hybrid",
-    transmission: "automatic",
-    color: "silver",
-    location: "ganja",
-    city: "ganja",
-    images: [
-      "/placeholder.svg?height=200&width=300&text=Toyota+Camry+Front",
-      "/placeholder.svg?height=200&width=300&text=Toyota+Camry+Side",
-      "/placeholder.svg?height=200&width=300&text=Toyota+Camry+Interior",
-      "/placeholder.svg?height=200&width=300&text=Toyota+Camry+Back",
-      "/placeholder.svg?height=200&width=300&text=Toyota+Camry+Engine",
-    ],
-    featured: true,
-    condition: "new",
-  },
-  {
-    id: 4,
-    brand: "Hyundai",
-    model: "Elantra",
-    year: 2020,
-    price: 28000,
-    mileage: 45000,
-    fuel: "gasoline",
-    transmission: "manual",
-    color: "blue",
-    location: "sumgayit",
-    city: "sumgayit",
-    images: [
-      "/placeholder.svg?height=200&width=300&text=Hyundai+Front",
-      "/placeholder.svg?height=200&width=300&text=Hyundai+Side",
-      "/placeholder.svg?height=200&width=300&text=Hyundai+Interior",
-      "/placeholder.svg?height=200&width=300&text=Hyundai+Back",
-      "/placeholder.svg?height=200&width=300&text=Hyundai+Engine",
-    ],
-    featured: false,
-    condition: "used",
-  },
-  {
-    id: 5,
-    brand: "Audi",
-    model: "A4",
-    year: 2022,
-    price: 72000,
-    mileage: 18000,
-    fuel: "gasoline",
-    transmission: "automatic",
-    color: "red",
-    location: "baku",
-    city: "baku",
-    images: [
-      "/placeholder.svg?height=200&width=300&text=Audi+A4+Front",
-      "/placeholder.svg?height=200&width=300&text=Audi+A4+Side",
-      "/placeholder.svg?height=200&width=300&text=Audi+A4+Interior",
-      "/placeholder.svg?height=200&width=300&text=Audi+A4+Back",
-      "/placeholder.svg?height=200&width=300&text=Audi+A4+Engine",
-    ],
-    featured: false,
-    condition: "used",
-  },
-  {
-    id: 6,
-    brand: "Volkswagen",
-    model: "Passat",
-    year: 2021,
-    price: 38000,
-    mileage: 32000,
-    fuel: "diesel",
-    transmission: "automatic",
-    color: "black",
-    location: "baku",
-    city: "baku",
-    images: [
-      "/placeholder.svg?height=200&width=300&text=VW+Passat+Front",
-      "/placeholder.svg?height=200&width=300&text=VW+Passat+Side",
-      "/placeholder.svg?height=200&width=300&text=VW+Passat+Interior",
-      "/placeholder.svg?height=200&width=300&text=VW+Passat+Back",
-      "/placeholder.svg?height=200&width=300&text=VW+Passat+Engine",
-    ],
-    featured: false,
-    condition: "used",
-  },
-  {
-    id: 7,
-    brand: "BMW",
-    model: "3 Series",
-    year: 2023,
-    price: 95000,
-    mileage: 8000,
-    fuel: "gasoline",
-    transmission: "automatic",
-    color: "white",
-    location: "baku",
-    city: "baku",
-    images: [
-      "/placeholder.svg?height=200&width=300&text=BMW+3+Series+Front",
-      "/placeholder.svg?height=200&width=300&text=BMW+3+Series+Side",
-      "/placeholder.svg?height=200&width=300&text=BMW+3+Series+Interior",
-      "/placeholder.svg?height=200&width=300&text=BMW+3+Series+Back",
-      "/placeholder.svg?height=200&width=300&text=BMW+3+Series+Engine",
-    ],
-    featured: true,
-    condition: "new",
-  },
-  {
-    id: 8,
-    brand: "Mercedes",
-    model: "E-Class",
-    year: 2022,
-    price: 78000,
-    mileage: 12000,
-    fuel: "diesel",
-    transmission: "automatic",
-    color: "silver",
-    location: "ganja",
-    city: "ganja",
-    images: [
-      "/placeholder.svg?height=200&width=300&text=Mercedes+E+Front",
-      "/placeholder.svg?height=200&width=300&text=Mercedes+E+Side",
-      "/placeholder.svg?height=200&width=300&text=Mercedes+E+Interior",
-      "/placeholder.svg?height=200&width=300&text=Mercedes+E+Back",
-      "/placeholder.svg?height=200&width=300&text=Mercedes+E+Engine",
-    ],
-    featured: false,
-    condition: "used",
-  },
-]
+type UserCar = {
+  id: number
+  createdAt: string
+  updatedAt: string
+  brand: string
+  model: string
+  year: number
+  price: number
+  mileage: number
+  fuel: string
+  transmission: string
+  condition: string
+  color: string
+  location: string
+  city: string
+  description?: string
+  features?: string[]
+  name?: string
+  phone?: string
+  email?: string
+  status?: string
+  views?: number
+  images: CarImage[]
+}
 
-function CarCard({ car, t, index }: { car: (typeof cars)[0]; t: (key: string) => string; index: number }) {
+type User = {
+  id: number
+  firstName?: string
+  lastName?: string
+  email?: string
+  phoneNumber?: string
+  role?: string
+  createdAt?: string
+  userCars?: UserCar[]
+}
+
+function CarCard({ car, t, index }: { car: UserCar; t: (key: string) => string; index: number }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isLoaded, setIsLoaded] = useState(false)
-  const [profileData, setProfileData] = useState<User | null>(null)
-  const { logout } = useAuth()
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const token = localStorage.getItem("accessToken")
-      if (!token) {
-        setLoading(false)
-        return
-      }
-      try {
-        const data = await apiClient.getCurrentUser()
-        setProfileData(data)
-      } catch {
-        logout()
-      window.location.reload()
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchUser()
-  }, [logout])
-
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoaded(true), index * 100)
     return () => clearTimeout(timer)
   }, [index])
 
+  const images = car.images && car.images.length > 0 ? car.images.map((i) => i.url) : ["/placeholder.svg"]
+
   const nextImage = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    setCurrentImageIndex((prev) => (prev + 1) % car.images.length)
+    setCurrentImageIndex((prev) => (prev + 1) % images.length)
   }
 
   const prevImage = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    setCurrentImageIndex((prev) => (prev - 1 + car.images.length) % car.images.length)
+    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length)
   }
 
   return (
     <Card
-      className={`overflow-hidden card-hover border-0 bg-white/90 backdrop-blur-sm transition-all duration-500 ${
-        isLoaded ? "animate-fadeInUp opacity-100" : "opacity-0"
-      }`}
+      className={`overflow-hidden card-hover border-0 bg-white/90 backdrop-blur-sm transition-all duration-500 ${isLoaded ? "animate-fadeInUp opacity-100" : "opacity-0"
+        }`}
       style={{ animationDelay: `${index * 0.1}s` }}
     >
       <div className="relative group">
         <div className="overflow-hidden">
           <Image
-            src={car.images[currentImageIndex] || "/placeholder.svg"}
+            src={images[currentImageIndex]}
             alt={`${car.brand} ${car.model}`}
             width={300}
             height={200}
@@ -285,13 +111,14 @@ function CarCard({ car, t, index }: { car: (typeof cars)[0]; t: (key: string) =>
           />
         </div>
 
-        {car.featured && (
+        {car.status === "premium" && (
           <Badge className="absolute top-3 left-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0 z-10 animate-pulse-slow">
             <Sparkles className="h-3 w-3 mr-1" />
-            {t("featured")}
+            {t("premium")}
           </Badge>
         )}
-        {car.images.length > 1 && (
+
+        {images.length > 1 && (
           <>
             <Button
               size="icon"
@@ -314,12 +141,11 @@ function CarCard({ car, t, index }: { car: (typeof cars)[0]; t: (key: string) =>
         )}
 
         <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex gap-1">
-          {car.images.map((_, imgIndex) => (
+          {images.map((_, imgIndex) => (
             <button
               key={imgIndex}
-              className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                imgIndex === currentImageIndex ? "bg-white scale-125" : "bg-white/50 hover:bg-white/75"
-              }`}
+              className={`w-2 h-2 rounded-full transition-all duration-300 ${imgIndex === currentImageIndex ? "bg-white scale-125" : "bg-white/50 hover:bg-white/75"
+                }`}
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
@@ -331,7 +157,7 @@ function CarCard({ car, t, index }: { car: (typeof cars)[0]; t: (key: string) =>
 
         <div className="absolute bottom-3 left-3 bg-black/70 text-white px-2 py-1 rounded-md text-xs flex items-center gap-1 backdrop-blur-sm">
           <Camera className="h-3 w-3" />
-          {currentImageIndex + 1}/{car.images.length}
+          {currentImageIndex + 1}/{images.length}
         </div>
 
         <Button
@@ -354,7 +180,7 @@ function CarCard({ car, t, index }: { car: (typeof cars)[0]; t: (key: string) =>
               {car.brand} {car.model}
             </h3>
             <p className="text-sm text-gray-600">
-              {car.year} • {t(car.condition)}
+              {car.year} • {t(car.condition ?? "")}
             </p>
           </div>
           <div className="text-right">
@@ -369,26 +195,26 @@ function CarCard({ car, t, index }: { car: (typeof cars)[0]; t: (key: string) =>
         <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-4">
           <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600">
             <Car className="h-4 w-4 text-blue-500" />
-            {car.mileage.toLocaleString()} km
+            {(car.mileage || 0).toLocaleString()} km
           </div>
           <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600">
             <Fuel className="h-4 w-4 text-blue-500" />
-            {t(car.fuel)}
+            {t(car.fuel ?? "")}
           </div>
           <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600">
             <Users className="h-4 w-4 text-blue-500" />
-            {t(car.transmission)}
+            {t(car.transmission ?? "")}
           </div>
           <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600">
             <MapPin className="h-4 w-4 text-blue-500" />
-            {t(car.location)}
+            {t(car.location ?? "")}
           </div>
         </div>
         <Badge
           variant="outline"
           className="mb-2 border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors duration-300"
         >
-          {t(car.color)}
+          {t(car.color ?? "")}
         </Badge>
       </CardContent>
 
@@ -432,62 +258,130 @@ function CarCard({ car, t, index }: { car: (typeof cars)[0]; t: (key: string) =>
 export default function HomePage() {
   const { language } = useLanguage()
   const t = (key: string) => getTranslation(language, key)
+  const { logout } = useAuth()
 
+  const [cars, setCars] = useState<UserCar[]>([])
   const [searchTerm, setSearchTerm] = useState("")
-  const [selectedBrand, setSelectedBrand] = useState("")
-  const [selectedYear, setSelectedYear] = useState("")
-  const [selectedFuel, setSelectedFuel] = useState("")
-  const [selectedTransmission, setSelectedTransmission] = useState("")
-  const [selectedCondition, setSelectedCondition] = useState("")
+  const [selectedBrand, setSelectedBrand] = useState<string>("all")
+  const [selectedYear, setSelectedYear] = useState<string>("all")
+  const [selectedFuel, setSelectedFuel] = useState<string>("all")
+  const [selectedTransmission, setSelectedTransmission] = useState<string>("all")
+  const [selectedCondition, setSelectedCondition] = useState<string>("all")
   const [priceRange, setPriceRange] = useState({ min: "", max: "" })
-  const [selectedModel, setSelectedModel] = useState("")
-  const [selectedCity, setSelectedCity] = useState("")
-  const [selectedColor, setSelectedColor] = useState("")
-  const [isLoading, setIsLoading] = useState(true)
+  const [selectedModel, setSelectedModel] = useState<string>("all")
+  const [selectedCity, setSelectedCity] = useState<string>("all")
+  const [selectedColor, setSelectedColor] = useState<string>("all")
+  const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [profileData, setProfileData] = useState<User | null>(null)
 
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1000)
-    return () => clearTimeout(timer)
-  }, [])
+useEffect(() => {
+  const fetchCars = async () => {
+    try {
+      const data = await apiClient.getPremiumCars()
+      const carsArray = Array.isArray(data) ? data : data.cars ?? []
 
-  const brands = [...new Set(cars.map((car) => car.brand))]
-  const years = [...new Set(cars.map((car) => car.year))].sort((a, b) => b - a)
-  const fuels = [...new Set(cars.map((car) => car.fuel))]
-  const transmissions = [...new Set(cars.map((car) => car.transmission))]
-  const conditions = [...new Set(cars.map((car) => car.condition))]
-  const models = [...new Set(cars.map((car) => car.model))]
-  const cities = [...new Set(cars.map((car) => car.city))]
-  const colors = [...new Set(cars.map((car) => car.color))]
+      const normalizedCars: UserCar[] = carsArray.map((car: any) => ({
+        id: car.id,
+        brand: car.brand,
+        model: car.model,
+        year: car.year,
+        price: car.price,
+        mileage: car.mileage ?? 0,
+        fuel: car.fuel ?? "",
+        transmission: car.transmission ?? "",
+        condition: car.condition ?? "",
+        color: car.color ?? "",
+        location: car.location ?? car.city ?? "",
+        city: car.city ?? "",
+        description: car.description ?? "",
+        features: car.features ?? [],
+        images: car.images?.length ? car.images : [{ id: 0, url: "/placeholder.svg" }],
+        status: car.status ?? "",
+        name: car.name ?? (car.user ? `${car.user.firstName ?? ""} ${car.user.lastName ?? ""}`.trim() : ""),
+        phone: car.phone ?? car.user?.phoneNumber ?? "",
+        email: car.email ?? car.user?.email ?? "",
+        createdAt: car.createdAt,
+        updatedAt: car.updatedAt,
+        views: car.views ?? 0,
+      }))
 
-  const filteredCars = cars.filter((car) => {
-    const matchesSearch =
-      car.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      car.model.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesBrand = !selectedBrand || car.brand === selectedBrand
-    const matchesModel = !selectedModel || car.model === selectedModel
-    const matchesYear = !selectedYear || car.year.toString() === selectedYear
-    const matchesFuel = !selectedFuel || car.fuel === selectedFuel
-    const matchesTransmission = !selectedTransmission || car.transmission === selectedTransmission
-    const matchesCondition = !selectedCondition || car.condition === selectedCondition
-    const matchesCity = !selectedCity || car.city === selectedCity
-    const matchesColor = !selectedColor || car.color === selectedColor
-    const matchesPrice =
-      (!priceRange.min || car.price >= Number.parseInt(priceRange.min)) &&
-      (!priceRange.max || car.price <= Number.parseInt(priceRange.max))
+      setCars(normalizedCars)
+    } catch (err) {
+      console.error("Failed to load cars", err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
-    return (
-      matchesSearch &&
-      matchesBrand &&
-      matchesModel &&
-      matchesYear &&
-      matchesFuel &&
-      matchesTransmission &&
-      matchesCondition &&
-      matchesCity &&
-      matchesColor &&
-      matchesPrice
-    )
-  })
+  const fetchProfile = async () => {
+    try {
+      const token = localStorage.getItem("accessToken")
+      if (!token) return
+      const user = await apiClient.getCurrentUser()
+      setProfileData(user)
+    } catch (err) {
+      logout()
+    }
+  }
+
+  fetchCars()
+  fetchProfile()
+}, [])
+
+  const brands = useMemo(() => [...new Set(cars.map((c) => c.brand).filter(Boolean))], [cars])
+  const years = useMemo(() => [...new Set(cars.map((c) => c.year))].sort((a, b) => b - a), [cars])
+  const fuels = useMemo(() => [...new Set(cars.map((c) => c.fuel).filter(Boolean))], [cars])
+  const transmissions = useMemo(() => [...new Set(cars.map((c) => c.transmission).filter(Boolean))], [cars])
+  const conditions = useMemo(() => [...new Set(cars.map((c) => c.condition).filter(Boolean))], [cars])
+  const models = useMemo(() => [...new Set(cars.map((c) => c.model).filter(Boolean))], [cars])
+  const cities = useMemo(() => [...new Set(cars.map((c) => c.city).filter(Boolean))], [cars])
+  const colors = useMemo(() => [...new Set(cars.map((c) => c.color).filter(Boolean))], [cars])
+
+  const filteredCars = useMemo(() => {
+    return cars.filter((car) => {
+      const matchesSearch =
+        car.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        car.model.toLowerCase().includes(searchTerm.toLowerCase())
+
+      const matchesBrand = selectedBrand === "all" || !selectedBrand || car.brand === selectedBrand
+      const matchesModel = selectedModel === "all" || !selectedModel || car.model === selectedModel
+      const matchesYear = selectedYear === "all" || !selectedYear || car.year.toString() === selectedYear
+      const matchesFuel = selectedFuel === "all" || !selectedFuel || car.fuel === selectedFuel
+      const matchesTransmission =
+        selectedTransmission === "all" || !selectedTransmission || car.transmission === selectedTransmission
+      const matchesCondition = selectedCondition === "all" || !selectedCondition || car.condition === selectedCondition
+      const matchesCity = selectedCity === "all" || !selectedCity || car.city === selectedCity
+      const matchesColor = selectedColor === "all" || !selectedColor || car.color === selectedColor
+      const matchesPrice =
+        (!priceRange.min || car.price >= Number.parseInt(priceRange.min)) &&
+        (!priceRange.max || car.price <= Number.parseInt(priceRange.max))
+
+      return (
+        matchesSearch &&
+        matchesBrand &&
+        matchesModel &&
+        matchesYear &&
+        matchesFuel &&
+        matchesTransmission &&
+        matchesCondition &&
+        matchesCity &&
+        matchesColor &&
+        matchesPrice
+      )
+    })
+  }, [
+    cars,
+    searchTerm,
+    selectedBrand,
+    selectedModel,
+    selectedYear,
+    selectedFuel,
+    selectedTransmission,
+    selectedCondition,
+    selectedCity,
+    selectedColor,
+    priceRange,
+  ])
 
   if (isLoading) {
     return (
@@ -505,12 +399,8 @@ export default function HomePage() {
       <div className="navbar-slide">
         <Navbar />
       </div>
-      <section className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white py-12 md:py-20 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-400/10 to-transparent"></div>
-        <div className="absolute top-10 right-10 w-32 h-32 bg-blue-400/10 rounded-full blur-xl animate-pulse-slow"></div>
-        <div className="absolute bottom-10 left-10 w-24 h-24 bg-blue-300/10 rounded-full blur-lg animate-bounce-slow"></div>
-        <div className="absolute top-1/2 left-1/4 w-16 h-16 bg-white/5 rounded-full animate-pulse-slow"></div>
 
+      <section className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white py-12 md:py-20 relative overflow-hidden">
         <div className="container mx-auto px-4 text-center relative z-10">
           <h1 className="hero-title text-3xl md:text-5xl font-bold mb-4 md:mb-6 bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
             {t("heroTitle")}
@@ -541,9 +431,9 @@ export default function HomePage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4 p-6">
-                <div className="animate-fadeInUp stagger-1">
+                <div>
                   <label className="text-sm font-medium mb-2 block text-gray-700">{t("brand")}</label>
-                  <Select value={selectedBrand} onValueChange={setSelectedBrand}>
+                  <Select value={selectedBrand} onValueChange={(v) => setSelectedBrand(v)}>
                     <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300">
                       <SelectValue placeholder={t("selectBrand")} />
                     </SelectTrigger>
@@ -558,9 +448,9 @@ export default function HomePage() {
                   </Select>
                 </div>
 
-                <div className="animate-fadeInUp stagger-2">
+                <div>
                   <label className="text-sm font-medium mb-2 block text-gray-700">{t("model")}</label>
-                  <Select value={selectedModel} onValueChange={setSelectedModel}>
+                  <Select value={selectedModel} onValueChange={(v) => setSelectedModel(v)}>
                     <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300">
                       <SelectValue placeholder={t("selectModel")} />
                     </SelectTrigger>
@@ -575,9 +465,9 @@ export default function HomePage() {
                   </Select>
                 </div>
 
-                <div className="animate-fadeInUp stagger-3">
+                <div>
                   <label className="text-sm font-medium mb-2 block text-gray-700">{t("year")}</label>
-                  <Select value={selectedYear} onValueChange={setSelectedYear}>
+                  <Select value={selectedYear} onValueChange={(v) => setSelectedYear(v)}>
                     <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300">
                       <SelectValue placeholder={t("selectYear")} />
                     </SelectTrigger>
@@ -592,9 +482,9 @@ export default function HomePage() {
                   </Select>
                 </div>
 
-                <div className="animate-fadeInUp stagger-4">
+                <div>
                   <label className="text-sm font-medium mb-2 block text-gray-700">{t("fuel")}</label>
-                  <Select value={selectedFuel} onValueChange={setSelectedFuel}>
+                  <Select value={selectedFuel} onValueChange={(v) => setSelectedFuel(v)}>
                     <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300">
                       <SelectValue placeholder={t("selectFuel")} />
                     </SelectTrigger>
@@ -609,9 +499,9 @@ export default function HomePage() {
                   </Select>
                 </div>
 
-                <div className="animate-fadeInUp stagger-5">
+                <div>
                   <label className="text-sm font-medium mb-2 block text-gray-700">{t("transmission")}</label>
-                  <Select value={selectedTransmission} onValueChange={setSelectedTransmission}>
+                  <Select value={selectedTransmission} onValueChange={(v) => setSelectedTransmission(v)}>
                     <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300">
                       <SelectValue placeholder={t("selectTransmission")} />
                     </SelectTrigger>
@@ -626,9 +516,9 @@ export default function HomePage() {
                   </Select>
                 </div>
 
-                <div className="animate-fadeInUp stagger-6">
+                <div>
                   <label className="text-sm font-medium mb-2 block text-gray-700">{t("condition")}</label>
-                  <Select value={selectedCondition} onValueChange={setSelectedCondition}>
+                  <Select value={selectedCondition} onValueChange={(v) => setSelectedCondition(v)}>
                     <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300">
                       <SelectValue placeholder={t("selectCondition")} />
                     </SelectTrigger>
@@ -643,9 +533,9 @@ export default function HomePage() {
                   </Select>
                 </div>
 
-                <div className="animate-fadeInUp stagger-6">
+                <div>
                   <label className="text-sm font-medium mb-2 block text-gray-700">{t("city")}</label>
-                  <Select value={selectedCity} onValueChange={setSelectedCity}>
+                  <Select value={selectedCity} onValueChange={(v) => setSelectedCity(v)}>
                     <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300">
                       <SelectValue placeholder={t("selectCity")} />
                     </SelectTrigger>
@@ -660,9 +550,9 @@ export default function HomePage() {
                   </Select>
                 </div>
 
-                <div className="animate-fadeInUp stagger-6">
+                <div>
                   <label className="text-sm font-medium mb-2 block text-gray-700">{t("color")}</label>
-                  <Select value={selectedColor} onValueChange={setSelectedColor}>
+                  <Select value={selectedColor} onValueChange={(v) => setSelectedColor(v)}>
                     <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300">
                       <SelectValue placeholder={t("selectColor")} />
                     </SelectTrigger>
@@ -677,7 +567,7 @@ export default function HomePage() {
                   </Select>
                 </div>
 
-                <div className="animate-fadeInUp stagger-6">
+                <div>
                   <label className="text-sm font-medium mb-2 block text-gray-700">{t("priceRange")}</label>
                   <div className="flex gap-2">
                     <Input
@@ -699,14 +589,14 @@ export default function HomePage() {
                   variant="outline"
                   className="w-full bg-transparent border-blue-200 text-blue-600 hover:bg-blue-50 btn-animate transition-all duration-300 hover:scale-105"
                   onClick={() => {
-                    setSelectedBrand("")
-                    setSelectedModel("")
-                    setSelectedYear("")
-                    setSelectedFuel("")
-                    setSelectedTransmission("")
-                    setSelectedCondition("")
-                    setSelectedCity("")
-                    setSelectedColor("")
+                    setSelectedBrand("all")
+                    setSelectedModel("all")
+                    setSelectedYear("all")
+                    setSelectedFuel("all")
+                    setSelectedTransmission("all")
+                    setSelectedCondition("all")
+                    setSelectedCity("all")
+                    setSelectedColor("all")
                     setPriceRange({ min: "", max: "" })
                     setSearchTerm("")
                   }}
