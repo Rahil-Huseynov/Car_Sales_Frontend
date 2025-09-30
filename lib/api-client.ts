@@ -6,7 +6,19 @@ type GetAllCarsParams = {
   limit?: number;
   search?: string;
   status?: string;
+  brand?: string;
+  model?: string;
+  year?: number;
+  fuel?: string;
+  transmission?: string;
+  condition?: string;
+  color?: string;
+  city?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  sortBy?: string;
 };
+
 
 class ApiClient {
   private baseURL: string
@@ -229,9 +241,29 @@ class ApiClient {
     });
   }
 
-  async getPremiumCars(page = 1, limit = 100) {
-    return this.getAllCars({ page, limit, status: "premium" });
+  async getPremiumCars(params: Omit<GetAllCarsParams, "status"> = {}) {
+    const query = new URLSearchParams();
+
+    if (params.page !== undefined) query.append("page", params.page.toString());
+    if (params.limit !== undefined) query.append("limit", params.limit.toString());
+    if (params.search) query.append("search", params.search);
+    if (params.brand) query.append("brand", params.brand);
+    if (params.model) query.append("model", params.model);
+    if (params.year !== undefined) query.append("year", params.year.toString());
+    if (params.fuel) query.append("fuel", params.fuel);
+    if (params.transmission) query.append("transmission", params.transmission);
+    if (params.condition) query.append("condition", params.condition);
+    if (params.color) query.append("color", params.color);
+    if (params.city) query.append("city", params.city);
+    if (params.minPrice !== undefined) query.append("minPrice", params.minPrice.toString());
+    if (params.maxPrice !== undefined) query.append("maxPrice", params.maxPrice.toString());
+    if (params.sortBy) query.append("sortBy", params.sortBy);
+
+    const qs = query.toString();
+    const path = `/car/premium${qs ? `?${qs}` : ""}`;
+    return this.request(path, { method: "GET" });
   }
+
 
   async addcardata(formData: any) {
     return this.request('/user-cars', {
