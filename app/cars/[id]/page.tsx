@@ -1,6 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
+import { useParams, useRouter } from "next/navigation"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -18,71 +20,530 @@ import {
   Shield,
   ChevronLeft,
   ChevronRight,
+  Clipboard,
+  Check,
+  X,
+  ExternalLink,
 } from "lucide-react"
-import Image from "next/image"
 import { Navbar } from "@/components/navbar"
 import { useLanguage } from "@/hooks/use-language"
 import { getTranslation } from "@/lib/i18n"
+import { apiClient } from "@/lib/api-client"
 
-const car = {
-  id: 1,
-  brand: "BMW",
-  model: "X5",
-  year: 2022,
-  price: 85000,
-  mileage: 15000,
-  fuel: "gasoline",
-  transmission: "automatic",
-  color: "black",
-  location: "baku",
-  condition: "new",
-  engine: "3.0L",
-  power: "340 hp",
-  drivetrain: "AWD",
-  images: [
-    "/placeholder.svg?height=400&width=600&text=BMW+X5+Front",
-    "/placeholder.svg?height=400&width=600&text=BMW+X5+Side",
-    "/placeholder.svg?height=400&width=600&text=BMW+X5+Interior",
-    "/placeholder.svg?height=400&width=600&text=BMW+X5+Back",
-    "/placeholder.svg?height=400&width=600&text=BMW+X5+Engine",
-  ],
-  description:
-    "Bu BMW X5 mükəmməl vəziyyətdədir. Bütün servis işləri vaxtında aparılmışdır. Avtomobil heç bir qəzaya düşməmişdir və texniki vəziyyəti əladır.",
-  features: [
-    "Dəri oturacaqlar",
-    "Panorama dam",
-    "Navigasiya sistemi",
-    "Bluetooth",
-    "Kamera",
-    "Park sensoru",
-    "Kondisioner",
-    "ABS",
-    "ESP",
-    "Airbag",
-  ],
-  seller: {
-    name: "Əli Məmmədov",
-    phone: "+994 50 123 45 67",
-    email: "ali@example.com",
-    location: "Bakı",
-  },
+type ImageItem = string | { id?: number; url?: string }
+
+type CarType = {
+  id: number
+  brand: string
+  model: string
+  year?: number
+  price?: number
+  mileage?: number
+  fuel?: string
+  transmission?: string
+  color?: string
+  location?: string
+  condition?: string
+  engine?: string
+  power?: string
+  email?: string
+  phone?: string
+  drivetrain?: string
+  images?: ImageItem[]
+  description?: string
+  features?: string[]
+  seller?: {
+    name?: string
+    phone?: string
+    email?: string
+    location?: string
+  }
+}
+
+const API_UPLOADS_BASE = (process.env.NEXT_PUBLIC_API_URL_FOR_IMAGE || "").replace(/\/+$/, "")
+
+function safeImageUrl(i?: ImageItem) {
+  if (!i) return "/placeholder.svg"
+  const raw = typeof i === "string" ? i : i.url ?? ""
+  if (!raw) return "/placeholder.svg"
+  if (/^https?:\/\//i.test(raw)) return raw
+  const cleaned = raw.replace(/^\/+/, "").replace(/^uploads\/+/i, "")
+  return API_UPLOADS_BASE ? `${API_UPLOADS_BASE}/${cleaned}` : `/${cleaned}`
+}
+
+type ShareModalProps = {
+  isOpen: boolean
+  onClose: () => void
+  shareUrl: string
+  title?: string
+  subtitle?: string
+  image?: string
+}
+
+function ShareModal({ isOpen, onClose, shareUrl, title, subtitle, image }: ShareModalProps) {
+  const overlayRef = useRef<HTMLDivElement | null>(null)
+  const inputRef = useRef<HTMLInputElement | null>(null)
+  const lastActiveRef = useRef<HTMLElement | null>(null)
+  const [isCopying, setIsCopying] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose()
+      if (e.key === "Tab") {
+        const focusable = overlayRef.current?.querySelectorAll<HTMLElement>(
+          "button, [href], input, textarea, [tabindex]:not([tabindex='-1'])",
+        )
+        if (!focusable || focusable.length === 0) return
+        const first = focusable[0]
+        const last = focusable[focusable.length - 1]
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault()
+          last.focus()
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault()
+          first.focus()
+        }
+      }
+    }
+
+    if (isOpen) {
+      lastActiveRef.current = document.activeElement as HTMLElement
+      document.addEventListener("keydown", onKey)
+      setTimeout(() => inputRef.current?.focus(), 60)
+      document.body.style.overflow = "hidden"
+    }
+
+    return () => {
+      document.removeEventListener("keydown", onKey)
+      lastActiveRef.current?.focus?.()
+      document.body.style.overflow = ""
+    }
+  }, [isOpen, onClose])
+
+  if (!isOpen) return null
+
+  const handleOverlayClick = (e: React.MouseEvent) => {
+    if (e.target === overlayRef.current) onClose()
+  }
+
+  const handleCopy = async () => {
+    if (!shareUrl) return
+    try {
+      setIsCopying(true)
+      await navigator.clipboard.writeText(shareUrl)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1800)
+    } catch (err) {
+      console.error(err)
+      alert("Kopyalanmadı — brauzer dəstəyi olmayabilir.")
+    } finally {
+      setIsCopying(false)
+    }
+  }
+
+  const handleNativeShare = async () => {
+    if (!shareUrl) return
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: title ?? document.title,
+          text: subtitle ?? undefined,
+          url: shareUrl,
+        })
+        onClose()
+      } catch (err) {
+        console.error("Share failed", err)
+      }
+    } else {
+      await handleCopy()
+    }
+  }
+
+  const openSocial = (service: "facebook" | "telegram" | "whatsapp") => {
+    const enc = encodeURIComponent(shareUrl)
+    let url = ""
+    if (service === "facebook") url = `https://www.facebook.com/sharer/sharer.php?u=${enc}`
+    if (service === "telegram") url = `https://t.me/share/url?url=${enc}`
+    if (service === "whatsapp")
+      url = `https://api.whatsapp.com/send?text=${encodeURIComponent(`${title ? title + " - " : ""}${shareUrl}`)}`
+    window.open(url, "_blank", "noopener,noreferrer,width=600,height=600")
+  }
+
+  return (
+    <div
+      ref={overlayRef}
+      onClick={handleOverlayClick}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      aria-modal="true"
+      role="dialog"
+    >
+      <div className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5">
+        <div className="flex items-center justify-between px-5 py-4 border-b">
+          <div className="flex items-center gap-3">
+            <div className="rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-500 p-2 text-white">
+              <Share2 className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold leading-none">{title ?? "Paylaş"}</h3>
+              {subtitle && <p className="text-sm text-gray-500 mt-0.5">{subtitle}</p>}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                if (!shareUrl) return
+                window.open(shareUrl, "_blank", "noopener,noreferrer")
+              }}
+              className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+              aria-label="Open link in new tab"
+            >
+              <ExternalLink className="h-4 w-4 text-gray-600" /> Aç
+            </button>
+
+            <button onClick={onClose} className="rounded-full p-2 text-gray-600 hover:bg-gray-100" aria-label="Close share modal">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        <div className="px-6 py-5">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="relative flex-shrink-0">
+              <div className="h-28 w-40 overflow-hidden rounded-lg bg-gray-100">
+                {image ? (
+                  <img src={image} alt={title ?? "preview"} className="h-full w-full object-cover" />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-gray-400">Preview</div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex-1">
+              <label className="block text-xs font-medium text-gray-500 mb-2">Link</label>
+              <div className="flex w-full gap-2">
+                <input
+                  ref={inputRef}
+                  readOnly
+                  value={shareUrl}
+                  onFocus={(e) => e.currentTarget.select()}
+                  className="flex-1 rounded-lg border border-gray-200 px-4 py-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                />
+
+                <button
+                  onClick={handleCopy}
+                  disabled={isCopying}
+                  className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium ${copied ? "bg-green-50 text-green-700 ring-1 ring-green-100" : "bg-gray-100 text-gray-700"
+                    }`}
+                  aria-label="Copy link"
+                >
+                  {copied ? <Check className="h-4 w-4" /> : <Clipboard className="h-4 w-4" />}
+                  <span>{copied ? "Kopyalandı" : "Kopyala"}</span>
+                </button>
+              </div>
+
+              <p className="mt-3 text-sm text-gray-500">
+                Mobil cihazda native paylaşma pəncərəsi varsa <span className="font-medium">Paylaş</span> düyməsi açacaq.
+              </p>
+
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <button
+                  onClick={handleNativeShare}
+                  className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow"
+                >
+                  <Share2 className="h-4 w-4" /> Paylaş
+                </button>
+
+                <button onClick={() => openSocial("facebook")} className="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm hover:bg-gray-50">
+                  Facebook
+                </button>
+
+                <button onClick={() => openSocial("telegram")} className="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm hover:bg-gray-50">
+                  Telegram
+                </button>
+
+                <button onClick={() => openSocial("whatsapp")} className="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm hover:bg-gray-50">
+                  WhatsApp
+                </button>
+              </div>
+
+              <div className="mt-4 flex items-center justify-between">
+                <p className="text-xs text-gray-400">URL təminatı: təhlükəsiz və birbaşa paylaşım üçün hazırdır.</p>
+                <div className="text-xs text-gray-400" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-end gap-3 border-t px-6 py-4">
+          <button
+            onClick={() => {
+              if (!shareUrl) return
+              const subject = encodeURIComponent(title ?? "Link")
+              const body = encodeURIComponent(`${subtitle ? subtitle + "\n\n" : ""}${shareUrl}`)
+              window.location.href = `mailto:?subject=${subject}&body=${body}`
+            }}
+            className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-gray-100"
+          >
+            Mail ilə göndər
+          </button>
+
+          <button onClick={onClose} className="rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+            Bağla
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+type ContactModalProps = {
+  isOpen: boolean
+  onClose: () => void
+  toEmail?: string | null
+  subject?: string
+  prefillPhone?: string | null
+  carTitle?: string
+}
+
+function ContactModal({ isOpen, onClose, toEmail, subject, prefillPhone, carTitle }: ContactModalProps) {
+  const overlayRef = useRef<HTMLDivElement | null>(null)
+  const [name, setName] = useState("")
+  const [fromEmail, setFromEmail] = useState("")
+  const [message, setMessage] = useState(
+    `Salam,\n\nMən ${carTitle ?? ""} avtomobili ilə maraqlanıram. Xahiş edirəm əlavə məlumat və təklif etdiyiniz şərtlər haqqında ətraflı məlumat verəsiniz.\n\nƏvvəlcədən təşəkkür edirəm.\n`
+  )
+  const [sending, setSending] = useState(false)
+  const [sent, setSent] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+
+  useEffect(() => {
+    if (isOpen) {
+      setError(null)
+      setSent(false)
+      setTimeout(() => overlayRef.current?.querySelector<HTMLInputElement>("input")?.focus(), 60)
+      document.body.style.overflow = "hidden"
+    }
+    return () => {
+      document.body.style.overflow = ""
+    }
+  }, [isOpen])
+
+  if (!isOpen) return null
+
+  const handleOverlayClick = (e: React.MouseEvent) => {
+    if (e.target === overlayRef.current) onClose()
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setSending(true)
+    setError(null)
+
+    const payload = {
+      to: toEmail || '',
+      subject: subject || `Maraqlanan: ${carTitle ?? ""}`,
+      name,
+      from: fromEmail,
+      message,
+      phone: prefillPhone || undefined,
+    }
+
+    try {
+      if (apiClient && typeof (apiClient as any).sendEmail === "function") {
+        try {
+          const res = await apiClient.sendEmail(payload)
+          if (res.success) {
+            setSent(true)
+            setTimeout(() => {
+              window.location.reload()
+            }, 2000)
+          } else {
+            throw new Error("Server göndərmə xətası")
+          }
+        } catch (err: any) {
+          console.error(err)
+          setError(err?.message || "Göndərilmə zamanı xəta baş verdi.")
+        }
+      } else {
+        const API_BASE = process.env.NEXT_PUBLIC_API_URL || ""
+        if (API_BASE) {
+          const res = await apiClient.sendEmail(payload)
+          setSent(true)
+        } else {
+          const mailtoTo = encodeURIComponent(String(toEmail || ""))
+          const mailSubj = encodeURIComponent(payload.subject || "")
+          const mailBody = encodeURIComponent(
+            `${payload.message}\n\nAd: ${payload.name || ""}\nE-mail: ${payload.from || ""}\nTelefon: ${payload.phone || ""}`
+          )
+          window.location.href = `mailto:${mailtoTo}?subject=${mailSubj}&body=${mailBody}`
+          setSent(true)
+        }
+      }
+    } catch (err: any) {
+      console.error(err)
+      setError(err?.message || "Göndərilmə zamanı xəta baş verdi.")
+    } finally {
+      setSending(false)
+    }
+  }
+
+  return (
+    <div
+      ref={overlayRef}
+      onClick={handleOverlayClick}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      role="dialog"
+      aria-modal="true"
+    >
+      <form onSubmit={handleSubmit} className="w-full max-w-md transform overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-black/5">
+        <div className="flex items-center justify-between px-5 py-3 border-b">
+          <div>
+            <h3 className="text-lg font-semibold">Satıcıya mesaj göndər</h3>
+            <p className="text-xs text-gray-500 mt-0.5">Sualınızı yazın, biz göndərməyə kömək edək.</p>
+          </div>
+
+          <button type="button" onClick={onClose} className="text-gray-600 rounded-full p-2 hover:bg-gray-100">
+            ✕
+          </button>
+        </div>
+
+        <div className="px-5 py-4 space-y-3">
+          {sent ? <div className="rounded-md bg-green-50 px-4 py-3 text-green-700">Mesaj uğurla göndərildi.</div> : null}
+          {error ? <div className="rounded-md bg-red-50 px-4 py-3 text-red-700">{error}</div> : null}
+
+          <div>
+            <label className="text-xs text-gray-500">Ad (istəyə bağlı)</label>
+            <input
+              className="mt-1 w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Adınızı daxil edin"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs text-gray-500">E-mail (təmas üçün)</label>
+            <input
+              className="mt-1 w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              value={fromEmail}
+              onChange={(e) => setFromEmail(e.target.value)}
+              placeholder="sizin@email.com"
+              type="email"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs text-gray-500">Mesaj</label>
+            <textarea
+              className="mt-1 h-28 w-full rounded-md border resize-none px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="text-xs text-gray-500">Satıcının e-maili</label>
+            <input readOnly value={toEmail ?? ""} className="mt-1 w-full rounded-md border bg-gray-50 px-3 py-2 text-sm" />
+          </div>
+        </div>
+
+        <div className="flex items-center justify-end gap-3 border-t px-5 py-3">
+          <button
+            type="button"
+            onClick={() => {
+              const mailtoTo = encodeURIComponent(String(toEmail || ""))
+              const mailSubj = encodeURIComponent(subject || `Maraqlanma: ${carTitle ?? ""}`)
+              const mailBody = encodeURIComponent(`${message}\n\nAd: ${name}\nE-mail: ${fromEmail}\nTelefon: ${prefillPhone || ""}`)
+              window.location.href = `mailto:${mailtoTo}?subject=${mailSubj}&body=${mailBody}`
+            }}
+            className="rounded-md px-3 py-2 text-sm hover:bg-gray-100"
+          >
+            MailClient ilə aç
+          </button>
+
+          <button type="submit" disabled={sending} className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+            {sending ? "Göndərilir..." : "Mesaj göndər"}
+          </button>
+        </div>
+      </form>
+    </div>
+  )
 }
 
 export default function CarDetailPage() {
   const { language } = useLanguage()
   const t = (key: string) => getTranslation(language, key)
 
+  const params = useParams()
+  const router = useRouter()
+  const idParam = Array.isArray(params?.id) ? params?.id[0] : params?.id
+  const id = idParam ? Number(idParam) : NaN
+
+  const [loading, setLoading] = useState(true)
+  const [car, setCar] = useState<CarType | null>(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [error, setError] = useState<string | null>(null)
+
+  const [isShareOpen, setIsShareOpen] = useState(false)
+  const [shareUrl, setShareUrl] = useState<string>("")
+
+  const [contactOpen, setContactOpen] = useState(false)
+
+  useEffect(() => {
+    if (!id || Number.isNaN(id)) {
+      setError("Uyğun ID tapılmadı.")
+      setLoading(false)
+      return
+    }
+
+    const controller = new AbortController()
+    const signal = controller.signal
+
+    async function fetchCar() {
+      setLoading(true)
+      setError(null)
+      try {
+        const res = await apiClient.getCarId(id)
+        if (!res) {
+          setError("Maşın tapılmadı.")
+          setCar(null)
+          setLoading(false)
+          return
+        }
+        setCar(res)
+        setCurrentImageIndex(0)
+      } catch (e: any) {
+        console.error(e)
+        setError(e?.message || "Məlumat çəkilərkən xəta baş verdi.")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchCar()
+    return () => controller.abort()
+  }, [id])
+
+  useEffect(() => {
+    if (!car) return
+    const base = process.env.NEXT_PUBLIC_SITE_URL || (typeof window !== "undefined" ? window.location.origin : "")
+    setShareUrl(`${base}/car/${car.id}`)
+  }, [car])
 
   const nextImage = () => {
-    setCurrentImageIndex((prev) => (prev + 1) % car.images.length)
+    if (!car?.images?.length) return
+    setCurrentImageIndex((prev) => (prev + 1) % (car.images!.length || 1))
   }
 
   const prevImage = () => {
-    setCurrentImageIndex((prev) => (prev - 1 + car.images.length) % car.images.length)
+    if (!car?.images?.length) return
+    setCurrentImageIndex((prev) => (prev - 1 + (car.images!.length || 1)) % (car.images!.length || 1))
   }
 
-  const content = {
+  const pageContentDefaults = {
     az: {
       description: "Təsvir",
       features: "Xüsusiyyətlər",
@@ -148,7 +609,50 @@ export default function CarDetailPage() {
     },
   }
 
-  const pageContent = content[language]
+  const pageContent = pageContentDefaults[language] ?? pageContentDefaults.az
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="container mx-auto px-4 py-10">Yüklənir...</div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="container mx-auto px-4 py-6">
+          <Card>
+            <CardContent>
+              <p className="text-red-600 mb-4">{error}</p>
+              <Button onClick={() => router.back()}>Geri</Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
+
+  if (!car) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="container mx-auto px-4 py-6">
+          <Card>
+            <CardContent>
+              <p>Maşın tapılmadı.</p>
+              <Button onClick={() => router.push("/")}>Ana Səhifəyə</Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
+
+  const images = car.images && car.images.length ? car.images.map(safeImageUrl) : ["/placeholder.svg"]
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -161,17 +665,19 @@ export default function CarDetailPage() {
               <CardContent className="p-0">
                 <div className="relative">
                   <Image
-                    src={car.images[currentImageIndex] || "/placeholder.svg"}
+                    src={images[currentImageIndex] || "/placeholder.svg"}
                     alt={`${car.brand} ${car.model} - Image ${currentImageIndex + 1}`}
                     width={600}
                     height={400}
                     className="w-full h-64 md:h-96 object-cover rounded-t-lg"
                   />
+
                   <Button
                     size="icon"
                     variant="secondary"
                     className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white"
                     onClick={prevImage}
+                    aria-label="Previous image"
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
@@ -181,32 +687,37 @@ export default function CarDetailPage() {
                     variant="secondary"
                     className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white"
                     onClick={nextImage}
+                    aria-label="Next image"
                   >
                     <ChevronRight className="h-4 w-4" />
                   </Button>
 
                   <div className="absolute bottom-4 left-4 bg-black/70 text-white px-3 py-1 rounded-md text-sm">
-                    {currentImageIndex + 1} / {car.images.length}
+                    {currentImageIndex + 1} / {images.length}
                   </div>
 
                   <div className="absolute top-4 right-4 flex gap-2">
-                    <Button size="icon" variant="secondary">
+                    <Button size="icon" variant="secondary" aria-label="Favorite">
                       <Heart className="h-4 w-4" />
                     </Button>
-                    <Button size="icon" variant="secondary">
+
+                    <Button
+                      size="icon"
+                      variant="secondary"
+                      onClick={() => setIsShareOpen(true)}
+                      aria-label="Share"
+                    >
                       <Share2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-5 gap-2 p-4">
-                  {car.images.map((image, index) => (
+                  {images.map((image, index) => (
                     <button
                       key={index}
                       onClick={() => setCurrentImageIndex(index)}
-                      className={`relative overflow-hidden rounded-md ${
-                        currentImageIndex === index ? "ring-2 ring-blue-500" : ""
-                      }`}
+                      className={`relative overflow-hidden rounded-md ${currentImageIndex === index ? "ring-2 ring-blue-500" : ""}`}
                     >
                       <Image
                         src={image || "/placeholder.svg"}
@@ -229,11 +740,11 @@ export default function CarDetailPage() {
                       {car.brand} {car.model}
                     </CardTitle>
                     <p className="text-gray-600 text-lg">
-                      {car.year} • {t(car.condition)}
+                      {car.year} • {t(car.condition ?? "")}
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-3xl font-bold text-blue-600">{car.price.toLocaleString()} ₼</p>
+                    <p className="text-3xl font-bold text-blue-600">{(car.price ?? 0).toLocaleString()} ₼</p>
                   </div>
                 </div>
               </CardHeader>
@@ -243,28 +754,28 @@ export default function CarDetailPage() {
                     <Gauge className="h-5 w-5 text-gray-500" />
                     <div>
                       <p className="text-sm text-gray-500">{pageContent.mileage}</p>
-                      <p className="font-semibold">{car.mileage.toLocaleString()} km</p>
+                      <p className="font-semibold">{(car.mileage ?? 0).toLocaleString()} km</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Fuel className="h-5 w-5 text-gray-500" />
                     <div>
                       <p className="text-sm text-gray-500">{pageContent.fuel}</p>
-                      <p className="font-semibold">{t(car.fuel)}</p>
+                      <p className="font-semibold">{t(car.fuel ?? "")}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Users className="h-5 w-5 text-gray-500" />
                     <div>
                       <p className="text-sm text-gray-500">{pageContent.transmission}</p>
-                      <p className="font-semibold">{t(car.transmission)}</p>
+                      <p className="font-semibold">{t(car.transmission ?? "")}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Palette className="h-5 w-5 text-gray-500" />
                     <div>
                       <p className="text-sm text-gray-500">{pageContent.color}</p>
-                      <p className="font-semibold">{t(car.color)}</p>
+                      <p className="font-semibold">{t(car.color ?? "")}</p>
                     </div>
                   </div>
                 </div>
@@ -301,7 +812,7 @@ export default function CarDetailPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-3">
-                  {car.features.map((feature, index) => (
+                  {(car.features ?? []).map((feature, index) => (
                     <div key={index} className="flex items-center gap-2">
                       <Shield className="h-4 w-4 text-green-500" />
                       <span className="text-sm">{feature}</span>
@@ -319,22 +830,34 @@ export default function CarDetailPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <p className="font-semibold">{car.seller.name}</p>
+                  <p className="font-semibold">{car.seller?.name}</p>
                   <div className="flex items-center gap-1 text-sm text-gray-600">
                     <MapPin className="h-4 w-4" />
-                    {car.seller.location}
+                    {car.seller?.location}
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Button className="w-full" size="lg">
-                    <Phone className="h-4 w-4 mr-2" />
-                    {car.seller.phone}
-                  </Button>
-                  <Button variant="outline" className="w-full bg-transparent">
-                    <Mail className="h-4 w-4 mr-2" />
-                    {pageContent.sendEmail}
-                  </Button>
+                  <div className="grid grid-cols-2 gap-2">
+                    <a
+                      href={car.seller?.phone ? `tel:${String(car.seller.phone).replace(/\s+/g, "")}` : "#"}
+                      className="inline-flex items-center justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-medium text-white hover:bg-green-700"
+                    >
+                      <Phone className="h-4 w-4 mr-2" />
+                      {car.phone ?? "Nömrə yoxdur"}
+                    </a>
+
+                    <button type="button" onClick={() => setContactOpen(true)} className="inline-flex items-center justify-center rounded-md border px-3 py-2 text-sm font-medium hover:bg-gray-50">
+                      <Mail className="h-4 w-4 mr-2" />
+                      {pageContent.sendEmail}
+                    </button>
+                  </div>
+
+                  <div className="mt-2 flex gap-2 items-center">
+                    <a href={car.email ? `mailto:${car.email}` : "#"} className="ml-auto text-xs text-gray-500 hover:underline">
+                      {car.seller?.email ?? ""}
+                    </a>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -358,11 +881,11 @@ export default function CarDetailPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">{pageContent.condition}:</span>
-                  <Badge variant="outline">{t(car.condition)}</Badge>
+                  <Badge variant="outline">{t(car.condition ?? "")}</Badge>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">{pageContent.location}:</span>
-                  <span className="font-semibold">{t(car.location)}</span>
+                  <span className="font-semibold">{t(car.location ?? "")}</span>
                 </div>
               </CardContent>
             </Card>
@@ -381,6 +904,23 @@ export default function CarDetailPage() {
           </div>
         </div>
       </div>
+
+      <ShareModal
+        isOpen={isShareOpen}
+        onClose={() => setIsShareOpen(false)}
+        shareUrl={shareUrl}
+        title={`${car.brand} ${car.model}`}
+        subtitle={`${car.price ?? ""} ₼`}
+        image={images[0]}
+      />
+      <ContactModal
+        isOpen={contactOpen}
+        onClose={() => setContactOpen(false)}
+        toEmail={car.email}
+        prefillPhone={car.seller?.phone}
+        subject={`${car.brand} ${car.model}`}
+        carTitle={`${car.brand} ${car.model}`}
+      />
     </div>
   )
 }

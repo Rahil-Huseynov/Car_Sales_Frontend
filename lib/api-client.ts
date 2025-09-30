@@ -286,10 +286,14 @@ class ApiClient {
     });
   }
 
-
   async getUsers(page = 1, limit = 10) {
     return this.request(`/auth/users?page=${page}&limit=${limit}`)
   }
+
+  async getCarId(id: number) {
+    return this.request(`/car/${id}`)
+  }
+
 
   async getUserById(id: string) {
     return this.request(`/users/${id}`)
@@ -330,6 +334,25 @@ class ApiClient {
     return response;
   }
 
+  async sendEmail(payload: { to: string; subject: string; message: string; name?: string; from?: string; phone?: string }) {
+    const res = await this.request('/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to: payload.to,
+        subject: payload.subject,
+        text: `${payload.message}\n\nAd: ${payload.name || ''}\nEmail: ${payload.from || ''}\nTelefon: ${payload.phone || ''}`,
+      }),
+    });
+    if ('ok' in res && !res.ok) {
+      let data: any = {};
+      try {
+        data = await (res as Response).json();
+      } catch { }
+      throw new Error(data.message || 'Server xətası');
+    }
+    return { success: true };
+  }
 
 }
 
