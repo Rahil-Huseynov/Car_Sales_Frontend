@@ -1,8 +1,8 @@
 "use client"
 
-import type React from "react"
-
-import { useEffect, useState } from "react"
+import React, { useEffect, useMemo, useState } from "react"
+import Image from "next/image"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -24,170 +24,77 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react"
-import Image from "next/image"
-import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 import { apiClient } from "@/lib/api-client"
 import { useAuth } from "@/lib/auth-context"
 
-type User = {
+type CarImage = { id: number; url: string } | string
+type UserCar = {
   id: number
-  firstName: string
-  lastName: string
-  email: string
-  phoneNumber: string
-  role: string
-  createdAt: string
+  brand?: string
+  model?: string
+  year?: number
+  price?: number
+  mileage?: number
+  fuel?: string
+  transmission?: string
+  condition?: string
+  color?: string
+  location?: string
+  city?: string
+  images?: CarImage[]
+  featured?: boolean
+  [k: string]: any
 }
-const cars = [
-  {
-    id: 1,
-    brand: "BMW",
-    model: "X5",
-    year: 2022,
-    price: 85000,
-    mileage: 15000,
-    fuel: "Benzin",
-    transmission: "Avtomatik",
-    color: "Qara",
-    location: "Bakı",
-    city: "Bakı",
-    images: [
-      "/placeholder.svg?height=200&width=300&text=BMW+X5+Front",
-      "/placeholder.svg?height=200&width=300&text=BMW+X5+Side",
-      "/placeholder.svg?height=200&width=300&text=BMW+X5+Interior",
-      "/placeholder.svg?height=200&width=300&text=BMW+X5+Back",
-      "/placeholder.svg?height=200&width=300&text=BMW+X5+Engine",
-    ],
-    featured: true,
-    condition: "Yeni",
-  },
-  {
-    id: 2,
-    brand: "Mercedes",
-    model: "C-Class",
-    year: 2021,
-    price: 65000,
-    mileage: 25000,
-    fuel: "Benzin",
-    transmission: "Avtomatik",
-    color: "Ağ",
-    location: "Bakı",
-    city: "Bakı",
-    images: [
-      "/placeholder.svg?height=200&width=300&text=Mercedes+C+Front",
-      "/placeholder.svg?height=200&width=300&text=Mercedes+C+Side",
-      "/placeholder.svg?height=200&width=300&text=Mercedes+C+Interior",
-      "/placeholder.svg?height=200&width=300&text=Mercedes+C+Back",
-      "/placeholder.svg?height=200&width=300&text=Mercedes+C+Engine",
-    ],
-    featured: false,
-    condition: "İşlənmiş",
-  },
-  {
-    id: 3,
-    brand: "Toyota",
-    model: "Camry",
-    year: 2023,
-    price: 45000,
-    mileage: 5000,
-    fuel: "Hibrid",
-    transmission: "Avtomatik",
-    color: "Gümüşü",
-    location: "Gəncə",
-    city: "Gəncə",
-    images: [
-      "/placeholder.svg?height=200&width=300&text=Toyota+Camry+Front",
-      "/placeholder.svg?height=200&width=300&text=Toyota+Camry+Side",
-      "/placeholder.svg?height=200&width=300&text=Toyota+Camry+Interior",
-      "/placeholder.svg?height=200&width=300&text=Toyota+Camry+Back",
-      "/placeholder.svg?height=200&width=300&text=Toyota+Camry+Engine",
-    ],
-    featured: true,
-    condition: "Yeni",
-  },
-  ...Array.from({ length: 20 }, (_, i) => ({
-    id: i + 4,
-    brand: ["BMW", "Mercedes", "Audi", "Toyota", "Hyundai", "Volkswagen"][i % 6],
-    model: ["X3", "E-Class", "A4", "Corolla", "Elantra", "Passat"][i % 6],
-    year: 2018 + (i % 6),
-    price: 25000 + i * 3000,
-    mileage: 10000 + i * 5000,
-    fuel: ["Benzin", "Dizel", "Hibrid"][i % 3],
-    transmission: ["Avtomatik", "Mexaniki"][i % 2],
-    color: ["Qara", "Ağ", "Gümüşü", "Göy", "Qırmızı"][i % 5],
-    location: ["Bakı", "Gəncə", "Sumqayıt"][i % 3],
-    city: ["Bakı", "Gəncə", "Sumqayıt"][i % 3],
-    images: [
-      `/placeholder.svg?height=200&width=300&text=Car+${i + 4}+Front`,
-      `/placeholder.svg?height=200&width=300&text=Car+${i + 4}+Side`,
-      `/placeholder.svg?height=200&width=300&text=Car+${i + 4}+Interior`,
-      `/placeholder.svg?height=200&width=300&text=Car+${i + 4}+Back`,
-      `/placeholder.svg?height=200&width=300&text=Car+${i + 4}+Engine`,
-    ],
-    featured: i % 5 === 0,
-    condition: i % 3 === 0 ? "Yeni" : "İşlənmiş",
-  })),
-]
 
+const itemsPerPage = 20
+function buildQuery(params: Record<string, any>) {
+  const q = new URLSearchParams()
+  Object.entries(params).forEach(([k, v]) => {
+    if (v === undefined || v === null || v === "" || v === "all") return
+    q.append(k, String(v))
+  })
+  return q.toString()
+}
 
-function CarCard({ car }: { car: (typeof cars)[0] }) {
+function CarCard({ car }: { car: UserCar }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const [profileData, setProfileData] = useState<User | null>(null)
   const { logout } = useAuth()
-  const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      const token = localStorage.getItem("accessToken")
-      if (!token) {
-        setLoading(false)
-        return
-      }
-      try {
-        const data = await apiClient.getCurrentUser()
-        setProfileData(data)
-      } catch {
-        logout()
-        window.location.reload()
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchUser()
-  }, [logout])
+  const imageUrls = (car.images ?? []).map((img) => (typeof img === "string" ? img : img?.url ?? "/placeholder.svg"))
 
   const nextImage = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    setCurrentImageIndex((prev) => (prev + 1) % car.images.length)
+    setCurrentImageIndex((prev) => (prev + 1) % Math.max(1, imageUrls.length))
   }
 
   const prevImage = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    setCurrentImageIndex((prev) => (prev - 1 + car.images.length) % car.images.length)
+    setCurrentImageIndex((prev) => (prev - 1 + Math.max(1, imageUrls.length)) % Math.max(1, imageUrls.length))
   }
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow">
       <div className="relative group">
         <Image
-          src={car.images[currentImageIndex] || "/placeholder.svg"}
-          alt={`${car.brand} ${car.model}`}
+          src={imageUrls[currentImageIndex] || "/placeholder.svg"}
+          alt={`${car.brand ?? ""} ${car.model ?? ""}`}
           width={300}
           height={200}
           className="w-full h-48 object-cover"
         />
 
+
         {car.featured && <Badge className="absolute top-2 left-2 bg-yellow-500 z-10">Seçilmiş</Badge>}
-        {car.images.length > 1 && (
+
+        {imageUrls.length > 1 && (
           <>
             <Button
               size="icon"
               variant="ghost"
-              className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"
+              className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"
               onClick={prevImage}
             >
               <ChevronLeft className="h-4 w-4" />
@@ -196,7 +103,7 @@ function CarCard({ car }: { car: (typeof cars)[0] }) {
             <Button
               size="icon"
               variant="ghost"
-              className="absolute right-12 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"
+              className="absolute right-1 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"
               onClick={nextImage}
             >
               <ChevronRight className="h-4 w-4" />
@@ -205,11 +112,10 @@ function CarCard({ car }: { car: (typeof cars)[0] }) {
         )}
 
         <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1">
-          {car.images.map((_, index) => (
+          {imageUrls.map((_, index) => (
             <button
               key={index}
-              className={`w-2 h-2 rounded-full transition-all ${index === currentImageIndex ? "bg-white" : "bg-white/50"
-                }`}
+              className={`w-2 h-2 rounded-full transition-all ${index === currentImageIndex ? "bg-white" : "bg-white/50"}`}
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
@@ -221,7 +127,7 @@ function CarCard({ car }: { car: (typeof cars)[0] }) {
 
         <div className="absolute bottom-2 left-2 bg-black/70 text-white px-2 py-1 rounded-md text-xs flex items-center gap-1">
           <Camera className="h-3 w-3" />
-          {currentImageIndex + 1}/{car.images.length}
+          {currentImageIndex + 1}/{Math.max(1, imageUrls.length)}
         </div>
 
         <Button
@@ -248,7 +154,7 @@ function CarCard({ car }: { car: (typeof cars)[0] }) {
             </p>
           </div>
           <div className="text-right">
-            <p className="text-2xl font-bold text-blue-600">{car.price.toLocaleString()} ₼</p>
+            <p className="text-2xl font-bold text-blue-600">{(car.price ?? 0).toLocaleString()} ₼</p>
           </div>
         </div>
       </CardHeader>
@@ -257,7 +163,7 @@ function CarCard({ car }: { car: (typeof cars)[0] }) {
         <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-4">
           <div className="flex items-center gap-1">
             <Car className="h-4 w-4" />
-            {car.mileage.toLocaleString()} km
+            {(car.mileage ?? 0).toLocaleString()} km
           </div>
           <div className="flex items-center gap-1">
             <Fuel className="h-4 w-4" />
@@ -309,70 +215,127 @@ export default function CarsPage() {
   const [sortBy, setSortBy] = useState("newest")
   const [currentPage, setCurrentPage] = useState(1)
   const [showFilters, setShowFilters] = useState(false)
+  const [cars, setCars] = useState<UserCar[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [totalCount, setTotalCount] = useState<number | null>(null)
+  const [totalPagesFromServer, setTotalPagesFromServer] = useState<number | null>(null)
+  const [isServerPagination, setIsServerPagination] = useState(false)
+  const brands = useMemo(() => [...new Set(cars.map((c) => c.brand).filter(Boolean))] as string[], [cars])
+  const years = useMemo(() => [...new Set(cars.map((c) => c.year).filter(Boolean))].sort((a: any, b: any) => b - a) as number[], [cars])
+  const fuels = useMemo(() => [...new Set(cars.map((c) => c.fuel).filter(Boolean))] as string[], [cars])
+  const transmissions = useMemo(() => [...new Set(cars.map((c) => c.transmission).filter(Boolean))] as string[], [cars])
+  const conditions = useMemo(() => [...new Set(cars.map((c) => c.condition).filter(Boolean))] as string[], [cars])
+  const models = useMemo(() => [...new Set(cars.map((c) => c.model).filter(Boolean))] as string[], [cars])
+  const cities = useMemo(() => [...new Set(cars.map((c) => c.city).filter(Boolean))] as string[], [cars])
+  const colors = useMemo(() => [...new Set(cars.map((c) => c.color).filter(Boolean))] as string[], [cars])
 
-  const itemsPerPage = 12
+  const fetchCars = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const params: any = {
+        page: currentPage,
+        limit: itemsPerPage,
+      }
 
-  const brands = [...new Set(cars.map((car) => car.brand))]
-  const years = [...new Set(cars.map((car) => car.year))].sort((a, b) => b - a)
-  const fuels = [...new Set(cars.map((car) => car.fuel))]
-  const transmissions = [...new Set(cars.map((car) => car.transmission))]
-  const conditions = [...new Set(cars.map((car) => car.condition))]
-  const models = [...new Set(cars.map((car) => car.model))]
-  const cities = [...new Set(cars.map((car) => car.city))]
-  const colors = [...new Set(cars.map((car) => car.color))]
+      if (searchTerm) params.search = searchTerm
+      if (selectedBrand !== "all") params.brand = selectedBrand
+      if (selectedModel !== "all") params.model = selectedModel
+      if (selectedYear !== "all") params.year = Number(selectedYear)
+      if (selectedFuel !== "all") params.fuel = selectedFuel
+      if (selectedTransmission !== "all") params.transmission = selectedTransmission
+      if (selectedCondition !== "all") params.status = selectedCondition
+      if (selectedCity !== "all") params.city = selectedCity
+      if (selectedColor !== "all") params.color = selectedColor
+      if (priceRange.min) params.minPrice = Number(priceRange.min)
+      if (priceRange.max) params.maxPrice = Number(priceRange.max)
+      if (sortBy) params.sortBy = sortBy
 
-  const filteredCars = cars.filter((car) => {
-    const matchesSearch =
-      car.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      car.model.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesBrand = selectedBrand === "all" || car.brand === selectedBrand
-    const matchesModel = selectedModel === "all" || car.model === selectedModel
-    const matchesYear = selectedYear === "all" || car.year.toString() === selectedYear
-    const matchesFuel = selectedFuel === "all" || car.fuel === selectedFuel
-    const matchesTransmission = selectedTransmission === "all" || car.transmission === selectedTransmission
-    const matchesCondition = selectedCondition === "all" || car.condition === selectedCondition
-    const matchesCity = selectedCity === "all" || car.city === selectedCity
-    const matchesColor = selectedColor === "all" || car.color === selectedColor
-    const matchesPrice =
-      (!priceRange.min || car.price >= Number.parseInt(priceRange.min)) &&
-      (!priceRange.max || car.price <= Number.parseInt(priceRange.max))
+      let resp: any = null
+      if (apiClient?.getAllCars) {
+        resp = await apiClient.getAllCars(params)
+      } else {
+        const qs = buildQuery(params)
+        const r = await fetch(`/car/all?${qs}`)
+        resp = await r.json()
+      }
 
-    return (
-      matchesSearch &&
-      matchesBrand &&
-      matchesModel &&
-      matchesYear &&
-      matchesFuel &&
-      matchesTransmission &&
-      matchesCondition &&
-      matchesCity &&
-      matchesColor &&
-      matchesPrice
-    )
-  })
+      const normalizeCars = (raw: any) => {
+        if (!raw) return { cars: [], total: null, totalPages: null, page: null }
+        if (Array.isArray(raw)) return { cars: raw, total: raw.length, totalPages: null, page: null }
+        if (raw.data && Array.isArray(raw.data)) return { cars: raw.data, total: raw.meta?.total ?? null, totalPages: raw.meta?.totalPages ?? null, page: raw.meta?.page ?? null }
+        if (raw.cars && Array.isArray(raw.cars)) return { cars: raw.cars, total: raw.totalCount ?? null, totalPages: raw.totalPages ?? null, page: raw.currentPage ?? null }
+        if (raw.items && Array.isArray(raw.items)) return { cars: raw.items, total: raw.total ?? null, totalPages: raw.totalPages ?? null, page: raw.page ?? null }
+        return { cars: [], total: null, totalPages: null, page: null }
+      }
 
-  const sortedCars = [...filteredCars].sort((a, b) => {
-    switch (sortBy) {
-      case "price-low":
-        return a.price - b.price
-      case "price-high":
-        return b.price - a.price
-      case "year-new":
-        return b.year - a.year
-      case "year-old":
-        return a.year - b.year
-      case "mileage-low":
-        return a.mileage - b.mileage
-      case "mileage-high":
-        return b.mileage - a.mileage
-      default:
-        return b.id - a.id
+
+
+      const { cars: fetchedCars, total, totalPages: serverTP, page: serverPage } = normalizeCars(resp)
+
+      const IMAGE_BASE = process.env.NEXT_PUBLIC_API_URL_FOR_IMAGE?.replace(/\/+$/, "") ?? "";
+
+      const mapped = (fetchedCars ?? []).map((c: any) => {
+        const imgs = (c.images ?? []).map((img: any) => {
+          if (!img) return "/placeholder.svg";
+          const rawUrl = typeof img === "string" ? img : img.url ?? "";
+          if (!rawUrl) return "/placeholder.svg";
+          const cleanedUrl = rawUrl.replace(/^\/?uploads\/?/, "");
+          return `${IMAGE_BASE}/${cleanedUrl}`;
+        });
+        return { ...c, images: imgs };
+      });
+
+
+
+
+      setCars(mapped)
+
+      if (typeof total === "number") {
+        setIsServerPagination(true)
+        setTotalCount(total)
+        setTotalPagesFromServer(typeof serverTP === "number" ? serverTP : Math.max(1, Math.ceil((total ?? mapped.length) / itemsPerPage)))
+      } else {
+        setIsServerPagination(false)
+        setTotalCount(mapped.length)
+        setTotalPagesFromServer(null)
+      }
+    } catch (err: any) {
+      console.error(err)
+      setError(err?.message ?? "Xəta baş verdi")
+    } finally {
+      setLoading(false)
     }
-  })
+  }
 
-  const totalPages = Math.ceil(sortedCars.length / itemsPerPage)
+  useEffect(() => {
+    fetchCars()
+  }, [currentPage, searchTerm, selectedBrand, selectedModel, selectedYear, selectedFuel, selectedTransmission, selectedCondition, selectedCity, selectedColor, priceRange.min, priceRange.max, sortBy])
+
+  const totalPages = isServerPagination
+    ? Math.max(1, Math.ceil((totalCount ?? 0) / itemsPerPage))
+    : Math.ceil((cars.length) / itemsPerPage) || 1
+
   const startIndex = (currentPage - 1) * itemsPerPage
-  const paginatedCars = sortedCars.slice(startIndex, startIndex + itemsPerPage)
+  const paginatedCars = isServerPagination ? cars : cars.slice(startIndex, startIndex + itemsPerPage)
+
+  const renderPageButtons = () => {
+    const visible = Math.min(5, totalPages)
+    const half = Math.floor(visible / 2)
+    const start = Math.max(1, Math.min(currentPage - half, totalPages - visible + 1))
+    const pages = Array.from({ length: visible }, (_, i) => start + i)
+    return pages.map((pageNum) => (
+      <Button
+        key={pageNum}
+        variant={currentPage === pageNum ? "default" : "outline"}
+        onClick={() => setCurrentPage(pageNum)}
+        className="w-10"
+      >
+        {pageNum}
+      </Button>
+    ))
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -391,7 +354,7 @@ export default function CarsPage() {
                 <Input
                   placeholder="Marka, model axtarın..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1) }}
                   className="pl-10"
                 />
               </div>
@@ -414,144 +377,95 @@ export default function CarsPage() {
                     <Filter className="h-5 w-5" />
                     <h3 className="text-lg font-semibold">Filterlər</h3>
                   </div>
-                  <Button variant="ghost" size="sm" onClick={() => setShowFilters(false)} className="xl:hidden">
-                    ✕
-                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => setShowFilters(false)} className="xl:hidden">✕</Button>
                 </div>
               </CardHeader>
+
               <CardContent className="space-y-4">
                 <div>
                   <label className="text-sm font-medium mb-2 block">Marka</label>
-                  <Select value={selectedBrand} onValueChange={setSelectedBrand}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Marka seçin" />
-                    </SelectTrigger>
+                  <Select value={selectedBrand} onValueChange={(v: any) => { setSelectedBrand(v); setCurrentPage(1) }}>
+                    <SelectTrigger><SelectValue placeholder="Marka seçin" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Hamısı</SelectItem>
-                      {brands.map((brand) => (
-                        <SelectItem key={brand} value={brand}>
-                          {brand}
-                        </SelectItem>
-                      ))}
+                      {brands.map((brand) => (<SelectItem key={brand} value={brand}>{brand}</SelectItem>))}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
                   <label className="text-sm font-medium mb-2 block">Model</label>
-                  <Select value={selectedModel} onValueChange={setSelectedModel}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Model seçin" />
-                    </SelectTrigger>
+                  <Select value={selectedModel} onValueChange={(v: any) => { setSelectedModel(v); setCurrentPage(1) }}>
+                    <SelectTrigger><SelectValue placeholder="Model seçin" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Hamısı</SelectItem>
-                      {models.map((model) => (
-                        <SelectItem key={model} value={model}>
-                          {model}
-                        </SelectItem>
-                      ))}
+                      {models.map((m) => (<SelectItem key={m} value={m}>{m}</SelectItem>))}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
                   <label className="text-sm font-medium mb-2 block">İl</label>
-                  <Select value={selectedYear} onValueChange={setSelectedYear}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="İl seçin" />
-                    </SelectTrigger>
+                  <Select value={selectedYear} onValueChange={(v: any) => { setSelectedYear(v); setCurrentPage(1) }}>
+                    <SelectTrigger><SelectValue placeholder="İl seçin" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Hamısı</SelectItem>
-                      {years.map((year) => (
-                        <SelectItem key={year} value={year.toString()}>
-                          {year}
-                        </SelectItem>
-                      ))}
+                      {years.map((y) => (<SelectItem key={y} value={y.toString()}>{y}</SelectItem>))}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
                   <label className="text-sm font-medium mb-2 block">Yanacaq</label>
-                  <Select value={selectedFuel} onValueChange={setSelectedFuel}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Yanacaq növü" />
-                    </SelectTrigger>
+                  <Select value={selectedFuel} onValueChange={(v: any) => { setSelectedFuel(v); setCurrentPage(1) }}>
+                    <SelectTrigger><SelectValue placeholder="Yanacaq" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Hamısı</SelectItem>
-                      {fuels.map((fuel) => (
-                        <SelectItem key={fuel} value={fuel}>
-                          {fuel}
-                        </SelectItem>
-                      ))}
+                      {fuels.map((f) => (<SelectItem key={f} value={f}>{f}</SelectItem>))}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
                   <label className="text-sm font-medium mb-2 block">Transmissiya</label>
-                  <Select value={selectedTransmission} onValueChange={setSelectedTransmission}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Transmissiya" />
-                    </SelectTrigger>
+                  <Select value={selectedTransmission} onValueChange={(v: any) => { setSelectedTransmission(v); setCurrentPage(1) }}>
+                    <SelectTrigger><SelectValue placeholder="Transmissiya" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Hamısı</SelectItem>
-                      {transmissions.map((transmission) => (
-                        <SelectItem key={transmission} value={transmission}>
-                          {transmission}
-                        </SelectItem>
-                      ))}
+                      {transmissions.map((t) => (<SelectItem key={t} value={t}>{t}</SelectItem>))}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
                   <label className="text-sm font-medium mb-2 block">Vəziyyət</label>
-                  <Select value={selectedCondition} onValueChange={setSelectedCondition}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Vəziyyət" />
-                    </SelectTrigger>
+                  <Select value={selectedCondition} onValueChange={(v: any) => { setSelectedCondition(v); setCurrentPage(1) }}>
+                    <SelectTrigger><SelectValue placeholder="Vəziyyət" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Hamısı</SelectItem>
-                      {conditions.map((condition) => (
-                        <SelectItem key={condition} value={condition}>
-                          {condition}
-                        </SelectItem>
-                      ))}
+                      {conditions.map((c) => (<SelectItem key={c} value={c}>{c}</SelectItem>))}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
                   <label className="text-sm font-medium mb-2 block">Şəhər</label>
-                  <Select value={selectedCity} onValueChange={setSelectedCity}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Şəhər seçin" />
-                    </SelectTrigger>
+                  <Select value={selectedCity} onValueChange={(v: any) => { setSelectedCity(v); setCurrentPage(1) }}>
+                    <SelectTrigger><SelectValue placeholder="Şəhər seçin" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Hamısı</SelectItem>
-                      {cities.map((city) => (
-                        <SelectItem key={city} value={city}>
-                          {city}
-                        </SelectItem>
-                      ))}
+                      {cities.map((c) => (<SelectItem key={c} value={c}>{c}</SelectItem>))}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
                   <label className="text-sm font-medium mb-2 block">Rəng</label>
-                  <Select value={selectedColor} onValueChange={setSelectedColor}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Rəng seçin" />
-                    </SelectTrigger>
+                  <Select value={selectedColor} onValueChange={(v: any) => { setSelectedColor(v); setCurrentPage(1) }}>
+                    <SelectTrigger><SelectValue placeholder="Rəng seçin" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Hamısı</SelectItem>
-                      {colors.map((color) => (
-                        <SelectItem key={color} value={color}>
-                          {color}
-                        </SelectItem>
-                      ))}
+                      {colors.map((col) => (<SelectItem key={col} value={col}>{col}</SelectItem>))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -559,35 +473,24 @@ export default function CarsPage() {
                 <div>
                   <label className="text-sm font-medium mb-2 block">Qiymət aralığı (AZN)</label>
                   <div className="flex gap-2">
-                    <Input
-                      placeholder="Min"
-                      value={priceRange.min}
-                      onChange={(e) => setPriceRange((prev) => ({ ...prev, min: e.target.value }))}
-                    />
-                    <Input
-                      placeholder="Max"
-                      value={priceRange.max}
-                      onChange={(e) => setPriceRange((prev) => ({ ...prev, max: e.target.value }))}
-                    />
+                    <Input placeholder="Min" value={priceRange.min} onChange={(e) => setPriceRange((prev) => ({ ...prev, min: e.target.value }))} />
+                    <Input placeholder="Max" value={priceRange.max} onChange={(e) => setPriceRange((prev) => ({ ...prev, max: e.target.value }))} />
                   </div>
                 </div>
 
-                <Button
-                  variant="outline"
-                  className="w-full bg-transparent"
-                  onClick={() => {
-                    setSelectedBrand("all")
-                    setSelectedModel("all")
-                    setSelectedYear("all")
-                    setSelectedFuel("all")
-                    setSelectedTransmission("all")
-                    setSelectedCondition("all")
-                    setSelectedCity("all")
-                    setSelectedColor("all")
-                    setPriceRange({ min: "", max: "" })
-                    setSearchTerm("")
-                  }}
-                >
+                <Button variant="outline" className="w-full bg-transparent" onClick={() => {
+                  setSelectedBrand("all")
+                  setSelectedModel("all")
+                  setSelectedYear("all")
+                  setSelectedFuel("all")
+                  setSelectedTransmission("all")
+                  setSelectedCondition("all")
+                  setSelectedCity("all")
+                  setSelectedColor("all")
+                  setPriceRange({ min: "", max: "" })
+                  setSearchTerm("")
+                  setCurrentPage(1)
+                }}>
                   Filterləri təmizlə
                 </Button>
               </CardContent>
@@ -596,11 +499,9 @@ export default function CarsPage() {
 
           <div className="xl:w-3/4">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-              <h2 className="text-2xl font-bold">{filteredCars.length} avtomobil tapıldı</h2>
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue />
-                </SelectTrigger>
+              <h2 className="text-2xl font-bold">{totalCount ?? cars.length} avtomobil tapıldı</h2>
+              <Select value={sortBy} onValueChange={(v: any) => { setSortBy(v); setCurrentPage(1) }}>
+                <SelectTrigger className="w-full sm:w-48"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="newest">Ən yeni</SelectItem>
                   <SelectItem value="price-low">Qiymət: Aşağıdan yuxarı</SelectItem>
@@ -613,52 +514,32 @@ export default function CarsPage() {
               </Select>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
-              {paginatedCars.map((car) => (
-                <CarCard key={car.id} car={car} />
-              ))}
-            </div>
+            {loading ? (
+              <div className="text-center py-12">Yüklənir...</div>
+            ) : error ? (
+              <div className="text-center py-12 text-red-600">{error}</div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
+                  {paginatedCars.map((car) => (<CarCard key={car.id} car={car} />))}
+                </div>
 
-            {filteredCars.length === 0 && (
-              <div className="text-center py-12">
-                <Car className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-                <h3 className="text-xl font-semibold text-gray-600 mb-2">Heç bir avtomobil tapılmadı</h3>
-                <p className="text-gray-500">Axtarış kriteriyalarınızı dəyişdirərək yenidən cəhd edin</p>
-              </div>
-            )}
+                {paginatedCars.length === 0 && (
+                  <div className="text-center py-12">
+                    <Car className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+                    <h3 className="text-xl font-semibold text-gray-600 mb-2">Heç bir avtomobil tapılmadı</h3>
+                    <p className="text-gray-500">Axtarış kriteriyalarınızı dəyişdirərək yenidən cəhd edin</p>
+                  </div>
+                )}
 
-            {totalPages > 1 && (
-              <div className="flex justify-center items-center gap-2 mt-8">
-                <Button
-                  variant="outline"
-                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                >
-                  Əvvəlki
-                </Button>
-
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  const pageNum = Math.max(1, Math.min(currentPage - 2 + i, totalPages - 4 + i))
-                  return (
-                    <Button
-                      key={pageNum}
-                      variant={currentPage === pageNum ? "default" : "outline"}
-                      onClick={() => setCurrentPage(pageNum)}
-                      className="w-10"
-                    >
-                      {pageNum}
-                    </Button>
-                  )
-                })}
-
-                <Button
-                  variant="outline"
-                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                >
-                  Növbəti
-                </Button>
-              </div>
+                {totalPages > 1 && (
+                  <div className="flex justify-center items-center gap-2 mt-8">
+                    <Button variant="outline" onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))} disabled={currentPage === 1}>Əvvəlki</Button>
+                    {renderPageButtons()}
+                    <Button variant="outline" onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))} disabled={currentPage === totalPages}>Növbəti</Button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

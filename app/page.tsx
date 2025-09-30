@@ -80,7 +80,12 @@ function CarCard({ car, t, index }: { car: UserCar; t: (key: string) => string; 
     return () => clearTimeout(timer)
   }, [index])
 
-  const images = car.images && car.images.length > 0 ? car.images.map((i) => i.url) : ["/placeholder.svg"]
+const images = car.images && car.images.length > 0
+  ? car.images.map((i) => {
+      if (!i.url) return "/placeholder.svg";
+      return i.url.replace(/^\/?uploads\/?/, "");
+    })
+  : ["/placeholder.svg"];
 
   const nextImage = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -103,7 +108,7 @@ function CarCard({ car, t, index }: { car: UserCar; t: (key: string) => string; 
       <div className="relative group">
         <div className="overflow-hidden">
           <Image
-            src={images[currentImageIndex]}
+            src={`${process.env.NEXT_PUBLIC_API_URL_FOR_IMAGE}${images[currentImageIndex]}`}
             alt={`${car.brand} ${car.model}`}
             width={300}
             height={200}
