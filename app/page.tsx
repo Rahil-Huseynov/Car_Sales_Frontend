@@ -97,13 +97,6 @@ function CarCard({ car, t, index }: { car: UserCar; t: (k: string) => string; in
           <Image src={imageUrl} alt={`${car.brand} ${car.model}`} width={300} height={200} className="w-full h-48 object-cover transition-transform duration-700 group-hover:scale-110" />
         </div>
 
-        {car.status === "premium" && (
-          <Badge className="absolute top-3 left-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0 z-10 animate-pulse-slow">
-            <Sparkles className="h-3 w-3 mr-1" />
-            {t("premium")}
-          </Badge>
-        )}
-
         {images.length > 1 && (
           <>
             <Button size="icon" variant="ghost" className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 h-8 w-8 hover:scale-110" onClick={prevImage}>
@@ -197,7 +190,6 @@ export default function HomePage() {
       const params: any = {
         page,
         limit,
-        status: "premium",
         search: searchTerm || undefined,
         brand: selectedBrand !== "all" ? selectedBrand : undefined,
         model: selectedModel !== "all" ? selectedModel : undefined,
@@ -212,7 +204,7 @@ export default function HomePage() {
         sortBy: sortBy === "createdAt_desc" ? undefined : sortBy,
       };
 
-      const res = await apiClient.getAllCars(params); 
+      const res = await apiClient.getPremiumCars(params); 
       let carsArray: any[] = [];
       if (Array.isArray(res)) {
         carsArray = res;
