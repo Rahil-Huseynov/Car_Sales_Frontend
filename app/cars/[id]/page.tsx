@@ -47,6 +47,7 @@ type CarType = {
   engine?: string
   power?: string
   email?: string
+  name?: string
   phone?: string
   drivetrain?: string
   images?: ImageItem[]
@@ -830,7 +831,7 @@ export default function CarDetailPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <p className="font-semibold">{car.seller?.name}</p>
+                  <p className="font-semibold">{car.name}</p>
                   <div className="flex items-center gap-1 text-sm text-gray-600">
                     <MapPin className="h-4 w-4" />
                     {car.location}
