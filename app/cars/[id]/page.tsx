@@ -530,7 +530,7 @@ export default function CarDetailPage() {
   useEffect(() => {
     if (!car) return
     const base = process.env.NEXT_PUBLIC_SITE_URL || (typeof window !== "undefined" ? window.location.origin : "")
-    setShareUrl(`${base}/car/${car.id}`)
+    setShareUrl(`${base}/cars/${car.id}`)
   }, [car])
 
   const nextImage = () => {
@@ -833,14 +833,14 @@ export default function CarDetailPage() {
                   <p className="font-semibold">{car.seller?.name}</p>
                   <div className="flex items-center gap-1 text-sm text-gray-600">
                     <MapPin className="h-4 w-4" />
-                    {car.seller?.location}
+                    {car.location}
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <div className="grid grid-cols-2 gap-2">
                     <a
-                      href={car.seller?.phone ? `tel:${String(car.seller.phone).replace(/\s+/g, "")}` : "#"}
+                      href={car.phone ? `tel:${String(car.phone).replace(/\s+/g, "")}` : "#"}
                       className="inline-flex items-center justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-medium text-white hover:bg-green-700"
                     >
                       <Phone className="h-4 w-4 mr-2" />
@@ -851,12 +851,6 @@ export default function CarDetailPage() {
                       <Mail className="h-4 w-4 mr-2" />
                       {pageContent.sendEmail}
                     </button>
-                  </div>
-
-                  <div className="mt-2 flex gap-2 items-center">
-                    <a href={car.email ? `mailto:${car.email}` : "#"} className="ml-auto text-xs text-gray-500 hover:underline">
-                      {car.seller?.email ?? ""}
-                    </a>
                   </div>
                 </div>
               </CardContent>
@@ -917,7 +911,7 @@ export default function CarDetailPage() {
         isOpen={contactOpen}
         onClose={() => setContactOpen(false)}
         toEmail={car.email}
-        prefillPhone={car.seller?.phone}
+        prefillPhone={car.phone}
         subject={`${car.brand} ${car.model}`}
         carTitle={`${car.brand} ${car.model}`}
       />
