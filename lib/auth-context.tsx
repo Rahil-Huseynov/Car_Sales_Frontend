@@ -33,7 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
     if (typeof window !== "undefined") {
       localStorage.removeItem("accessToken")
-      router.push("/")
+      router.push("/auth/login")
     }
   }, [router])
 
@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       if (typeof window !== "undefined") localStorage.removeItem("accessToken")
       setUser(null)
-      router.push("/")
+      router.push("/auth/login")
       return null
     }
   }, [router])
