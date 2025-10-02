@@ -24,13 +24,26 @@ import {
   Check,
   X,
   ExternalLink,
+  CarFront,
+  Car,
+  IdCard,
+  Puzzle,
 } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { useLanguage } from "@/hooks/use-language"
 import { getTranslation } from "@/lib/i18n"
 import { apiClient } from "@/lib/api-client"
 
+
 type ImageItem = string | { id?: number; url?: string }
+
+type Seller = {
+  id?: number
+  firstName?: string
+  lastName?: string
+  email?: string
+  phone?: string | null
+}
 
 type CarType = {
   id: number
@@ -40,15 +53,16 @@ type CarType = {
   price?: number
   mileage?: number
   fuel?: string
+  gearbox?: string 
   transmission?: string
   color?: string
   location?: string
   condition?: string
   engine?: string
   power?: string
-  email?: string
-  name?: string
-  phone?: string
+  email?: string | null
+  name?: string | null
+  phone?: string | null
   drivetrain?: string
   images?: ImageItem[]
   description?: string
@@ -59,6 +73,10 @@ type CarType = {
     email?: string
     location?: string
   }
+  user?: Seller
+  status?: string
+  ban?: string
+  createdAt?: string
 }
 
 const API_UPLOADS_BASE = (process.env.NEXT_PUBLIC_API_URL_FOR_IMAGE || "").replace(/\/+$/, "")
@@ -68,9 +86,10 @@ function safeImageUrl(i?: ImageItem) {
   const raw = typeof i === "string" ? i : i.url ?? ""
   if (!raw) return "/placeholder.svg"
   if (/^https?:\/\//i.test(raw)) return raw
-  const cleaned = raw.replace(/^\/+/, "").replace(/^uploads\/+/i, "")
+  const cleaned = raw.replace(/^\/+/, "").replace(/^uploads\/+?/i, "")
   return API_UPLOADS_BASE ? `${API_UPLOADS_BASE}/${cleaned}` : `/${cleaned}`
 }
+
 
 type ShareModalProps = {
   isOpen: boolean
@@ -235,8 +254,7 @@ function ShareModal({ isOpen, onClose, shareUrl, title, subtitle, image }: Share
                 <button
                   onClick={handleCopy}
                   disabled={isCopying}
-                  className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium ${copied ? "bg-green-50 text-green-700 ring-1 ring-green-100" : "bg-gray-100 text-gray-700"
-                    }`}
+                  className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium ${copied ? "bg-green-50 text-green-700 ring-1 ring-green-100" : "bg-gray-100 text-gray-700"}`}
                   aria-label="Copy link"
                 >
                   {copied ? <Check className="h-4 w-4" /> : <Clipboard className="h-4 w-4" />}
@@ -298,6 +316,7 @@ function ShareModal({ isOpen, onClose, shareUrl, title, subtitle, image }: Share
     </div>
   )
 }
+
 
 type ContactModalProps = {
   isOpen: boolean
@@ -371,8 +390,13 @@ function ContactModal({ isOpen, onClose, toEmail, subject, prefillPhone, carTitl
       } else {
         const API_BASE = process.env.NEXT_PUBLIC_API_URL || ""
         if (API_BASE) {
-          const res = await apiClient.sendEmail(payload)
-          setSent(true)
+          try {
+            const res = await apiClient.sendEmail(payload)
+            setSent(true)
+          } catch (err: any) {
+            console.error(err)
+            setError(err?.message || "Server göndərmə xətası")
+          }
         } else {
           const mailtoTo = encodeURIComponent(String(toEmail || ""))
           const mailSubj = encodeURIComponent(payload.subject || "")
@@ -493,6 +517,97 @@ export default function CarDetailPage() {
 
   const [contactOpen, setContactOpen] = useState(false)
 
+  const [descExpanded, setDescExpanded] = useState(false)
+  const descRef = useRef<HTMLDivElement | null>(null)
+  const animDuration = 300 
+  const transitionProperty = `max-height ${animDuration}ms ease, opacity ${Math.round(animDuration * 0.7)}ms ease, transform ${animDuration}ms cubic-bezier(.2,.8,.2,1)`
+
+  useEffect(() => {
+    const el = descRef.current
+    if (!el) return
+    el.style.overflow = "hidden"
+    el.style.transition = transitionProperty
+    el.style.maxHeight = "0px"
+    el.style.opacity = "0"
+    el.style.transform = "translateY(-6px)" 
+    el.style.display = "none"
+  }, [])
+
+  function toggleDesc() {
+    const el = descRef.current
+    if (!el) {
+      setDescExpanded((s) => !s)
+      return
+    }
+
+    const clone = el.cloneNode(true) as HTMLDivElement
+    el.parentNode?.replaceChild(clone, el)
+    descRef.current = clone
+    const node = descRef.current!
+
+    node.style.overflow = "hidden"
+    node.style.transition = transitionProperty
+
+    const cleanupEnd = (wasExpanding: boolean) => {
+      if (wasExpanding) {
+        node.style.maxHeight = "none"
+        node.style.opacity = "1"
+        node.style.transform = "translateY(0)"
+      } else {
+        node.style.display = "none"
+      }
+    }
+
+    let fallbackTimer: number | undefined
+    const setFallback = (wasExpanding: boolean) => {
+      window.clearTimeout((fallbackTimer as unknown) as number)
+      fallbackTimer = window.setTimeout(() => cleanupEnd(wasExpanding), animDuration + 120)
+    }
+
+    if (!descExpanded) {
+      node.style.display = "block"
+      node.style.maxHeight = "0px"
+      node.style.opacity = "0"
+      node.style.transform = "translateY(-6px)"
+      void node.offsetHeight
+      const target = node.scrollHeight
+      node.style.maxHeight = `${target}px`
+      node.style.opacity = "1"
+      node.style.transform = "translateY(0)"
+      const onEnd = (e: TransitionEvent) => {
+        if (e.propertyName !== "max-height") return
+        node.removeEventListener("transitionend", onEnd)
+        cleanupEnd(true)
+        window.clearTimeout((fallbackTimer as unknown) as number)
+      }
+      node.addEventListener("transitionend", onEnd)
+      setFallback(true)
+      setDescExpanded(true)
+      setTimeout(() => {
+        try {
+          node.scrollIntoView({ behavior: "smooth", block: "nearest" })
+        } catch { }
+      }, animDuration + 20)
+    } else {
+      const height = node.scrollHeight
+      node.style.maxHeight = `${height}px`
+      node.style.opacity = "1"
+      node.style.transform = "translateY(0)"
+      void node.offsetHeight
+      node.style.maxHeight = `0px`
+      node.style.opacity = "0"
+      node.style.transform = "translateY(-6px)"
+      const onEnd = (e: TransitionEvent) => {
+        if (e.propertyName !== "max-height") return
+        node.removeEventListener("transitionend", onEnd)
+        cleanupEnd(false)
+        window.clearTimeout((fallbackTimer as unknown) as number)
+      }
+      node.addEventListener("transitionend", onEnd)
+      setFallback(false)
+      setDescExpanded(false)
+    }
+  }
   useEffect(() => {
     if (!id || Number.isNaN(id)) {
       setError("Uyğun ID tapılmadı.")
@@ -553,18 +668,22 @@ export default function CarDetailPage() {
       brand: "Marka",
       model: "Model",
       year: "İl",
+      Creation_date: "Yaradılma tarixi",
       condition: "Vəziyyət",
       location: "Yer",
       mileage: "Yürüş",
       fuel: "Yanacaq",
       transmission: "Transmissiya",
+      gearbox: "Qutu (Gearbox)",
       color: "Rəng",
       engine: "Mühərrik",
       power: "Güc",
       drivetrain: "Ötürücü",
+      bodyType: "Ban tipi",
       sendEmail: "E-mail göndər",
       safetyTip: "Təhlükəsizlik məsləhəti",
       safetyText: "Avtomobili almadan əvvəl mütləq şəkildə yoxlayın və sənədləri diqqətlə nəzərdən keçirin.",
+      status: "Vəziyyət",
     },
     en: {
       description: "Description",
@@ -574,18 +693,22 @@ export default function CarDetailPage() {
       brand: "Brand",
       model: "Model",
       year: "Year",
+      Creation_date: "Creation date",
       condition: "Condition",
       location: "Location",
       mileage: "Mileage",
       fuel: "Fuel",
       transmission: "Transmission",
+      gearbox: "Gearbox",
       color: "Color",
       engine: "Engine",
       power: "Power",
       drivetrain: "Drivetrain",
+      bodyType: "Body Type",
       sendEmail: "Send Email",
       safetyTip: "Safety Tip",
       safetyText: "Be sure to inspect the car and carefully review the documents before purchasing.",
+      status: "Status",
     },
     ru: {
       description: "Описание",
@@ -600,17 +723,20 @@ export default function CarDetailPage() {
       mileage: "Пробег",
       fuel: "Топливо",
       transmission: "Коробка передач",
+      gearbox: "Коробка (Gearbox)",
       color: "Цвет",
       engine: "Двигатель",
       power: "Мощность",
       drivetrain: "Привод",
+      bodyType: "Тип кузова",
       sendEmail: "Отправить Email",
       safetyTip: "Совет по безопасности",
       safetyText: "Обязательно осмотрите автомобиль и внимательно изучите документы перед покупкой.",
+      status: "Статус",
     },
   }
 
-  const pageContent = pageContentDefaults[language] ?? pageContentDefaults.az
+  const pageContent = (pageContentDefaults as any)[language] ?? pageContentDefaults.az
 
   if (loading) {
     return (
@@ -654,7 +780,11 @@ export default function CarDetailPage() {
   }
 
   const images = car.images && car.images.length ? car.images.map(safeImageUrl) : ["/placeholder.svg"]
-
+  const sellerName = car.user ? `${car.user.firstName ?? ""} ${car.user.lastName ?? ""}`.trim() : car.name
+  const sellerEmail = car.email ?? car.user?.email
+  const sellerPhone = car.phone ?? car.user?.phone
+  const descriptionText = String(car.description ?? "")
+  const isLongDesc = descriptionText.length > 200
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -746,6 +876,11 @@ export default function CarDetailPage() {
                   </div>
                   <div className="text-right">
                     <p className="text-3xl font-bold text-blue-600">{(car.price ?? 0).toLocaleString()} ₼</p>
+                    {car.status ? (
+                      <div className="mt-2">
+                        <Badge variant={car.status === "premium" ? "default" : "outline"}>{car.status}</Badge>
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               </CardHeader>
@@ -768,8 +903,8 @@ export default function CarDetailPage() {
                   <div className="flex items-center gap-2">
                     <Users className="h-5 w-5 text-gray-500" />
                     <div>
-                      <p className="text-sm text-gray-500">{pageContent.transmission}</p>
-                      <p className="font-semibold">{t(car.transmission ?? "")}</p>
+                      <p className="text-sm text-gray-500">{pageContent.gearbox}</p>
+                      <p className="font-semibold">{car.gearbox ?? car.transmission ?? t("-")}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -783,18 +918,34 @@ export default function CarDetailPage() {
 
                 <Separator className="my-6" />
 
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-                  <div>
-                    <p className="text-sm text-gray-500">{pageContent.engine}</p>
-                    <p className="font-semibold">{car.engine}</p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                  <div className="flex items-center gap-2">
+                    <CarFront className="h-5 w-5 text-gray-500" />
+                    <div>
+                      <p className="text-sm text-gray-500">{pageContent.engine}</p>
+                      <p className="font-semibold">{car.engine}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-500">{pageContent.power}</p>
-                    <p className="font-semibold">{car.power}</p>
+                  <div className="flex items-center gap-2">
+                    <Car className="h-5 w-5 text-gray-500" />
+                    <div>
+                      <p className="text-sm text-gray-500">{pageContent.bodyType}</p>
+                      <p className="font-semibold">{car.ban}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-500">{pageContent.drivetrain}</p>
-                    <p className="font-semibold">{car.drivetrain}</p>
+                  <div className="flex items-center gap-2">
+                    <IdCard className="h-5 w-5 text-gray-500" />
+                    <div>
+                      <p className="text-sm text-gray-500">{pageContent.brand}</p>
+                      <p className="font-semibold">{car.brand}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Puzzle className="h-5 w-5 text-gray-500" />
+                    <div>
+                      <p className="text-sm text-gray-500">{pageContent.model}</p>
+                      <p className="font-semibold">{car.model}</p>
+                    </div>
                   </div>
                 </div>
 
@@ -802,8 +953,36 @@ export default function CarDetailPage() {
 
                 <div>
                   <h3 className="text-lg font-semibold mb-3">{pageContent.description}</h3>
-                  <p className="text-gray-700 leading-relaxed">{car.description}</p>
+
+                  <p className="text-gray-700 leading-relaxed">
+                    {descriptionText.slice(0, 200)}
+                    {isLongDesc && !descExpanded ? "..." : ""}
+                  </p>
+
+                  {isLongDesc ? (
+                    <>
+                      <div
+                        id="car-description-more"
+                        ref={descRef}
+                        className="overflow-hidden mt-2"
+                        aria-hidden={!descExpanded}
+                        style={{ display: descExpanded ? "block" : "none" }}
+                      >
+                        <p className="text-gray-700 leading-relaxed">{descriptionText.slice(200)}</p>
+                      </div>
+
+                      <button
+                        onClick={toggleDesc}
+                        aria-expanded={descExpanded}
+                        aria-controls="car-description-more"
+                        className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:underline"
+                      >
+                        {descExpanded ? "Daha az" : "Daha çox"}
+                      </button>
+                    </>
+                  ) : null}
                 </div>
+
               </CardContent>
             </Card>
 
@@ -831,7 +1010,7 @@ export default function CarDetailPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <p className="font-semibold">{car.name}</p>
+                  <p className="font-semibold">{sellerName}</p>
                   <div className="flex items-center gap-1 text-sm text-gray-600">
                     <MapPin className="h-4 w-4" />
                     {car.location}
@@ -841,11 +1020,11 @@ export default function CarDetailPage() {
                 <div className="space-y-2">
                   <div className="grid grid-cols-2 gap-2">
                     <a
-                      href={car.phone ? `tel:${String(car.phone).replace(/\s+/g, "")}` : "#"}
+                      href={sellerPhone ? `tel:${String(sellerPhone).replace(/\s+/g, "")}` : "#"}
                       className="inline-flex items-center justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-medium text-white hover:bg-green-700"
                     >
                       <Phone className="h-4 w-4 mr-2" />
-                      {car.phone ?? "Nömrə yoxdur"}
+                      {sellerPhone ?? "Nömrə yoxdur"}
                     </a>
 
                     <button type="button" onClick={() => setContactOpen(true)} className="inline-flex items-center justify-center rounded-md border px-3 py-2 text-sm font-medium hover:bg-gray-50">
@@ -882,6 +1061,12 @@ export default function CarDetailPage() {
                   <span className="text-gray-600">{pageContent.location}:</span>
                   <span className="font-semibold">{t(car.location ?? "")}</span>
                 </div>
+                {car.createdAt ? (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">{pageContent.Creation_date}:</span>
+                    <span className="font-semibold">{new Date(car.createdAt).toLocaleDateString()}</span>
+                  </div>
+                ) : null}
               </CardContent>
             </Card>
 
@@ -911,8 +1096,8 @@ export default function CarDetailPage() {
       <ContactModal
         isOpen={contactOpen}
         onClose={() => setContactOpen(false)}
-        toEmail={car.email}
-        prefillPhone={car.phone}
+        toEmail={sellerEmail}
+        prefillPhone={sellerPhone}
         subject={`${car.brand} ${car.model}`}
         carTitle={`${car.brand} ${car.model}`}
       />

@@ -177,7 +177,6 @@ export default function SellPage() {
 
   const years = Array.from({ length: 60 }, (_, i) => new Date().getFullYear() - i)
   const fuels = ["Benzin", "Dizel", "Hibrid", "Plug-in Hibrid", "Elektrik", "CNG", "LPG", "Hidrogen", "Etanol", "Metanol", "Biofuel"]
-  const transmissions = ["Avtomat", "Mexaniki", "CVT", "Yarı-Avtomat", "Tiptronik", "DSG", "Dual-clutch", "AMT"]
   const gearboxOptions = ["Manual", "Automatic", "Dual-clutch", "eCVT", "Semi-automatic"]
   const conditions = ["Yeni", "İstifadə Olunmuş", "Sertifikatlı", "Təmir Edilmiş", "Bərpa Edilmiş", "Salvage", "Rebuild"]
   const colors = [
@@ -289,7 +288,6 @@ export default function SellPage() {
         price: Number(formData.price),
         mileage: Number(formData.mileage),
         fuel: formData.fuel || null,
-        transmission: formData.transmission || null,
         condition: formData.condition || null,
         color: formData.color || null,
         ban: formData.ban || null,
@@ -437,15 +435,6 @@ export default function SellPage() {
                     <SelectTrigger><SelectValue placeholder={t("selectFuel") || (language === "az" ? "Yanacaq seçin" : "Select fuel")} /></SelectTrigger>
                     <SelectContent>
                       {fuels.map((f) => <SelectItem key={f} value={f}>{f}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="transmission">{t("transmission") || (language === "az" ? "Sürətlər" : "Transmission")}</Label>
-                  <Select value={formData.transmission} onValueChange={(v) => setFormData((p) => ({ ...p, transmission: v }))} required>
-                    <SelectTrigger><SelectValue placeholder={t("selectTransmission") || (language === "az" ? "Sürət seçin" : "Select transmission")} /></SelectTrigger>
-                    <SelectContent>
-                      {transmissions.map((tr) => <SelectItem key={tr} value={tr}>{tr}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
