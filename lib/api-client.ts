@@ -1,4 +1,3 @@
-import { id } from "date-fns/locale";
 import { tokenManager } from "./token-manager"
 
 type GetAllCarsParams = {
@@ -19,6 +18,17 @@ type GetAllCarsParams = {
   sortBy?: string;
 };
 
+export class ApiError extends Error {
+  status: number
+  data?: any
+
+  constructor(message: string, status: number, data?: any) {
+    super(message)
+    this.name = "ApiError"
+    this.status = status
+    this.data = data
+  }
+}
 
 class ApiClient {
   private baseURL: string
@@ -27,7 +37,7 @@ class ApiClient {
     this.baseURL = process.env.NEXT_PUBLIC_API_URL as string;
   }
 
-  private async request(endpoint: string, options: RequestInit = {}) {
+  private async request(endpoint: string, options: RequestInit = {}): Promise<any> {
     const url = `${this.baseURL}${endpoint}`
 
     const isFormData = options.body instanceof FormData
@@ -50,7 +60,6 @@ class ApiClient {
 
     try {
       let response = await fetch(url, config)
-
       if (response.status === 401 && token) {
         const refreshSuccess = await this.handleTokenRefresh()
         if (refreshSuccess) {
@@ -65,11 +74,16 @@ class ApiClient {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`)
+        throw new ApiError(
+          errorData.message || `HTTP error! status: ${response.status}`,
+          response.status,
+          errorData
+        )
       }
-
+      if (response.status === 204) return null
       return await response.json()
-    } catch (error) {
+    } catch (error: any) {
+      if (error instanceof ApiError) throw error
       console.error("API request failed:", error)
       throw error
     }
@@ -109,7 +123,6 @@ class ApiClient {
   }
 
 
-
   async register(formData: FormData) {
     return this.request("/auth/user/signup", {
       method: "POST",
@@ -143,7 +156,6 @@ class ApiClient {
       method: "GET",
     });
   }
-
 
 
   async deleteAdmin(userId: string) {
@@ -344,10 +356,10 @@ class ApiClient {
         text: `${payload.message}\n\nAd: ${payload.name || ''}\nEmail: ${payload.from || ''}\nTelefon: ${payload.phone || ''}`,
       }),
     });
-    if ('ok' in res && !res.ok) {
+    if (res && typeof res === 'object' && 'ok' in res && !(res as any).ok) {
       let data: any = {};
       try {
-        data = await (res as Response).json();
+        data = res as any
       } catch { }
       throw new Error(data.message || 'Server xətası');
     }
@@ -357,3 +369,6 @@ class ApiClient {
 }
 
 export const apiClient = new ApiClient()
+
+export default apiClient
+
