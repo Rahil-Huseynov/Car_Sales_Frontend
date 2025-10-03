@@ -23,6 +23,7 @@ import {
   Camera,
   ChevronLeft,
   ChevronRight,
+  Cog,
 } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { apiClient } from "@/lib/api-client"
@@ -172,8 +173,8 @@ function CarCard({ car }: { car: UserCar }) {
             {car.fuel}
           </div>
           <div className="flex items-center gap-1">
-            <Users className="h-4 w-4" />
-            {car.transmission}
+            <Cog className="h-4 w-4" />
+            {car.gearbox}
           </div>
           <div className="flex items-center gap-1">
             <MapPin className="h-4 w-4" />
@@ -190,12 +191,6 @@ function CarCard({ car }: { car: UserCar }) {
             <Eye className="h-4 w-4 mr-2" />
             Ətraflı
           </Link>
-        </Button>
-        <Button variant="outline" size="icon">
-          <Phone className="h-4 w-4" />
-        </Button>
-        <Button variant="outline" size="icon">
-          <Mail className="h-4 w-4" />
         </Button>
       </CardFooter>
     </Card>

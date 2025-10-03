@@ -10,14 +10,16 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Upload, Car, User, X, Plus, Camera, ImageIcon } from "lucide-react"
+import { Upload, Car, User, X, Plus, Camera, ImageIcon, Phone } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { useLanguage } from "@/hooks/use-language"
 import { getTranslation } from "@/lib/i18n"
 import { apiClient } from "@/lib/api-client"
 import { useAuth } from "@/lib/auth-context"
 import { bodyTypes, brandModelMap, cities, colors, conditions, engineOptions, features, fuels, gearboxOptions, years } from "@/lib/car-data"
-
+import CountryCodeSelect from "@/components/CountryCodeSelect"
+import { ToastContainer, toast } from "react-toastify"
+import "react-toastify/dist/ReactToastify.css"
 
 type UserType = {
   id: number
@@ -198,22 +200,36 @@ export default function SellPage() {
     phone: "",
     email: "",
     userId: profileData?.id ?? null,
-    status: "Standart"
+    status: ""
   })
 
   useEffect(() => {
     if (profileData) {
+      let initialPhone = profileData.phoneNumber || ""
+      let detectedCode = "+93"
+      let numberPart = initialPhone
+
+      if (initialPhone.startsWith("+")) {
+        const m = initialPhone.match(/^\+[\d]{1,4}/)
+        if (m) {
+          detectedCode = m[0]
+          numberPart = initialPhone.slice(m[0].length)
+        }
+      }
+
+      setPhoneCode(detectedCode)
       setFormData((prev) => ({
         ...prev,
         userId: profileData.id,
         name: `${profileData.firstName || ""} ${profileData.lastName || ""}`.trim(),
         email: profileData.email || "",
-        phone: profileData.phoneNumber || ""
+        phone: numberPart || ""
       }))
     }
   }, [profileData])
 
   const [images, setImages] = useState<ImageItem[]>([])
+  const [phoneCode, setPhoneCode] = useState<string>("+994")
 
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken")
@@ -227,7 +243,6 @@ export default function SellPage() {
     return brandModelMap[formData.brand] ?? []
   }, [formData.brand])
 
-
   const handleFeatureChange = useCallback((feature: string, checked: boolean) => {
     setFormData((prev) => {
       const s = new Set(prev.features)
@@ -237,24 +252,58 @@ export default function SellPage() {
     })
   }, [])
 
+  const MAX_FILE_SIZE = 1 * 1024 * 1024
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (!files) return
 
     const remainingSlots = 10 - images.length
-    if (remainingSlots <= 0) return
+    if (remainingSlots <= 0) {
+      toast.warning(language === "az" ? "Maksimum 10 şəkil əlavə oluna bilər." : "You can add maximum 10 images.")
+      return
+    }
+    const filesArray = Array.from(files)
+    const filesToConsider = filesArray.slice(0, remainingSlots)
+    const oversized = filesToConsider.filter((f) => f.size > MAX_FILE_SIZE)
+    const validFiles = filesToConsider.filter((f) => f.size <= MAX_FILE_SIZE)
+    if (oversized.length > 0) {
+      const names = oversized.map((f) => f.name).join(", ")
+      const msg =
+        language === "az"
+          ? `Aşağıdakı fayllar 1MB-dan böyükdür və əlavə olunmadı: ${names}`
+          : `These files are larger than 1MB and were not added: ${names}`
+      toast.error(msg, { position: "top-right", autoClose: 6000 })
+    }
 
-    const filesToAdd = Array.from(files).slice(0, remainingSlots)
-    const newImages = filesToAdd.map((file, i) => ({
-      id: `${Date.now()}-${i}`,
+    if (validFiles.length === 0) {
+      if (e.target) e.target.value = ""
+      return
+    }
+
+    const newImages = validFiles.map((file, i) => ({
+      id: `${Date.now()}-${i}-${file.name}`,
       url: URL.createObjectURL(file),
       name: file.name,
-      file
+      file,
     }))
-    setImages((prev) => [...prev, ...newImages])
+
+    setImages((prev) => {
+      const combined = [...prev, ...newImages].slice(0, 10)
+      return combined
+    })
+    if (e.target) e.target.value = ""
   }
 
-  const removeImage = (id: string) => setImages((prev) => prev.filter((img) => img.id !== id))
+  const removeImage = (id: string) => {
+    setImages((prev) => {
+      const toRemove = prev.find((p) => p.id === id)
+      if (toRemove) {
+        try { URL.revokeObjectURL(toRemove.url) } catch {}
+      }
+      return prev.filter((img) => img.id !== id)
+    })
+  }
 
   const moveImage = (from: number, to: number) => {
     setImages((prev) => {
@@ -289,9 +338,10 @@ export default function SellPage() {
         description: formData.description || null,
         features: formData.features || [],
         name: formData.name || null,
-        phone: formData.phone || null,
+        phone: formData.phone ? `${phoneCode}${formData.phone}` : null,
         email: formData.email || null,
         userId: formData.userId,
+        status: "Standart"
       }
 
       const userCar = await apiClient.addcardata(payload)
@@ -306,11 +356,11 @@ export default function SellPage() {
         await apiClient.addcarimagedata(fd)
       }
 
-      alert(language === "az" ? "Avtomobil uğurla əlavə edildi!" : "Car added successfully!")
-      router.push("/my-cars")
+      toast.success(language === "az" ? "Avtomobil uğurla əlavə edildi!" : "Car added successfully!", { position: "top-right", autoClose: 3000 })
+      router.push("/profile/my-ads")
     } catch (err: any) {
       console.error(err)
-      alert(err?.message || (language === "az" ? "Xəta baş verdi" : "Something went wrong"))
+      toast.error(err?.message || (language === "az" ? "Xəta baş verdi" : "Something went wrong"), { position: "top-right", autoClose: 5000 })
     }
   }
 
@@ -328,7 +378,7 @@ export default function SellPage() {
       postAd: "Elanı Yerləşdir",
       mainImage: "Əsas şəkil",
       dragDrop: "Şəkilləri buraya sürükləyin və ya seçin",
-      supportedFormats: "PNG, JPG formatında maksimum 10MB",
+      supportedFormats: "PNG, JPG formatında maksimum 1MB hər şəkil",
       uploadedImages: "Yüklənmiş Şəkillər",
       noImages: "Hələ şəkil əlavə edilməyib",
       addFirstImage: "İlk şəkili əlavə edin",
@@ -350,7 +400,7 @@ export default function SellPage() {
       postAd: "Post Advertisement",
       mainImage: "Main image",
       dragDrop: "Drag and drop images here or select",
-      supportedFormats: "PNG, JPG format, maximum 10MB",
+      supportedFormats: "PNG, JPG format, maximum 1MB each",
       uploadedImages: "Uploaded Images",
       noImages: "No images added yet",
       addFirstImage: "Add your first image",
@@ -365,7 +415,30 @@ export default function SellPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <style jsx global>{`
+        input[type=number]::-webkit-outer-spin-button,
+        input[type=number]::-webkit-inner-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+        input[type=number] {
+          -moz-appearance: textfield;
+        }
+      `}</style>
+
       <Navbar />
+      <ToastContainer
+        position="top-right"
+        autoClose={4000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
+
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
@@ -421,6 +494,7 @@ export default function SellPage() {
                     <Input id="model" required value={formData.model} onChange={(e) => setFormData((p) => ({ ...p, model: e.target.value }))} placeholder={language === "az" ? "Model daxil edin" : "Enter model"} />
                   )}
                 </div>
+
                 <div>
                   <Label htmlFor="year">{t("year") || (language === "az" ? "İl" : "Year")}</Label>
                   <Select value={formData.year} onValueChange={(v) => setFormData((p) => ({ ...p, year: v }))} required>
@@ -559,6 +633,7 @@ export default function SellPage() {
                 />
               </CardContent>
             </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -645,9 +720,26 @@ export default function SellPage() {
                   <Label htmlFor="name">{language === "az" ? "Ad Soyad" : "Full Name"}</Label>
                   <Input id="name" required value={formData.name} onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))} placeholder={language === "az" ? "Adınızı daxil edin" : "Enter your name"} />
                 </div>
-                <div>
+
+                <div className="space-y-1">
                   <Label htmlFor="phone">{language === "az" ? "Telefon" : "Phone"}</Label>
-                  <Input id="phone" required value={formData.phone} onChange={(e) => setFormData((p) => ({ ...p, phone: e.target.value }))} placeholder="+994 XX XXX XX XX" />
+                  <div className="flex gap-2 items-center">
+                    <div className="max-w-[150px]">
+                      <CountryCodeSelect value={phoneCode} onChange={setPhoneCode} />
+                    </div>
+                    <div className="flex-1 relative">
+                      <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="phone"
+                        name="phone"
+                        type="tel"
+                        placeholder="501234567 (koddan sonra)"
+                        onChange={(e) => setFormData((p) => ({ ...p, phone: e.target.value }))}
+                        required
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
                 </div>
                 <div className="md:col-span-2">
                   <Label htmlFor="email">{language === "az" ? "E-poçt" : "Email"}</Label>

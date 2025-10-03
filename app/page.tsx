@@ -15,12 +15,11 @@ import {
   Mail,
   MapPin,
   Car,
-  Users,
   Fuel,
   Camera,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
+  Cog,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -44,6 +43,7 @@ type UserCar = {
   fuel?: string;
   transmission?: string;
   condition?: string;
+  gearbox?: string;
   color?: string;
   location?: string;
   city?: string;
@@ -141,7 +141,7 @@ function CarCard({ car, t, index }: { car: UserCar; t: (k: string) => string; in
         <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-4">
           <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><Car className="h-4 w-4 text-blue-500" />{(car.mileage ?? 0).toLocaleString()} km</div>
           <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><Fuel className="h-4 w-4 text-blue-500" />{car.fuel}</div>
-          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><Users className="h-4 w-4 text-blue-500" />{car.transmission}</div>
+          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><Cog className="h-4 w-4 text-blue-500" />{car.gearbox}</div>
           <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><MapPin className="h-4 w-4 text-blue-500" />{car.location}</div>
         </div>
         <Badge variant="outline" className="mb-2 border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors duration-300">{car.color}</Badge>
@@ -151,8 +151,6 @@ function CarCard({ car, t, index }: { car: UserCar; t: (k: string) => string; in
         <Button asChild className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 btn-animate transition-all duration-300 hover:scale-105">
           <Link href={`/cars/${car.id}`}><Eye className="h-4 w-4 mr-2" />Detallar</Link>
         </Button>
-        <Button variant="outline" size="icon" className="border-blue-200 text-blue-600 hover:bg-blue-50 bg-transparent transition-all duration-300 hover:scale-110" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}><Phone className="h-4 w-4" /></Button>
-        <Button variant="outline" size="icon" className="border-blue-200 text-blue-600 hover:bg-blue-50 bg-transparent transition-all duration-300 hover:scale-110" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}><Mail className="h-4 w-4" /></Button>
       </CardFooter>
     </Card>
   );
@@ -229,7 +227,8 @@ export default function HomePage() {
         transmission: car.transmission ?? "",
         condition: car.condition ?? "",
         color: car.color ?? "",
-        location: car.location ?? car.city ?? "",
+        location: car.location ?? "",
+        gearbox: car.gearbox ?? "",
         city: car.city ?? "",
         description: car.description ?? "",
         features: car.features ?? [],
@@ -272,33 +271,24 @@ export default function HomePage() {
   useEffect(() => {
     fetchProfile();
   }, []);
-
-  // Build brands list from brandModelMap + any brands returned from API
   const brandsList = useMemo(() => {
     const fromMap = Object.keys(brandModelMap || {});
     const fromCars = [...new Set(cars.map((c) => c.brand).filter(Boolean))];
     return Array.from(new Set([...fromMap, ...fromCars])).sort((a, b) => a.localeCompare(b));
   }, [cars]);
 
-  // When brand changes, reset model selection to 'all'
   useEffect(() => {
     setSelectedModel("all");
     setPage(1);
   }, [selectedBrand]);
-
-  // Models depend on selectedBrand. If brand === 'all' show a merged list (unique) from brandModelMap and cars
   const availableModels = useMemo(() => {
     if (selectedBrand && selectedBrand !== "all") {
       return (brandModelMap[selectedBrand] || []).slice();
     }
-
-    // merge all models from brandModelMap and cars
     const mapModels = Object.values(brandModelMap).flat();
     const carModels = cars.map((c) => c.model).filter(Boolean);
     return Array.from(new Set([...mapModels, ...carModels])).sort((a, b) => a.localeCompare(b));
   }, [selectedBrand, cars]);
-
-  // Use the predefined arrays for other filters (so they don't depend on API data)
   const fuelsList = fuels.slice().sort((a, b) => a.localeCompare(b));
   const transmissionsList = gearboxOptions.slice().sort((a, b) => a.localeCompare(b));
   const conditionsList = conditions.slice().sort((a, b) => a.localeCompare(b));

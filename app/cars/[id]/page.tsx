@@ -28,6 +28,7 @@ import {
   Car,
   IdCard,
   Puzzle,
+  Cog,
 } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { useLanguage } from "@/hooks/use-language"
@@ -901,7 +902,7 @@ export default function CarDetailPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Users className="h-5 w-5 text-gray-500" />
+                    <Cog className="h-5 w-5 text-gray-500" />
                     <div>
                       <p className="text-sm text-gray-500">{pageContent.gearbox}</p>
                       <p className="font-semibold">{car.gearbox ?? car.transmission ?? t("-")}</p>
