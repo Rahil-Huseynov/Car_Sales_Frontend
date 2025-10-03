@@ -1,3 +1,4 @@
+import { authHeaders } from "@/app/profile/settings/page";
 import { tokenManager } from "./token-manager"
 
 type GetAllCarsParams = {
@@ -137,11 +138,14 @@ class ApiClient {
     });
   }
 
-  async updateUser(userId: string, formData: FormData) {
+  async updateUser(userId: string, body: any) {
     return this.request(`/auth/users/${userId}`, {
-      method: 'PUT',
-      body: formData,
-      headers: {},
+      method: "PUT",
+      headers: {
+        ...authHeaders(true),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
     });
   }
 
@@ -330,13 +334,17 @@ class ApiClient {
     });
   }
 
-  async updatePassword(formData: FormData) {
+  async updatePassword(body: any) {
     return this.request(`/auth/users/password`, {
       method: "PATCH",
-      body: formData,
-      headers: {},
+      headers: {
+        ...authHeaders(true),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
     });
   }
+
   async resetPassword(token: string, newPassword: string) {
     const response = await this.request('/auth/reset-password', {
       method: 'POST',
