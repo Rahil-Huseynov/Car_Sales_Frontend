@@ -29,6 +29,7 @@ import { useLanguage } from "@/hooks/use-language";
 import { getTranslation } from "@/lib/i18n";
 import { apiClient } from "@/lib/api-client";
 import { useAuth } from "@/lib/auth-context";
+import { brandModelMap, cities, colors, conditions, fuels, gearboxOptions, years } from "@/lib/car-data";
 
 type CarImage = { id: number; url: string };
 type UserCar = {
@@ -128,7 +129,7 @@ function CarCard({ car, t, index }: { car: UserCar; t: (k: string) => string; in
         <div className="flex justify-between items-start">
           <div>
             <h3 className="font-bold text-lg text-gray-800 group-hover:text-blue-600 transition-colors duration-300">{car.brand} {car.model}</h3>
-            <p className="text-sm text-gray-600">{car.year} • {t(car.condition ?? "")}</p>
+            <p className="text-sm text-gray-600">{car.year} • {car.condition}</p>
           </div>
           <div className="text-right">
             <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">{(car.price ?? 0).toLocaleString()} ₼</p>
@@ -139,16 +140,16 @@ function CarCard({ car, t, index }: { car: UserCar; t: (k: string) => string; in
       <CardContent className="pt-0">
         <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-4">
           <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><Car className="h-4 w-4 text-blue-500" />{(car.mileage ?? 0).toLocaleString()} km</div>
-          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><Fuel className="h-4 w-4 text-blue-500" />{t(car.fuel ?? "")}</div>
-          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><Users className="h-4 w-4 text-blue-500" />{t(car.transmission ?? "")}</div>
-          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><MapPin className="h-4 w-4 text-blue-500" />{t(car.location ?? "")}</div>
+          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><Fuel className="h-4 w-4 text-blue-500" />{car.fuel}</div>
+          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><Users className="h-4 w-4 text-blue-500" />{car.transmission}</div>
+          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><MapPin className="h-4 w-4 text-blue-500" />{car.location}</div>
         </div>
-        <Badge variant="outline" className="mb-2 border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors duration-300">{t(car.color ?? "")}</Badge>
+        <Badge variant="outline" className="mb-2 border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors duration-300">{car.color}</Badge>
       </CardContent>
 
       <CardFooter className="pt-0 gap-2">
         <Button asChild className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 btn-animate transition-all duration-300 hover:scale-105">
-          <Link href={`/cars/${car.id}`}><Eye className="h-4 w-4 mr-2" />{t("details")}</Link>
+          <Link href={`/cars/${car.id}`}><Eye className="h-4 w-4 mr-2" />Detallar</Link>
         </Button>
         <Button variant="outline" size="icon" className="border-blue-200 text-blue-600 hover:bg-blue-50 bg-transparent transition-all duration-300 hover:scale-110" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}><Phone className="h-4 w-4" /></Button>
         <Button variant="outline" size="icon" className="border-blue-200 text-blue-600 hover:bg-blue-50 bg-transparent transition-all duration-300 hover:scale-110" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}><Mail className="h-4 w-4" /></Button>
@@ -204,7 +205,7 @@ export default function HomePage() {
         sortBy: sortBy === "createdAt_desc" ? undefined : sortBy,
       };
 
-      const res = await apiClient.getPremiumCars(params); 
+      const res = await apiClient.getPremiumCars(params);
       let carsArray: any[] = [];
       if (Array.isArray(res)) {
         carsArray = res;
@@ -272,17 +273,37 @@ export default function HomePage() {
     fetchProfile();
   }, []);
 
-  const brands = useMemo(() => [...new Set(cars.map((c) => c.brand).filter(Boolean))], [cars]);
-  const years = useMemo(() => {
-    return [...new Set(cars.map((c) => c.year).filter((y): y is number => y !== undefined))]
-      .sort((a, b) => b - a);
+  // Build brands list from brandModelMap + any brands returned from API
+  const brandsList = useMemo(() => {
+    const fromMap = Object.keys(brandModelMap || {});
+    const fromCars = [...new Set(cars.map((c) => c.brand).filter(Boolean))];
+    return Array.from(new Set([...fromMap, ...fromCars])).sort((a, b) => a.localeCompare(b));
   }, [cars]);
-  const fuels = useMemo(() => [...new Set(cars.map((c) => c.fuel).filter(Boolean))], [cars]);
-  const transmissions = useMemo(() => [...new Set(cars.map((c) => c.transmission).filter(Boolean))], [cars]);
-  const conditions = useMemo(() => [...new Set(cars.map((c) => c.condition).filter(Boolean))], [cars]);
-  const models = useMemo(() => [...new Set(cars.map((c) => c.model).filter(Boolean))], [cars]);
-  const cities = useMemo(() => [...new Set(cars.map((c) => c.city).filter(Boolean))], [cars]);
-  const colors = useMemo(() => [...new Set(cars.map((c) => c.color).filter(Boolean))], [cars]);
+
+  // When brand changes, reset model selection to 'all'
+  useEffect(() => {
+    setSelectedModel("all");
+    setPage(1);
+  }, [selectedBrand]);
+
+  // Models depend on selectedBrand. If brand === 'all' show a merged list (unique) from brandModelMap and cars
+  const availableModels = useMemo(() => {
+    if (selectedBrand && selectedBrand !== "all") {
+      return (brandModelMap[selectedBrand] || []).slice();
+    }
+
+    // merge all models from brandModelMap and cars
+    const mapModels = Object.values(brandModelMap).flat();
+    const carModels = cars.map((c) => c.model).filter(Boolean);
+    return Array.from(new Set([...mapModels, ...carModels])).sort((a, b) => a.localeCompare(b));
+  }, [selectedBrand, cars]);
+
+  // Use the predefined arrays for other filters (so they don't depend on API data)
+  const fuelsList = fuels.slice().sort((a, b) => a.localeCompare(b));
+  const transmissionsList = gearboxOptions.slice().sort((a, b) => a.localeCompare(b));
+  const conditionsList = conditions.slice().sort((a, b) => a.localeCompare(b));
+  const colorsList = colors.slice().sort((a, b) => a.localeCompare(b));
+  const citiesList = cities.slice().sort((a, b) => a.localeCompare(b));
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -315,7 +336,7 @@ export default function HomePage() {
                     <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectBrand")} /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{t("all")}</SelectItem>
-                      {brands.map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+                      {brandsList.map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
@@ -326,7 +347,7 @@ export default function HomePage() {
                     <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectModel")} /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{t("all")}</SelectItem>
-                      {models.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                      {availableModels.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
@@ -348,7 +369,7 @@ export default function HomePage() {
                     <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectFuel")} /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{t("all")}</SelectItem>
-                      {fuels.map((f) => <SelectItem key={f} value={f!}>{t(f!)}</SelectItem>)}
+                      {fuelsList.map((f) => <SelectItem key={f} value={f}>{t(f) ?? f}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
@@ -359,7 +380,7 @@ export default function HomePage() {
                     <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectTransmission")} /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{t("all")}</SelectItem>
-                      {transmissions.map((tr) => <SelectItem key={tr} value={tr!}>{t(tr!)}</SelectItem>)}
+                      {transmissionsList.map((tr) => <SelectItem key={tr} value={tr}>{t(tr) ?? tr}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
@@ -370,7 +391,7 @@ export default function HomePage() {
                     <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectCondition")} /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{t("all")}</SelectItem>
-                      {conditions.map((c) => <SelectItem key={c} value={c!}>{t(c!)}</SelectItem>)}
+                      {conditionsList.map((c) => <SelectItem key={c} value={c}>{t(c) ?? c}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
@@ -381,7 +402,7 @@ export default function HomePage() {
                     <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectCity")} /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{t("all")}</SelectItem>
-                      {cities.map((c) => <SelectItem key={c} value={c!}>{t(c!)}</SelectItem>)}
+                      {citiesList.map((c) => <SelectItem key={c} value={c}>{t(c) ?? c}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
@@ -392,7 +413,7 @@ export default function HomePage() {
                     <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectColor")} /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{t("all")}</SelectItem>
-                      {colors.map((c) => <SelectItem key={c} value={c!}>{t(c!)}</SelectItem>)}
+                      {colorsList.map((c) => <SelectItem key={c} value={c}>{t(c) ?? c}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>

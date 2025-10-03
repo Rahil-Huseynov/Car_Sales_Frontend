@@ -27,6 +27,18 @@ import {
 import { Navbar } from "@/components/navbar"
 import { apiClient } from "@/lib/api-client"
 import { useAuth } from "@/lib/auth-context"
+import {
+  brandModelMap,
+  fuels as fuelsStatic,
+  gearboxOptions as gearboxStatic,
+  conditions as conditionsStatic,
+  colors as colorsStatic,
+  bodyTypes,
+  engineOptions,
+  cities as citiesStatic,
+  features as featuresStatic,
+  years as yearsStatic,
+} from "@/lib/car-data"
 
 type CarImage = { id: number; url: string } | string
 type UserCar = {
@@ -48,6 +60,7 @@ type UserCar = {
 }
 
 const itemsPerPage = 20
+
 function buildQuery(params: Record<string, any>) {
   const q = new URLSearchParams()
   Object.entries(params).forEach(([k, v]) => {
@@ -60,15 +73,12 @@ function buildQuery(params: Record<string, any>) {
 function CarCard({ car }: { car: UserCar }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const { logout } = useAuth()
-
   const imageUrls = (car.images ?? []).map((img) => (typeof img === "string" ? img : img?.url ?? "/placeholder.svg"))
-
   const nextImage = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
     setCurrentImageIndex((prev) => (prev + 1) % Math.max(1, imageUrls.length))
   }
-
   const prevImage = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
@@ -85,10 +95,7 @@ function CarCard({ car }: { car: UserCar }) {
           height={200}
           className="w-full h-48 object-cover"
         />
-
-
         {car.featured && <Badge className="absolute top-2 left-2 bg-yellow-500 z-10">Seçilmiş</Badge>}
-
         {imageUrls.length > 1 && (
           <>
             <Button
@@ -99,7 +106,6 @@ function CarCard({ car }: { car: UserCar }) {
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-
             <Button
               size="icon"
               variant="ghost"
@@ -110,7 +116,6 @@ function CarCard({ car }: { car: UserCar }) {
             </Button>
           </>
         )}
-
         <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1">
           {imageUrls.map((_, index) => (
             <button
@@ -129,7 +134,6 @@ function CarCard({ car }: { car: UserCar }) {
           <Camera className="h-3 w-3" />
           {currentImageIndex + 1}/{Math.max(1, imageUrls.length)}
         </div>
-
         <Button
           size="icon"
           variant="ghost"
@@ -142,7 +146,6 @@ function CarCard({ car }: { car: UserCar }) {
           <Heart className="h-4 w-4" />
         </Button>
       </div>
-
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <div>
@@ -158,7 +161,6 @@ function CarCard({ car }: { car: UserCar }) {
           </div>
         </div>
       </CardHeader>
-
       <CardContent className="pt-0">
         <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-4">
           <div className="flex items-center gap-1">
@@ -182,7 +184,6 @@ function CarCard({ car }: { car: UserCar }) {
           {car.color}
         </Badge>
       </CardContent>
-
       <CardFooter className="pt-0 gap-2">
         <Button asChild className="flex-1">
           <Link href={`/cars/${car.id}`}>
@@ -200,7 +201,6 @@ function CarCard({ car }: { car: UserCar }) {
     </Card>
   )
 }
-
 export default function CarsPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedBrand, setSelectedBrand] = useState("all")
@@ -221,15 +221,50 @@ export default function CarsPage() {
   const [totalCount, setTotalCount] = useState<number | null>(null)
   const [totalPagesFromServer, setTotalPagesFromServer] = useState<number | null>(null)
   const [isServerPagination, setIsServerPagination] = useState(false)
-  const brands = useMemo(() => [...new Set(cars.map((c) => c.brand).filter(Boolean))] as string[], [cars])
-  const years = useMemo(() => [...new Set(cars.map((c) => c.year).filter(Boolean))].sort((a: any, b: any) => b - a) as number[], [cars])
-  const fuels = useMemo(() => [...new Set(cars.map((c) => c.fuel).filter(Boolean))] as string[], [cars])
-  const transmissions = useMemo(() => [...new Set(cars.map((c) => c.transmission).filter(Boolean))] as string[], [cars])
-  const conditions = useMemo(() => [...new Set(cars.map((c) => c.condition).filter(Boolean))] as string[], [cars])
-  const models = useMemo(() => [...new Set(cars.map((c) => c.model).filter(Boolean))] as string[], [cars])
-  const cities = useMemo(() => [...new Set(cars.map((c) => c.city).filter(Boolean))] as string[], [cars])
-  const colors = useMemo(() => [...new Set(cars.map((c) => c.color).filter(Boolean))] as string[], [cars])
-
+  const brands = useMemo(() => {
+    const fromMap = Object.keys(brandModelMap || {})
+    const fromCars = Array.from(
+      new Set(
+        cars
+          .map((c) => c.brand)
+          .filter((b): b is string => !!b)
+      )
+    )
+    return Array.from(new Set([...fromMap, ...fromCars])).sort((a, b) => a.localeCompare(b))
+  }, [cars])
+  const years = useMemo(() => (Array.isArray(yearsStatic) ? yearsStatic.slice() : []), [])
+  const fuels = useMemo(() => (Array.isArray(fuelsStatic) ? fuelsStatic.slice() : []), [])
+  const transmissions = useMemo(() => (Array.isArray(gearboxStatic) ? gearboxStatic.slice() : []), [])
+  const conditions = useMemo(() => (Array.isArray(conditionsStatic) ? conditionsStatic.slice() : []), [])
+  const colors = useMemo(() => (Array.isArray(colorsStatic) ? colorsStatic.slice() : []), [])
+  const cities = useMemo(() => (Array.isArray(citiesStatic) ? citiesStatic.slice() : []), [])
+  const availableModels = useMemo(() => {
+    if (selectedBrand && selectedBrand !== "all") {
+      const mapModels = (brandModelMap[selectedBrand] ?? []).filter((m): m is string => !!m)
+      const carModels = Array.from(
+        new Set(
+          cars
+            .map((c) => c.model)
+            .filter((m): m is string => !!m)
+            .filter((m) => m && typeof m === "string")
+        )
+      )
+      return Array.from(new Set([...mapModels, ...carModels])).sort((a, b) => a.localeCompare(b))
+    }
+    const mapModels = Object.values(brandModelMap).flat().filter((m): m is string => !!m)
+    const carModels = Array.from(
+      new Set(
+        cars
+          .map((c) => c.model)
+          .filter((m): m is string => !!m)
+      )
+    )
+    return Array.from(new Set([...mapModels, ...carModels])).sort((a, b) => a.localeCompare(b))
+  }, [selectedBrand, cars])
+  useEffect(() => {
+    setSelectedModel("all")
+    setCurrentPage(1)
+  }, [selectedBrand])
   const fetchCars = async () => {
     setLoading(true)
     setError(null)
@@ -238,7 +273,6 @@ export default function CarsPage() {
         page: currentPage,
         limit: itemsPerPage,
       }
-
       if (searchTerm) params.search = searchTerm
       if (selectedBrand !== "all") params.brand = selectedBrand
       if (selectedModel !== "all") params.model = selectedModel
@@ -251,7 +285,6 @@ export default function CarsPage() {
       if (priceRange.min) params.minPrice = Number(priceRange.min)
       if (priceRange.max) params.maxPrice = Number(priceRange.max)
       if (sortBy) params.sortBy = sortBy
-
       let resp: any = null
       if (apiClient?.getAllCars) {
         resp = await apiClient.getAllCars(params)
@@ -260,7 +293,6 @@ export default function CarsPage() {
         const r = await fetch(`/car/all?${qs}`)
         resp = await r.json()
       }
-
       const normalizeCars = (raw: any) => {
         if (!raw) return { cars: [], total: null, totalPages: null, page: null }
         if (Array.isArray(raw)) return { cars: raw, total: raw.length, totalPages: null, page: null }
@@ -269,29 +301,20 @@ export default function CarsPage() {
         if (raw.items && Array.isArray(raw.items)) return { cars: raw.items, total: raw.total ?? null, totalPages: raw.totalPages ?? null, page: raw.page ?? null }
         return { cars: [], total: null, totalPages: null, page: null }
       }
-
-
-
       const { cars: fetchedCars, total, totalPages: serverTP, page: serverPage } = normalizeCars(resp)
-
       const IMAGE_BASE = process.env.NEXT_PUBLIC_API_URL_FOR_IMAGE?.replace(/\/+$/, "") ?? "";
-
       const mapped = (fetchedCars ?? []).map((c: any) => {
         const imgs = (c.images ?? []).map((img: any) => {
           if (!img) return "/placeholder.svg";
           const rawUrl = typeof img === "string" ? img : img.url ?? "";
           if (!rawUrl) return "/placeholder.svg";
+          if (/^https?:\/\//i.test(rawUrl)) return rawUrl;
           const cleanedUrl = rawUrl.replace(/^\/?uploads\/?/, "");
-          return `${IMAGE_BASE}/${cleanedUrl}`;
+          return IMAGE_BASE ? `${IMAGE_BASE}/${cleanedUrl}` : `/${cleanedUrl}`;
         });
         return { ...c, images: imgs };
       });
-
-
-
-
       setCars(mapped)
-
       if (typeof total === "number") {
         setIsServerPagination(true)
         setTotalCount(total)
@@ -308,18 +331,15 @@ export default function CarsPage() {
       setLoading(false)
     }
   }
-
   useEffect(() => {
     fetchCars()
   }, [currentPage, searchTerm, selectedBrand, selectedModel, selectedYear, selectedFuel, selectedTransmission, selectedCondition, selectedCity, selectedColor, priceRange.min, priceRange.max, sortBy])
-
   const totalPages = isServerPagination
     ? Math.max(1, Math.ceil((totalCount ?? 0) / itemsPerPage))
     : Math.ceil((cars.length) / itemsPerPage) || 1
 
   const startIndex = (currentPage - 1) * itemsPerPage
   const paginatedCars = isServerPagination ? cars : cars.slice(startIndex, startIndex + itemsPerPage)
-
   const renderPageButtons = () => {
     const visible = Math.min(5, totalPages)
     const half = Math.floor(visible / 2)
@@ -336,11 +356,9 @@ export default function CarsPage() {
       </Button>
     ))
   }
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-
       <section className="bg-white border-b py-8">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -366,7 +384,6 @@ export default function CarsPage() {
           </div>
         </div>
       </section>
-
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col xl:flex-row gap-6 md:gap-8">
           <div className={`xl:w-1/4 ${showFilters ? "block" : "hidden xl:block"}`}>
@@ -380,7 +397,6 @@ export default function CarsPage() {
                   <Button variant="ghost" size="sm" onClick={() => setShowFilters(false)} className="xl:hidden">✕</Button>
                 </div>
               </CardHeader>
-
               <CardContent className="space-y-4">
                 <div>
                   <label className="text-sm font-medium mb-2 block">Marka</label>
@@ -392,18 +408,16 @@ export default function CarsPage() {
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div>
                   <label className="text-sm font-medium mb-2 block">Model</label>
                   <Select value={selectedModel} onValueChange={(v: any) => { setSelectedModel(v); setCurrentPage(1) }}>
                     <SelectTrigger><SelectValue placeholder="Model seçin" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Hamısı</SelectItem>
-                      {models.map((m) => (<SelectItem key={m} value={m}>{m}</SelectItem>))}
+                      {availableModels.map((m) => (<SelectItem key={m} value={m}>{m}</SelectItem>))}
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div>
                   <label className="text-sm font-medium mb-2 block">İl</label>
                   <Select value={selectedYear} onValueChange={(v: any) => { setSelectedYear(v); setCurrentPage(1) }}>
@@ -414,7 +428,6 @@ export default function CarsPage() {
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div>
                   <label className="text-sm font-medium mb-2 block">Yanacaq</label>
                   <Select value={selectedFuel} onValueChange={(v: any) => { setSelectedFuel(v); setCurrentPage(1) }}>
@@ -425,7 +438,6 @@ export default function CarsPage() {
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div>
                   <label className="text-sm font-medium mb-2 block">Transmissiya</label>
                   <Select value={selectedTransmission} onValueChange={(v: any) => { setSelectedTransmission(v); setCurrentPage(1) }}>
@@ -436,7 +448,6 @@ export default function CarsPage() {
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div>
                   <label className="text-sm font-medium mb-2 block">Vəziyyət</label>
                   <Select value={selectedCondition} onValueChange={(v: any) => { setSelectedCondition(v); setCurrentPage(1) }}>
@@ -447,7 +458,6 @@ export default function CarsPage() {
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div>
                   <label className="text-sm font-medium mb-2 block">Şəhər</label>
                   <Select value={selectedCity} onValueChange={(v: any) => { setSelectedCity(v); setCurrentPage(1) }}>
@@ -458,7 +468,6 @@ export default function CarsPage() {
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div>
                   <label className="text-sm font-medium mb-2 block">Rəng</label>
                   <Select value={selectedColor} onValueChange={(v: any) => { setSelectedColor(v); setCurrentPage(1) }}>
@@ -469,7 +478,6 @@ export default function CarsPage() {
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div>
                   <label className="text-sm font-medium mb-2 block">Qiymət aralığı (AZN)</label>
                   <div className="flex gap-2">
@@ -477,7 +485,6 @@ export default function CarsPage() {
                     <Input placeholder="Max" value={priceRange.max} onChange={(e) => setPriceRange((prev) => ({ ...prev, max: e.target.value }))} />
                   </div>
                 </div>
-
                 <Button variant="outline" className="w-full bg-transparent" onClick={() => {
                   setSelectedBrand("all")
                   setSelectedModel("all")
@@ -496,7 +503,6 @@ export default function CarsPage() {
               </CardContent>
             </Card>
           </div>
-
           <div className="xl:w-3/4">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
               <h2 className="text-2xl font-bold">{totalCount ?? cars.length} avtomobil tapıldı</h2>
@@ -513,7 +519,6 @@ export default function CarsPage() {
                 </SelectContent>
               </Select>
             </div>
-
             {loading ? (
               <div className="text-center py-12">Yüklənir...</div>
             ) : error ? (
@@ -523,7 +528,6 @@ export default function CarsPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
                   {paginatedCars.map((car) => (<CarCard key={car.id} car={car} />))}
                 </div>
-
                 {paginatedCars.length === 0 && (
                   <div className="text-center py-12">
                     <Car className="h-16 w-16 mx-auto text-gray-400 mb-4" />
@@ -531,7 +535,6 @@ export default function CarsPage() {
                     <p className="text-gray-500">Axtarış kriteriyalarınızı dəyişdirərək yenidən cəhd edin</p>
                   </div>
                 )}
-
                 {totalPages > 1 && (
                   <div className="flex justify-center items-center gap-2 mt-8">
                     <Button variant="outline" onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))} disabled={currentPage === 1}>Əvvəlki</Button>
