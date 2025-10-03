@@ -48,6 +48,7 @@ class ApiClient {
       headers: {
         ...(isFormData ? {} : { "Content-Type": "application/json" }),
         ...options.headers,
+        "x-api-key": process.env.NEXT_PUBLIC_API_KEY as string
       },
     }
 
