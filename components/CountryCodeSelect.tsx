@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useEffect } from "react";
 import {
   Select,
   SelectTrigger,
@@ -20,10 +21,18 @@ export default function CountrySelect({ value, onChange }: Props) {
       self.findIndex((c) => c.code === country.code) === index
   );
 
+  const firstCode = uniqueCountries.length > 0 ? uniqueCountries[0].code : "";
+
+  useEffect(() => {
+    if ((!value || value === "") && firstCode) {
+      onChange(firstCode);
+    }
+  }, [value, firstCode, onChange]);
+
   return (
     <Select value={value} onValueChange={onChange}>
       <SelectTrigger>
-        <SelectValue placeholder="Selectcountrycode" />
+        <SelectValue placeholder={firstCode || "Select"} />
       </SelectTrigger>
       <SelectContent>
         {uniqueCountries.map((country) => (

@@ -16,10 +16,12 @@ import { useLanguage } from "@/hooks/use-language"
 import { getTranslation } from "@/lib/i18n"
 import { apiClient } from "@/lib/api-client"
 import { useAuth } from "@/lib/auth-context"
-import { bodyTypes, brandModelMap, cities, colors, conditions, engineOptions, features, fuels, gearboxOptions, years } from "@/lib/car-data"
+import { bodyTypes, cities, colors, conditions, engineOptions, features, fuels, gearboxOptions, years } from "@/lib/car-data"
 import CountryCodeSelect from "@/components/CountryCodeSelect"
 import { ToastContainer, toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
+import BrandSelect from "@/components/BrandSelect"
+import ModelSelect from "@/components/ModelSelect"
 
 type UserType = {
   id: number
@@ -162,9 +164,11 @@ export default function SellPage() {
   const t = (key: string) => getTranslation(language, key)
   const router = useRouter()
   const { logout } = useAuth()
-
+  const [page, setPage] = useState<number>(1);
   const [profileData, setProfileData] = useState<UserType | null>(null)
   const [loadingProfile, setLoadingProfile] = useState(true)
+  const [selectedBrand, setSelectedBrand] = useState<string>("all");
+  const [selectedModel, setSelectedModel] = useState<string>("all");
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -229,19 +233,12 @@ export default function SellPage() {
   }, [profileData])
 
   const [images, setImages] = useState<ImageItem[]>([])
-  const [phoneCode, setPhoneCode] = useState<string>("+994")
+  const [phoneCode, setPhoneCode] = useState<string>("+93")
 
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken")
     if (!accessToken) router.push("/auth/login")
   }, [router])
-
-  const brands = useMemo(() => Object.keys(brandModelMap).sort((a, b) => a.localeCompare(b)), [])
-
-  const modelsForSelectedBrand = useMemo(() => {
-    if (!formData.brand) return []
-    return brandModelMap[formData.brand] ?? []
-  }, [formData.brand])
 
   const handleFeatureChange = useCallback((feature: string, checked: boolean) => {
     setFormData((prev) => {
@@ -299,7 +296,7 @@ export default function SellPage() {
     setImages((prev) => {
       const toRemove = prev.find((p) => p.id === id)
       if (toRemove) {
-        try { URL.revokeObjectURL(toRemove.url) } catch {}
+        try { URL.revokeObjectURL(toRemove.url) } catch { }
       }
       return prev.filter((img) => img.id !== id)
     })
@@ -315,19 +312,40 @@ export default function SellPage() {
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!formData.brand || !formData.model || !formData.year || !formData.price || !formData.mileage) {
-      alert(language === "az" ? "Zəhmət olmasa əsas sahələri doldurun." : "Please fill required fields.")
+    e.preventDefault();
+
+    const brandVal = (formData.brand || "").toString().trim() || (selectedBrand && selectedBrand !== "all" ? selectedBrand : "");
+    const modelVal = (formData.model || "").toString().trim() || (selectedModel && selectedModel !== "all" ? selectedModel : "");
+    const yearVal = (formData.year || "").toString().trim();
+    const priceVal = (formData.price || "").toString().trim();
+    const mileageVal = (formData.mileage || "").toString().trim();
+
+    if (!brandVal || !modelVal || !yearVal || !priceVal || !mileageVal) {
+      toast.warn(
+        language === "az"
+          ? "Zəhmət olmasa əsas sahələri doldurun."
+          : "Please fill required fields.",
+        { position: "top-right", autoClose: 3000 }
+      );
+      return;
+    }
+    const priceNum = Number(priceVal)
+    const mileageNum = Number(mileageVal)
+    if (isNaN(priceNum) || priceNum <= 0) {
+      toast.warn(language === "az" ? "Qiymət müsbət ədəd olmalıdır." : "Price must be a positive number", { position: "top-right" })
       return
     }
-
+    if (isNaN(mileageNum) || mileageNum < 0) {
+      toast.warn(language === "az" ? "Yürüş düzgün daxil edilməlidir." : "Mileage must be a valid number", { position: "top-right" })
+      return
+    }
     try {
       const payload = {
-        brand: formData.brand || null,
-        model: formData.model || null,
-        year: Number(formData.year),
-        price: Number(formData.price),
-        mileage: Number(formData.mileage),
+        brand: brandVal || null,
+        model: modelVal || null,
+        year: Number(yearVal),
+        price: priceNum,
+        mileage: mileageNum,
         fuel: formData.fuel || null,
         condition: formData.condition || null,
         color: formData.color || null,
@@ -412,7 +430,6 @@ export default function SellPage() {
   }), [language])
 
   const pageContent = content[language as "az" | "en"] ?? content.en
-
   return (
     <div className="min-h-screen bg-gray-50">
       <style jsx global>{`
@@ -456,45 +473,33 @@ export default function SellPage() {
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="brand">{t("brand") || (language === "az" ? "Marka" : "Brand")}</Label>
-                  <Select
-                    value={formData.brand}
-                    required
-                    onValueChange={(val) => setFormData((p) => ({ ...p, brand: val, model: "" }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={t("selectBrand") || (language === "az" ? "Marka seçin" : "Select brand")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {brands.map((b) => (
-                        <SelectItem key={b} value={b}>{b}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block text-gray-700">{t("brand")}</label>
+                    <BrandSelect
+                      value={selectedBrand}
+                      onChange={(v) => {
+                        setSelectedBrand(v);
+                        setSelectedModel("all");
+                        setFormData((p) => ({ ...p, brand: v === "all" ? "" : v, model: "" }));
+                        setPage(1);
+                      }}
+                      placeholder={t("all")}
+                    />
+                  </div>
                 </div>
-
                 <div>
-                  <Label htmlFor="model">{t("model") || (language === "az" ? "Model" : "Model")}</Label>
-                  {modelsForSelectedBrand.length > 0 ? (
-                    <Select
-                      value={formData.model}
-                      required
-                      onValueChange={(v) => setFormData((p) => ({ ...p, model: v }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder={language === "az" ? "Model seçin" : "Select model"} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {modelsForSelectedBrand.map((m) => (
-                          <SelectItem key={m} value={m}>{m}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <Input id="model" required value={formData.model} onChange={(e) => setFormData((p) => ({ ...p, model: e.target.value }))} placeholder={language === "az" ? "Model daxil edin" : "Enter model"} />
-                  )}
+                  <label className="text-sm font-medium mb-2 block text-gray-700">{t("model")}</label>
+                  <ModelSelect
+                    value={selectedModel}
+                    brand={selectedBrand}
+                    onChange={(v) => {
+                      setSelectedModel(v);
+                      setFormData((p) => ({ ...p, model: v === "all" ? "" : v }));
+                      setPage(1);
+                    }}
+                    placeholder={t("all")}
+                  />
                 </div>
-
                 <div>
                   <Label htmlFor="year">{t("year") || (language === "az" ? "İl" : "Year")}</Label>
                   <Select value={formData.year} onValueChange={(v) => setFormData((p) => ({ ...p, year: v }))} required>
@@ -734,6 +739,7 @@ export default function SellPage() {
                         name="phone"
                         type="tel"
                         placeholder="501234567 (koddan sonra)"
+                        value={formData.phone}
                         onChange={(e) => setFormData((p) => ({ ...p, phone: e.target.value }))}
                         required
                         className="pl-10"

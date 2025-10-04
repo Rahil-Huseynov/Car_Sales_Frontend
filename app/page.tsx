@@ -11,8 +11,6 @@ import {
   Filter,
   Heart,
   Eye,
-  Phone,
-  Mail,
   MapPin,
   Car,
   Fuel,
@@ -28,7 +26,9 @@ import { useLanguage } from "@/hooks/use-language";
 import { getTranslation } from "@/lib/i18n";
 import { apiClient } from "@/lib/api-client";
 import { useAuth } from "@/lib/auth-context";
-import { brandModelMap, cities, colors, conditions, fuels, gearboxOptions, years } from "@/lib/car-data";
+import {cities, colors, conditions, fuels, gearboxOptions, years } from "@/lib/car-data";
+import BrandSelect from "@/components/BrandSelect";
+import ModelSelect from "@/components/ModelSelect";
 
 type CarImage = { id: number; url: string };
 type UserCar = {
@@ -271,24 +271,11 @@ export default function HomePage() {
   useEffect(() => {
     fetchProfile();
   }, []);
-  const brandsList = useMemo(() => {
-    const fromMap = Object.keys(brandModelMap || {});
-    const fromCars = [...new Set(cars.map((c) => c.brand).filter(Boolean))];
-    return Array.from(new Set([...fromMap, ...fromCars])).sort((a, b) => a.localeCompare(b));
-  }, [cars]);
 
   useEffect(() => {
     setSelectedModel("all");
     setPage(1);
   }, [selectedBrand]);
-  const availableModels = useMemo(() => {
-    if (selectedBrand && selectedBrand !== "all") {
-      return (brandModelMap[selectedBrand] || []).slice();
-    }
-    const mapModels = Object.values(brandModelMap).flat();
-    const carModels = cars.map((c) => c.model).filter(Boolean);
-    return Array.from(new Set([...mapModels, ...carModels])).sort((a, b) => a.localeCompare(b));
-  }, [selectedBrand, cars]);
   const fuelsList = fuels.slice().sort((a, b) => a.localeCompare(b));
   const transmissionsList = gearboxOptions.slice().sort((a, b) => a.localeCompare(b));
   const conditionsList = conditions.slice().sort((a, b) => a.localeCompare(b));
@@ -322,25 +309,24 @@ export default function HomePage() {
               <CardContent className="space-y-4 p-6">
                 <div>
                   <label className="text-sm font-medium mb-2 block text-gray-700">{t("brand")}</label>
-                  <Select value={selectedBrand} onValueChange={(v) => { setSelectedBrand(v); setPage(1); }}>
-                    <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectBrand")} /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{t("all")}</SelectItem>
-                      {brandsList.map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  <BrandSelect
+                    value={selectedBrand}
+                    onChange={(v) => { setSelectedBrand(v); setSelectedModel("all"); setPage(1); }}
+                    placeholder={t("all")}
+                  />
                 </div>
+
 
                 <div>
                   <label className="text-sm font-medium mb-2 block text-gray-700">{t("model")}</label>
-                  <Select value={selectedModel} onValueChange={(v) => { setSelectedModel(v); setPage(1); }}>
-                    <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectModel")} /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{t("all")}</SelectItem>
-                      {availableModels.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  <ModelSelect
+                    value={selectedModel}
+                    brand={selectedBrand}
+                    onChange={(v) => { setSelectedModel(v); setPage(1); }}
+                    placeholder={t("all")}
+                  />
                 </div>
+
 
                 <div>
                   <label className="text-sm font-medium mb-2 block text-gray-700">{t("year")}</label>

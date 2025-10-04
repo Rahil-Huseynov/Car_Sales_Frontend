@@ -139,6 +139,29 @@ class ApiClient {
     });
   }
 
+  async carsMark(page = 1, limit = 10) {
+    const qs = new URLSearchParams({ page: String(page), limit: String(limit) });
+    return this.request(`/carsdata/keys?${qs.toString()}`, { method: 'GET' });
+  }
+
+  async carsMarkSearch(search: string) {
+    return this.request(`/carsdata/keys?search=${search}`, { method: 'GET' });
+  }
+
+  async carsModelSearch(search: string) {
+    return this.request(`/carsdata/values?search=${search}`, { method: 'GET' });
+  }
+
+  async carsModel(page = 1, limit = 10) {
+    const qs = new URLSearchParams({ page: String(page), limit: String(limit) });
+    return this.request(`/carsdata/values?${qs.toString()}`, { method: 'GET' });
+  }
+
+  async carsSpesificData(page = 1, limit = 10, name: string) {
+    const qs = new URLSearchParams({ page: String(page), limit: String(limit) });
+    return this.request(`/carsdata/brand/${encodeURIComponent(name)}?${qs.toString()}`, { method: 'GET' });
+  }
+
   async updateUser(userId: string, body: any) {
     return this.request(`/auth/users/${userId}`, {
       method: "PUT",

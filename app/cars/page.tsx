@@ -13,11 +13,8 @@ import {
   Filter,
   Heart,
   Eye,
-  Phone,
-  Mail,
   MapPin,
   Car,
-  Users,
   Fuel,
   SlidersHorizontal,
   Camera,
@@ -29,17 +26,18 @@ import { Navbar } from "@/components/navbar"
 import { apiClient } from "@/lib/api-client"
 import { useAuth } from "@/lib/auth-context"
 import {
-  brandModelMap,
   fuels as fuelsStatic,
   gearboxOptions as gearboxStatic,
   conditions as conditionsStatic,
   colors as colorsStatic,
-  bodyTypes,
-  engineOptions,
   cities as citiesStatic,
   features as featuresStatic,
   years as yearsStatic,
 } from "@/lib/car-data"
+import BrandSelect from "@/components/BrandSelect"
+import ModelSelect from "@/components/ModelSelect"
+import { getTranslation } from "@/lib/i18n"
+import { useLanguage } from "@/hooks/use-language"
 
 type CarImage = { id: number; url: string } | string
 type UserCar = {
@@ -197,6 +195,8 @@ function CarCard({ car }: { car: UserCar }) {
   )
 }
 export default function CarsPage() {
+  const { language } = useLanguage();
+  const t = (key: string) => getTranslation(language, key);
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedBrand, setSelectedBrand] = useState("all")
   const [selectedYear, setSelectedYear] = useState("all")
@@ -210,52 +210,20 @@ export default function CarsPage() {
   const [sortBy, setSortBy] = useState("newest")
   const [currentPage, setCurrentPage] = useState(1)
   const [showFilters, setShowFilters] = useState(false)
+  const [page, setPage] = useState<number>(1);
   const [cars, setCars] = useState<UserCar[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [totalCount, setTotalCount] = useState<number | null>(null)
   const [totalPagesFromServer, setTotalPagesFromServer] = useState<number | null>(null)
   const [isServerPagination, setIsServerPagination] = useState(false)
-  const brands = useMemo(() => {
-    const fromMap = Object.keys(brandModelMap || {})
-    const fromCars = Array.from(
-      new Set(
-        cars
-          .map((c) => c.brand)
-          .filter((b): b is string => !!b)
-      )
-    )
-    return Array.from(new Set([...fromMap, ...fromCars])).sort((a, b) => a.localeCompare(b))
-  }, [cars])
   const years = useMemo(() => (Array.isArray(yearsStatic) ? yearsStatic.slice() : []), [])
   const fuels = useMemo(() => (Array.isArray(fuelsStatic) ? fuelsStatic.slice() : []), [])
   const transmissions = useMemo(() => (Array.isArray(gearboxStatic) ? gearboxStatic.slice() : []), [])
   const conditions = useMemo(() => (Array.isArray(conditionsStatic) ? conditionsStatic.slice() : []), [])
   const colors = useMemo(() => (Array.isArray(colorsStatic) ? colorsStatic.slice() : []), [])
   const cities = useMemo(() => (Array.isArray(citiesStatic) ? citiesStatic.slice() : []), [])
-  const availableModels = useMemo(() => {
-    if (selectedBrand && selectedBrand !== "all") {
-      const mapModels = (brandModelMap[selectedBrand] ?? []).filter((m): m is string => !!m)
-      const carModels = Array.from(
-        new Set(
-          cars
-            .map((c) => c.model)
-            .filter((m): m is string => !!m)
-            .filter((m) => m && typeof m === "string")
-        )
-      )
-      return Array.from(new Set([...mapModels, ...carModels])).sort((a, b) => a.localeCompare(b))
-    }
-    const mapModels = Object.values(brandModelMap).flat().filter((m): m is string => !!m)
-    const carModels = Array.from(
-      new Set(
-        cars
-          .map((c) => c.model)
-          .filter((m): m is string => !!m)
-      )
-    )
-    return Array.from(new Set([...mapModels, ...carModels])).sort((a, b) => a.localeCompare(b))
-  }, [selectedBrand, cars])
+
   useEffect(() => {
     setSelectedModel("all")
     setCurrentPage(1)
@@ -394,25 +362,25 @@ export default function CarsPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Marka</label>
-                  <Select value={selectedBrand} onValueChange={(v: any) => { setSelectedBrand(v); setCurrentPage(1) }}>
-                    <SelectTrigger><SelectValue placeholder="Marka seçin" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Hamısı</SelectItem>
-                      {brands.map((brand) => (<SelectItem key={brand} value={brand}>{brand}</SelectItem>))}
-                    </SelectContent>
-                  </Select>
+                  <label className="text-sm font-medium mb-2 block text-gray-700">{t("brand")}</label>
+                  <BrandSelect
+                    value={selectedBrand}
+                    onChange={(v) => { setSelectedBrand(v); setSelectedModel("all"); setPage(1); }}
+                    placeholder={t("all")}
+                  />
                 </div>
+
+
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Model</label>
-                  <Select value={selectedModel} onValueChange={(v: any) => { setSelectedModel(v); setCurrentPage(1) }}>
-                    <SelectTrigger><SelectValue placeholder="Model seçin" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Hamısı</SelectItem>
-                      {availableModels.map((m) => (<SelectItem key={m} value={m}>{m}</SelectItem>))}
-                    </SelectContent>
-                  </Select>
+                  <label className="text-sm font-medium mb-2 block text-gray-700">{t("model")}</label>
+                  <ModelSelect
+                    value={selectedModel}
+                    brand={selectedBrand}
+                    onChange={(v) => { setSelectedModel(v); setPage(1); }}
+                    placeholder={t("all")}
+                  />
                 </div>
+
                 <div>
                   <label className="text-sm font-medium mb-2 block">İl</label>
                   <Select value={selectedYear} onValueChange={(v: any) => { setSelectedYear(v); setCurrentPage(1) }}>
