@@ -160,8 +160,6 @@ const VirtualScrollFeatures = ({
 }
 
 export default function SellPage() {
-  const { language } = useLanguage()
-  const t = (key: string) => getTranslation(language, key)
   const router = useRouter()
   const { logout } = useAuth()
   const [page, setPage] = useState<number>(1);
@@ -169,6 +167,8 @@ export default function SellPage() {
   const [loadingProfile, setLoadingProfile] = useState(true)
   const [selectedBrand, setSelectedBrand] = useState<string>("all");
   const [selectedModel, setSelectedModel] = useState<string>("all");
+  const { language, changeLanguage } = useLanguage()
+  const t = (key: string) => getTranslation(language, key)
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -257,7 +257,7 @@ export default function SellPage() {
 
     const remainingSlots = 10 - images.length
     if (remainingSlots <= 0) {
-      toast.warning(language === "az" ? "Maksimum 10 şəkil əlavə oluna bilər." : "You can add maximum 10 images.")
+      toast.warning(t("maxImages"), { position: "top-right" })
       return
     }
     const filesArray = Array.from(files)
@@ -266,10 +266,7 @@ export default function SellPage() {
     const validFiles = filesToConsider.filter((f) => f.size <= MAX_FILE_SIZE)
     if (oversized.length > 0) {
       const names = oversized.map((f) => f.name).join(", ")
-      const msg =
-        language === "az"
-          ? `Aşağıdakı fayllar 1MB-dan böyükdür və əlavə olunmadı: ${names}`
-          : `These files are larger than 1MB and were not added: ${names}`
+      const msg = t("oversizedFiles").replace("{names}", names)
       toast.error(msg, { position: "top-right", autoClose: 6000 })
     }
 
@@ -321,22 +318,17 @@ export default function SellPage() {
     const mileageVal = (formData.mileage || "").toString().trim();
 
     if (!brandVal || !modelVal || !yearVal || !priceVal || !mileageVal) {
-      toast.warn(
-        language === "az"
-          ? "Zəhmət olmasa əsas sahələri doldurun."
-          : "Please fill required fields.",
-        { position: "top-right", autoClose: 3000 }
-      );
+      toast.warn(t("fillRequired"), { position: "top-right", autoClose: 3000 })
       return;
     }
     const priceNum = Number(priceVal)
     const mileageNum = Number(mileageVal)
     if (isNaN(priceNum) || priceNum <= 0) {
-      toast.warn(language === "az" ? "Qiymət müsbət ədəd olmalıdır." : "Price must be a positive number", { position: "top-right" })
+      toast.warn(t("pricePositive"), { position: "top-right" })
       return
     }
     if (isNaN(mileageNum) || mileageNum < 0) {
-      toast.warn(language === "az" ? "Yürüş düzgün daxil edilməlidir." : "Mileage must be a valid number", { position: "top-right" })
+      toast.warn(t("mileageValid"), { position: "top-right" })
       return
     }
     try {
@@ -374,62 +366,15 @@ export default function SellPage() {
         await apiClient.addcarimagedata(fd)
       }
 
-      toast.success(language === "az" ? "Avtomobil uğurla əlavə edildi!" : "Car added successfully!", { position: "top-right", autoClose: 3000 })
+      toast.success(t("carAddedSuccess"), { position: "top-right", autoClose: 3000 })
       router.push("/profile/my-ads")
     } catch (err: any) {
       console.error(err)
-      toast.error(err?.message || (language === "az" ? "Xəta baş verdi" : "Something went wrong"), { position: "top-right", autoClose: 5000 })
+      toast.error(err?.message || t("errorOccurred"), { position: "top-right", autoClose: 5000 })
     }
   }
 
-  const content = useMemo(() => ({
-    az: {
-      title: "Avtomobil Satışı",
-      subtitle: "Avtomobilinizi sürətlə və asanlıqla satın",
-      carInfo: "Avtomobil Məlumatları",
-      features: "Xüsusiyyətlər",
-      images: "Şəkillər",
-      imagesDesc: "Maksimum 10 şəkil əlavə edə bilərsiniz",
-      uploadImages: "Şəkilləri yükləyin",
-      chooseImages: "Şəkil seçin",
-      contactInfo: "Əlaqə Məlumatları",
-      postAd: "Elanı Yerləşdir",
-      mainImage: "Əsas şəkil",
-      dragDrop: "Şəkilləri buraya sürükləyin və ya seçin",
-      supportedFormats: "PNG, JPG formatında maksimum 1MB hər şəkil",
-      uploadedImages: "Yüklənmiş Şəkillər",
-      noImages: "Hələ şəkil əlavə edilməyib",
-      addFirstImage: "İlk şəkili əlavə edin",
-      engine: "Mühərrik",
-      ban: "Karoseriya növü",
-      gearbox: "Sürətlər qutusu",
-      location: "Yer / Region"
-    },
-    en: {
-      title: "Sell Your Car",
-      subtitle: "Sell your car quickly and easily",
-      carInfo: "Car Information",
-      features: "Features",
-      images: "Images",
-      imagesDesc: "You can add up to 10 images",
-      uploadImages: "Upload images",
-      chooseImages: "Choose images",
-      contactInfo: "Contact Information",
-      postAd: "Post Advertisement",
-      mainImage: "Main image",
-      dragDrop: "Drag and drop images here or select",
-      supportedFormats: "PNG, JPG format, maximum 1MB each",
-      uploadedImages: "Uploaded Images",
-      noImages: "No images added yet",
-      addFirstImage: "Add your first image",
-      engine: "Engine",
-      ban: "Body type",
-      gearbox: "Gearbox",
-      location: "Location / Region"
-    }
-  }), [language])
 
-  const pageContent = content[language as "az" | "en"] ?? content.en
   return (
     <div className="min-h-screen bg-gray-50">
       <style jsx global>{`
@@ -443,7 +388,7 @@ export default function SellPage() {
         }
       `}</style>
 
-      <Navbar />
+      <Navbar currentLanguage={language} onLanguageChange={changeLanguage} />
       <ToastContainer
         position="top-right"
         autoClose={4000}
@@ -459,8 +404,8 @@ export default function SellPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-800 mb-4">{pageContent.title}</h1>
-            <p className="text-gray-600">{pageContent.subtitle}</p>
+            <h1 className="text-3xl font-bold text-gray-800 mb-4">{t("sellTitle")}</h1>
+            <p className="text-gray-600">{t("sellSubtitle")}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -468,7 +413,7 @@ export default function SellPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Car className="h-5 w-5" />
-                  {pageContent.carInfo}
+                  {t("carInfo")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -501,10 +446,10 @@ export default function SellPage() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="year">{t("year") || (language === "az" ? "İl" : "Year")}</Label>
+                  <Label htmlFor="year">{t("year")}</Label>
                   <Select value={formData.year} onValueChange={(v) => setFormData((p) => ({ ...p, year: v }))} required>
                     <SelectTrigger>
-                      <SelectValue placeholder={t("selectYear") || (language === "az" ? "İl seçin" : "Select year")} />
+                      <SelectValue placeholder={t("selectYear")} />
                     </SelectTrigger>
                     <SelectContent>
                       {years.map((yr) => (
@@ -515,62 +460,62 @@ export default function SellPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="price">{language === "az" ? "Qiymət (AZN)" : "Price (AZN)"}</Label>
+                  <Label htmlFor="price">{t("priceWithCurrency") || t("price")}</Label>
                   <Input id="price" type="number" required min={0} value={formData.price} onChange={(e) => setFormData((p) => ({ ...p, price: e.target.value }))} placeholder="50000" />
                 </div>
 
                 <div>
-                  <Label htmlFor="mileage">{language === "az" ? "Yürüş (km)" : "Mileage (km)"}</Label>
+                  <Label htmlFor="mileage">{t("mileage") || "Mileage (km)"}</Label>
                   <Input id="mileage" required min={0} type="number" value={formData.mileage} onChange={(e) => setFormData((p) => ({ ...p, mileage: e.target.value }))} placeholder="50000" />
                 </div>
 
                 <div>
-                  <Label htmlFor="fuel">{t("fuel") || (language === "az" ? "Yanacaq" : "Fuel")}</Label>
+                  <Label htmlFor="fuel">{t("fuel")}</Label>
                   <Select value={formData.fuel} onValueChange={(v) => setFormData((p) => ({ ...p, fuel: v }))} required>
                     <SelectTrigger>
-                      <SelectValue placeholder={t("selectFuel") || (language === "az" ? "Yanacaq seçin" : "Select fuel")} />
+                      <SelectValue placeholder={t("selectFuel")} />
                     </SelectTrigger>
                     <SelectContent>
                       {fuels.map((f) => (
-                        <SelectItem key={f} value={f}>{f}</SelectItem>
+                        <SelectItem key={f} value={f}>{t(f) ?? f}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
-                  <Label htmlFor="condition">{t("condition") || (language === "az" ? "Vəziyyət" : "Condition")}</Label>
+                  <Label htmlFor="condition">{t("condition")}</Label>
                   <Select value={formData.condition} onValueChange={(v) => setFormData((p) => ({ ...p, condition: v }))} required>
                     <SelectTrigger>
-                      <SelectValue placeholder={t("selectCondition") || (language === "az" ? "Vəziyyət seçin" : "Select condition")} />
+                      <SelectValue placeholder={t("selectCondition")} />
                     </SelectTrigger>
                     <SelectContent>
                       {conditions.map((c) => (
-                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                        <SelectItem key={c} value={c}>{t(c) ?? c}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
-                  <Label htmlFor="color">{t("color") || (language === "az" ? "Rəng" : "Color")}</Label>
+                  <Label htmlFor="color">{t("color")}</Label>
                   <Select value={formData.color} onValueChange={(v) => setFormData((p) => ({ ...p, color: v }))} required>
                     <SelectTrigger>
-                      <SelectValue placeholder={t("selectColor") || (language === "az" ? "Rəng seçin" : "Select color")} />
+                      <SelectValue placeholder={t("selectColor")} />
                     </SelectTrigger>
                     <SelectContent>
                       {colors.map((c) => (
-                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                        <SelectItem key={c} value={c}>{t(c) ?? c}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
-                  <Label htmlFor="ban">{pageContent.ban}</Label>
+                  <Label htmlFor="ban">{t("ban")}</Label>
                   <Select value={formData.ban} onValueChange={(v) => setFormData((p) => ({ ...p, ban: v }))}>
                     <SelectTrigger>
-                      <SelectValue placeholder={language === "az" ? "Karoseriya növü seçin" : "Select body type"} />
+                      <SelectValue placeholder={t("selectBan")} />
                     </SelectTrigger>
                     <SelectContent>
                       {bodyTypes.map((b) => (
@@ -581,10 +526,10 @@ export default function SellPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="engine">{pageContent.engine}</Label>
+                  <Label htmlFor="engine">{t("engine")}</Label>
                   <Select value={formData.engine} onValueChange={(v) => setFormData((p) => ({ ...p, engine: v }))}>
                     <SelectTrigger>
-                      <SelectValue placeholder={language === "az" ? "Mühərrik seçin" : "Select engine"} />
+                      <SelectValue placeholder={t("selectEngine")} />
                     </SelectTrigger>
                     <SelectContent>
                       {engineOptions.map((eng) => (
@@ -595,10 +540,10 @@ export default function SellPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="gearbox">{pageContent.gearbox}</Label>
+                  <Label htmlFor="gearbox">{t("gearbox")}</Label>
                   <Select value={formData.gearbox} onValueChange={(v) => setFormData((p) => ({ ...p, gearbox: v }))}>
                     <SelectTrigger>
-                      <SelectValue placeholder={language === "az" ? "Qutu seçin" : "Select gearbox"} />
+                      <SelectValue placeholder={t("selectGearbox")} />
                     </SelectTrigger>
                     <SelectContent>
                       {gearboxOptions.map((g) => (
@@ -609,14 +554,14 @@ export default function SellPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="city">{t("city") || (language === "az" ? "Şəhər" : "City")}</Label>
+                  <Label htmlFor="city">{t("city")}</Label>
                   <Select value={formData.location} onValueChange={(v) => setFormData((p) => ({ ...p, location: v }))} required>
                     <SelectTrigger>
-                      <SelectValue placeholder={t("selectCity") || (language === "az" ? "Şəhər seçin" : "Select city")} />
+                      <SelectValue placeholder={t("selectCity")} />
                     </SelectTrigger>
                     <SelectContent>
                       {cities.map((c) => (
-                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                        <SelectItem key={c} value={c}>{t(c) ?? c}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -627,7 +572,7 @@ export default function SellPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>{pageContent.features}</CardTitle>
+                <CardTitle>{t("features")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <VirtualScrollFeatures
@@ -643,38 +588,38 @@ export default function SellPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Camera className="h-5 w-5" />
-                  {pageContent.images}
+                  {t("images")}
                 </CardTitle>
-                <p className="text-sm text-gray-600">{pageContent.imagesDesc}</p>
+                <p className="text-sm text-gray-600">{t("imagesDesc")}</p>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
                     <Upload className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                    <p className="text-gray-600 mb-2">{pageContent.dragDrop}</p>
-                    <p className="text-sm text-gray-500 mb-4">{pageContent.supportedFormats}</p>
+                    <p className="text-gray-600 mb-2">{t("dragDrop")}</p>
+                    <p className="text-sm text-gray-500 mb-4">{t("supportedFormats")}</p>
                     <input required={images.length === 0} type="file" multiple accept="image/*" onChange={handleImageUpload} className="hidden" id="image-upload" disabled={images.length >= 10} />
                     <Button type="button" variant="outline" className="bg-transparent" onClick={() => document.getElementById("image-upload")?.click()} disabled={images.length >= 10}>
                       <Plus className="h-4 w-4 mr-2" />
-                      {pageContent.chooseImages}
+                      {t("chooseImages")}
                     </Button>
                     {images.length >= 10 && (
-                      <p className="text-sm text-orange-600 mt-2">{language === "az" ? "Maksimum 10 şəkil əlavə edə bilərsiniz" : "You can add maximum 10 images"}</p>
+                      <p className="text-sm text-orange-600 mt-2">{t("maxImages")}</p>
                     )}
                   </div>
 
                   <div>
                     <div className="flex items-center gap-2 mb-4">
                       <ImageIcon className="h-5 w-5 text-gray-600" />
-                      <h3 className="text-lg font-semibold text-gray-800">{pageContent.uploadedImages}</h3>
+                      <h3 className="text-lg font-semibold text-gray-800">{t("uploadedImages")}</h3>
                       <Badge variant="outline" className="ml-auto">{images.length}/10</Badge>
                     </div>
 
                     {images.length === 0 ? (
                       <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
                         <ImageIcon className="h-12 w-12 mx-auto text-gray-400 mb-3" />
-                        <p className="text-gray-500 mb-2">{pageContent.noImages}</p>
-                        <p className="text-sm text-gray-400">{pageContent.addFirstImage}</p>
+                        <p className="text-gray-500 mb-2">{t("noImages")}</p>
+                        <p className="text-sm text-gray-400">{t("addFirstImage")}</p>
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -686,14 +631,14 @@ export default function SellPage() {
                                 <X className="h-4 w-4" />
                               </Button>
                               {index === 0 && (
-                                <div className="absolute top-2 left-2 bg-blue-600 text-white px-2 py-1 rounded text-xs font-medium">{pageContent.mainImage}</div>
+                                <div className="absolute top-2 left-2 bg-blue-600 text-white px-2 py-1 rounded text-xs font-medium">{t("mainImage")}</div>
                               )}
                               <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">{index + 1}/10</div>
                             </div>
                             <div className="p-3">
                               <p className="text-sm font-medium text-gray-800 truncate">{image.name}</p>
                               <div className="flex items-center justify-between mt-2">
-                                <p className="text-xs text-gray-500">{index === 0 ? (language === "az" ? "Əsas şəkil" : "Main image") : `${language === "az" ? "Şəkil" : "Image"} ${index + 1}`}</p>
+                                <p className="text-xs text-gray-500">{index === 0 ? t("mainImage") || (language === "az" ? "Əsas şəkil" : "Main image") : `${t("image") || (language === "az" ? "Şəkil" : "Image")} ${index + 1}`}</p>
                                 <div className="flex gap-1">
                                   {index > 0 && (
                                     <Button type="button" size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => moveImage(index, index - 1)}>←</Button>
@@ -717,17 +662,17 @@ export default function SellPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <User className="h-5 w-5" />
-                  {pageContent.contactInfo}
+                  {t("contactInfo")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="name">{language === "az" ? "Ad Soyad" : "Full Name"}</Label>
-                  <Input id="name" required value={formData.name} onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))} placeholder={language === "az" ? "Adınızı daxil edin" : "Enter your name"} />
+                  <Label htmlFor="name">{t("fullName")}</Label>
+                  <Input id="name" required value={formData.name} onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))} placeholder={t("namePlaceholder")} />
                 </div>
 
                 <div className="space-y-1">
-                  <Label htmlFor="phone">{language === "az" ? "Telefon" : "Phone"}</Label>
+                  <Label htmlFor="phone">{t("phone")}</Label>
                   <div className="flex gap-2 items-center">
                     <div className="max-w-[150px]">
                       <CountryCodeSelect value={phoneCode} onChange={setPhoneCode} />
@@ -738,7 +683,7 @@ export default function SellPage() {
                         id="phone"
                         name="phone"
                         type="tel"
-                        placeholder="501234567 (koddan sonra)"
+                        placeholder={t("phonePlaceholder")}
                         value={formData.phone}
                         onChange={(e) => setFormData((p) => ({ ...p, phone: e.target.value }))}
                         required
@@ -748,7 +693,7 @@ export default function SellPage() {
                   </div>
                 </div>
                 <div className="md:col-span-2">
-                  <Label htmlFor="email">{language === "az" ? "E-poçt" : "Email"}</Label>
+                  <Label htmlFor="email">{t("email")}</Label>
                   <Input id="email" type="email" required value={formData.email} onChange={(e) => setFormData((p) => ({ ...p, email: e.target.value }))} placeholder="example@email.com" />
                 </div>
               </CardContent>
@@ -756,15 +701,15 @@ export default function SellPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>{language === "az" ? "Təsvir" : "Description"}</CardTitle>
+                <CardTitle>{t("description")}</CardTitle>
               </CardHeader>
               <CardContent>
-                <Textarea className="resize-none h-[200px]" value={formData.description} onChange={(e) => setFormData((p) => ({ ...p, description: e.target.value }))} placeholder={language === "az" ? "Avtomobil haqqında ətraflı məlumat..." : "Detailed information about the car..."} rows={4} />
+                <Textarea className="resize-none h-[200px]" value={formData.description} onChange={(e) => setFormData((p) => ({ ...p, description: e.target.value }))} placeholder={t("descriptionPlaceholder")} rows={4} />
               </CardContent>
             </Card>
 
             <div className="text-center">
-              <Button type="submit" size="lg" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 px-8">{pageContent.postAd}</Button>
+              <Button type="submit" size="lg" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 px-8">{t("postAds")}</Button>
             </div>
 
           </form>

@@ -14,19 +14,23 @@ import { Menu, User, Settings, LogOut, Plus, Heart } from "lucide-react"
 import Link from "next/link"
 import { ModernLogo } from "./modern-logo"
 import { LanguageSwitcher } from "./language-switcher"
-import { useLanguage } from "@/hooks/use-language"
 import { getTranslation } from "@/lib/i18n"
 import { useRouter } from "next/navigation"
 import { logout } from "@/actions/auth" 
 import { useToast } from "@/hooks/use-toast"
+import type { Language } from "@/lib/i18n"
 
-export function Navbar() {
+interface NavbarProps {
+  currentLanguage: Language
+  onLanguageChange: (language: Language) => void
+}
+
+export function Navbar({ currentLanguage, onLanguageChange }: NavbarProps) {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const { language, changeLanguage } = useLanguage()
   const router = useRouter()
   const { toast } = useToast()
 
-  const t = (key: string) => getTranslation(language, key)
+  const t = (key: string) => getTranslation(currentLanguage, key)
 
   useEffect(() => {
     const token = localStorage.getItem("accessToken")
@@ -80,7 +84,7 @@ export function Navbar() {
             </Link>
           </nav>
           <div className="hidden lg:flex items-center gap-3">
-            <LanguageSwitcher currentLanguage={language} onLanguageChange={changeLanguage} />
+            <LanguageSwitcher currentLanguage={currentLanguage} onLanguageChange={onLanguageChange} />
 
             <Button
               variant="outline"
@@ -149,7 +153,7 @@ export function Navbar() {
           </div>
 
           <div className="flex items-center gap-2 lg:hidden">
-            <LanguageSwitcher currentLanguage={language} onLanguageChange={changeLanguage} />
+            <LanguageSwitcher currentLanguage={currentLanguage} onLanguageChange={onLanguageChange} />
 
             <Sheet>
               <SheetTrigger asChild>

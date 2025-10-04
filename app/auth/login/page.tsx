@@ -19,8 +19,12 @@ import apiClient, { ApiError } from "@/lib/api-client"
 import { Navbar } from "@/components/navbar"
 import { ToastContainer, toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
+import { useLanguage } from "@/hooks/use-language"
+import { getTranslation } from "@/lib/i18n"
 
 export default function LoginPage() {
+  const { language, changeLanguage } = useLanguage()
+  const t = (key: string) => getTranslation(language, key)
   const [showPassword, setShowPassword] = useState(false)
   const [isPending, setIsPending] = useState(false)
   const router = useRouter()
@@ -40,10 +44,10 @@ export default function LoginPage() {
         try {
           localStorage.setItem("accessToken", result.accessToken)
         } catch (err) {
-          console.warn("localStorage yazmaq alınmadı:", err)
+          console.warn("localStorage write failed:", err)
         }
 
-        toast.success("Uğurlu — daxil olundu", { position: "top-right", autoClose: 2500 })
+        toast.success(t("loginSuccess"), { position: "top-right", autoClose: 2500 })
         router.push("/profile")
         return
       }
@@ -52,25 +56,25 @@ export default function LoginPage() {
         return
       }
 
-      toast.error("Daxil olmaq mümkün olmadı.", { position: "top-right", autoClose: 4000 })
+      toast.error(t("loginFailed"), { position: "top-right", autoClose: 4000 })
     } catch (err: any) {
       if (err instanceof ApiError) {
         console.error("API error:", { status: err.status, data: err.data, message: err.message })
         if (err.status === 401) {
-          toast.error(err.message || "Şifrə səhvdir.", { position: "top-right", autoClose: 4000 })
+          toast.error(err.message || t("incorrectPassword"), { position: "top-right", autoClose: 4000 })
         } else if (err.status === 403) {
-          toast.error(err.message || "İcazə yoxdur (forbidden).", { position: "top-right", autoClose: 4000 })
+          toast.error(err.message || t("forbidden"), { position: "top-right", autoClose: 4000 })
         } else if (err.status === 404) {
-          toast.error(err.message || "İstifadəçi tapılmadı.", { position: "top-right", autoClose: 4000 })
+          toast.error(err.message || t("userNotFound"), { position: "top-right", autoClose: 4000 })
         } else {
-          toast.error(err.message || "Server xətası — bir az sonra yenidən cəhd edin.", {
+          toast.error(err.message || t("serverError"), {
             position: "top-right",
             autoClose: 5000,
           })
         }
       } else {
         console.error("Login error (non-api):", err)
-        toast.error("Şəbəkə xətası və ya serverə çatmaq mümkün olmadı.", {
+        toast.error(t("networkError"), {
           position: "top-right",
           autoClose: 5000,
         })
@@ -82,7 +86,7 @@ export default function LoginPage() {
 
   return (
     <>
-      <Navbar />
+      <Navbar currentLanguage={language} onLanguageChange={changeLanguage} />
       <ToastContainer
         position="top-right"
         autoClose={4000}
@@ -103,29 +107,36 @@ export default function LoginPage() {
                 <Car className="h-8 w-8 text-white" />
               </div>
             </div>
-            <CardTitle className="text-2xl font-bold">Euro Car-a xoş gəlmisiniz</CardTitle>
-            <CardDescription>Hesabınıza daxil olun</CardDescription>
+            <CardTitle className="text-2xl font-bold">{t("loginWelcome")}</CardTitle>
+            <CardDescription>{t("loginSubtitle")}</CardDescription>
           </CardHeader>
 
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">E-mail</Label>
+                <Label htmlFor="email">{t("emailLabel")}</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input id="email" type="email" name="email" placeholder="E-mail ünvanınızı daxil edin" className="pl-10" required />
+                  <Input
+                    id="email"
+                    type="email"
+                    name="email"
+                    placeholder={t("emailPlaceholder")}
+                    className="pl-10"
+                    required
+                  />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Şifrə</Label>
+                <Label htmlFor="password">{t("passwordLabel")}</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
                     name="password"
-                    placeholder="Şifrənizi daxil edin"
+                    placeholder={t("passwordPlaceholder")}
                     className="pl-10 pr-10"
                     required
                   />
@@ -145,16 +156,16 @@ export default function LoginPage() {
                 <div className="flex items-center space-x-2">
                   <input id="remember" type="checkbox" className="rounded border-gray-300" />
                   <Label htmlFor="remember" className="text-sm">
-                    Məni xatırla
+                    {t("rememberMe")}
                   </Label>
                 </div>
                 <Link href="/auth/forgot-password" className="text-sm text-blue-600 hover:underline">
-                  Şifrəni unutmusunuz?
+                  {t("forgotPassword")}
                 </Link>
               </div>
 
               <Button type="submit" className="w-full" disabled={isPending}>
-                {isPending ? "Daxil olunur..." : "Daxil ol"}
+                {isPending ? t("loggingIn") : t("loginButton")}
               </Button>
             </form>
 
@@ -164,24 +175,24 @@ export default function LoginPage() {
                   <Separator />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-white px-2 text-gray-500">və ya</span>
+                  <span className="bg-white px-2 text-gray-500">{t("or")}</span>
                 </div>
               </div>
 
               <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Button variant="outline" className="w-full bg-transparent">
-                  Google
+                  {t("google")}
                 </Button>
                 <Button variant="outline" className="w-full bg-transparent">
-                  Facebook
+                  {t("facebook")}
                 </Button>
               </div>
             </div>
 
             <div className="mt-6 text-center text-sm">
-              <span className="text-gray-600">Hesabınız yoxdur? </span>
+              <span className="text-gray-600">{t("noAccount") + " "}</span>
               <Link href="/auth/register" className="text-blue-600 hover:underline font-medium">
-                Qeydiyyatdan keçin
+                {t("theRegister")}
               </Link>
             </div>
           </CardContent>

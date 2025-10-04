@@ -26,7 +26,7 @@ import { useLanguage } from "@/hooks/use-language";
 import { getTranslation } from "@/lib/i18n";
 import { apiClient } from "@/lib/api-client";
 import { useAuth } from "@/lib/auth-context";
-import {cities, colors, conditions, fuels, gearboxOptions, years } from "@/lib/car-data";
+import { cities, colors, conditions, fuels, gearboxOptions, years } from "@/lib/car-data";
 import BrandSelect from "@/components/BrandSelect";
 import ModelSelect from "@/components/ModelSelect";
 
@@ -129,7 +129,7 @@ function CarCard({ car, t, index }: { car: UserCar; t: (k: string) => string; in
         <div className="flex justify-between items-start">
           <div>
             <h3 className="font-bold text-lg text-gray-800 group-hover:text-blue-600 transition-colors duration-300">{car.brand} {car.model}</h3>
-            <p className="text-sm text-gray-600">{car.year} • {car.condition}</p>
+            <p className="text-sm text-gray-600">{car.year} • {t(car.condition ?? "") || car.condition}</p>
           </div>
           <div className="text-right">
             <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">{(car.price ?? 0).toLocaleString()} ₼</p>
@@ -139,17 +139,17 @@ function CarCard({ car, t, index }: { car: UserCar; t: (k: string) => string; in
 
       <CardContent className="pt-0">
         <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-4">
-          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><Car className="h-4 w-4 text-blue-500" />{(car.mileage ?? 0).toLocaleString()} km</div>
-          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><Fuel className="h-4 w-4 text-blue-500" />{car.fuel}</div>
-          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><Cog className="h-4 w-4 text-blue-500" />{car.gearbox}</div>
-          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><MapPin className="h-4 w-4 text-blue-500" />{car.location}</div>
+          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><Car className="h-4 w-4 text-blue-500" />{(car.mileage ?? 0).toLocaleString()} {t("km") || "km"}</div>
+          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><Fuel className="h-4 w-4 text-blue-500" />{t(car.fuel ?? "") || car.fuel}</div>
+          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><Cog className="h-4 w-4 text-blue-500" />{t(car.gearbox ?? "") || car.gearbox}</div>
+          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><MapPin className="h-4 w-4 text-blue-500" />{t(car.location ?? "") || car.location}</div>
         </div>
-        <Badge variant="outline" className="mb-2 border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors duration-300">{car.color}</Badge>
+        <Badge variant="outline" className="mb-2 border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors duration-300">{t(car.color ?? "") || car.color}</Badge>
       </CardContent>
 
       <CardFooter className="pt-0 gap-2">
         <Button asChild className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 btn-animate transition-all duration-300 hover:scale-105">
-          <Link href={`/cars/${car.id}`}><Eye className="h-4 w-4 mr-2" />Detallar</Link>
+          <Link href={`/cars/${car.id}`}><Eye className="h-4 w-4 mr-2" />{t("details")}</Link>
         </Button>
       </CardFooter>
     </Card>
@@ -157,8 +157,6 @@ function CarCard({ car, t, index }: { car: UserCar; t: (k: string) => string; in
 }
 
 export default function HomePage() {
-  const { language } = useLanguage();
-  const t = (key: string) => getTranslation(language, key);
   const { logout } = useAuth();
 
   const [cars, setCars] = useState<UserCar[]>([]);
@@ -172,6 +170,8 @@ export default function HomePage() {
   const [selectedCity, setSelectedCity] = useState<string>("all");
   const [selectedColor, setSelectedColor] = useState<string>("all");
   const [priceRange, setPriceRange] = useState({ min: "", max: "" });
+  const { language, changeLanguage } = useLanguage()
+  const t = (key: string) => getTranslation(language, key)
 
   const [page, setPage] = useState<number>(1);
   const [limit] = useState<number>(20);
@@ -245,7 +245,7 @@ export default function HomePage() {
       setCars(normalized);
     } catch (err: any) {
       console.error("Failed to fetch premium cars", err);
-      setError(err?.message ?? "Xəta baş verdi");
+      setError(err?.message ?? t("errorOccurred"));
       setCars([]);
       setTotalPages(1);
     } finally {
@@ -284,8 +284,9 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="navbar-slide"><Navbar /></div>
-
+      <div className="navbar-slide">
+        <Navbar currentLanguage={language} onLanguageChange={changeLanguage} />
+      </div>
       <section className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white py-12 md:py-20 relative overflow-hidden">
         <div className="container mx-auto px-4 text-center relative z-10">
           <h1 className="hero-title text-3xl md:text-5xl font-bold mb-4 md:mb-6 bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">{t("heroTitle")}</h1>
@@ -431,7 +432,7 @@ export default function HomePage() {
             {isLoading ? (
               <div className="text-center py-12">
                 <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                <p className="text-gray-600 animate-pulse">Yüklənir...</p>
+                <p className="text-gray-600 animate-pulse">{t("loading")}</p>
               </div>
             ) : (
               <>
@@ -448,9 +449,9 @@ export default function HomePage() {
                 )}
 
                 <div className="mt-8 flex items-center justify-center gap-3">
-                  <Button size="sm" variant="outline" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1}>Prev</Button>
+                  <Button size="sm" variant="outline" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1}>{t("prev")}</Button>
                   <div className="px-3 py-1 bg-white rounded shadow-sm">{page} / {totalPages}</div>
-                  <Button size="sm" variant="outline" onClick={() => setPage(p => (totalPages ? Math.min(totalPages, p + 1) : p + 1))} disabled={!!totalPages && page >= totalPages}>Next</Button>
+                  <Button size="sm" variant="outline" onClick={() => setPage(p => (totalPages ? Math.min(totalPages, p + 1) : p + 1))} disabled={!!totalPages && page >= totalPages}>{t("next")}</Button>
                 </div>
               </>
             )}

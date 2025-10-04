@@ -40,14 +40,11 @@ export default function ModelSelect({
     if (Array.isArray(res)) return res as string[];
     if (res.items && Array.isArray(res.items)) return res.items as string[];
     if (res.data && Array.isArray(res.data)) return res.data as string[];
-    // if the API returned an object with keys -> values mapping (e.g. { Toyota: [...] })
     if (typeof res === "object") {
       try {
-        // flatten values if present
         const vals = Object.values(res).flat();
         if (Array.isArray(vals)) return vals as string[];
       } catch {
-        // ignore
       }
     }
     return [];
@@ -61,10 +58,8 @@ export default function ModelSelect({
     try {
       let res;
       if (brd && brd !== "all") {
-        // paginated brand-specific fetch
         res = await apiClient.carsSpesificData(p, LIMIT, brd);
       } else {
-        // paginated global models fetch
         res = await apiClient.carsModel(p, LIMIT);
       }
 
@@ -85,11 +80,9 @@ export default function ModelSelect({
     }
   };
 
-  // perform search via carsModelSearch and optionally filter by brand
   const performSearch = async (q: string, brd?: string) => {
     const trimmed = q.trim();
     if (trimmed === "") {
-      // fallback to paginated mode
       setItems([]);
       setPage(1);
       setHasMore(true);
@@ -100,16 +93,11 @@ export default function ModelSelect({
     setLoading(true);
     const thisRequestId = ++requestIdRef.current;
     try {
-      // call the search endpoint that returns matched values globally
       const res = await apiClient.carsModelSearch(trimmed);
       if (thisRequestId !== requestIdRef.current) return; // stale
 
       let matched = normalizeResponse(res);
-
-      // if a brand is specified and not 'all', intersect matched with that brand's values
       if (brd && brd !== "all") {
-        // fetch brand values (attempt to fetch all by using a large limit)
-        // if your backend supports returning all values for a brand differently, replace this call
         const brandRes = await apiClient.carsSpesificData(1, 10000, brd);
         if (thisRequestId !== requestIdRef.current) return; // stale
 
@@ -119,7 +107,6 @@ export default function ModelSelect({
       }
 
       setItems(Array.from(new Set(matched)));
-      // when searching, we disable pagination (server already returned all matches)
       setHasMore(false);
       setPage(1);
     } catch (err) {
@@ -129,43 +116,32 @@ export default function ModelSelect({
     }
   };
 
-  // initial load
   useEffect(() => {
     setItems([]);
     setPage(1);
     setHasMore(true);
-    // if there is an active search, perform search (respect brand)
     if (search.trim().length > 0) {
       performSearch(search, brand);
     } else {
       loadPage(1, brand);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // when brand changes -> reset and either search or load first page
   useEffect(() => {
-    // reset view
     setItems([]);
     setPage(1);
     setHasMore(true);
-
-    // if user is currently searching, re-run search scoped to new brand
     if (search.trim().length > 0) {
       performSearch(search, brand);
     } else {
       loadPage(1, brand);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [brand]);
 
-  // debounce search input
   useEffect(() => {
     if (debounceRef.current) {
       window.clearTimeout(debounceRef.current);
     }
     debounceRef.current = window.setTimeout(() => {
-      // when search changes, reset and perform search (or revert to paginated)
       setItems([]);
       setPage(1);
       setHasMore(true);
@@ -175,7 +151,6 @@ export default function ModelSelect({
     return () => {
       if (debounceRef.current) window.clearTimeout(debounceRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
   const onScroll: React.UIEventHandler<HTMLDivElement> = (e) => {

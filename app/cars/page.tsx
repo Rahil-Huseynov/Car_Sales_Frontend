@@ -69,7 +69,7 @@ function buildQuery(params: Record<string, any>) {
   return q.toString()
 }
 
-function CarCard({ car }: { car: UserCar }) {
+function CarCard({ car, t }: { car: UserCar; t: (k: string) => string }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const { logout } = useAuth()
   const imageUrls = (car.images ?? []).map((img) => (typeof img === "string" ? img : img?.url ?? "/placeholder.svg"))
@@ -94,7 +94,7 @@ function CarCard({ car }: { car: UserCar }) {
           height={200}
           className="w-full h-48 object-cover"
         />
-        {car.featured && <Badge className="absolute top-2 left-2 bg-yellow-500 z-10">Seçilmiş</Badge>}
+        {car.featured && <Badge className="absolute top-2 left-2 bg-yellow-500 z-10">{t("featured")}</Badge>}
         {imageUrls.length > 1 && (
           <>
             <Button
@@ -152,7 +152,7 @@ function CarCard({ car }: { car: UserCar }) {
               {car.brand} {car.model}
             </h3>
             <p className="text-sm text-gray-600">
-              {car.year} • {car.condition}
+              {car.year} • {t(car.condition ?? "") || car.condition}
             </p>
           </div>
           <div className="text-right">
@@ -164,30 +164,30 @@ function CarCard({ car }: { car: UserCar }) {
         <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-4">
           <div className="flex items-center gap-1">
             <Car className="h-4 w-4" />
-            {(car.mileage ?? 0).toLocaleString()} km
+            {(car.mileage ?? 0).toLocaleString()} {t("km") || "km"}
           </div>
           <div className="flex items-center gap-1">
             <Fuel className="h-4 w-4" />
-            {car.fuel}
+            {t(car.fuel ?? "") || car.fuel}
           </div>
           <div className="flex items-center gap-1">
             <Cog className="h-4 w-4" />
-            {car.gearbox}
+            {t(car.gearbox ?? "") || car.gearbox}
           </div>
           <div className="flex items-center gap-1">
             <MapPin className="h-4 w-4" />
-            {car.location}
+            {t(car.location ?? "") || car.location}
           </div>
         </div>
         <Badge variant="outline" className="mb-2">
-          {car.color}
+          {t(car.color ?? "") || car.color}
         </Badge>
       </CardContent>
       <CardFooter className="pt-0 gap-2">
         <Button asChild className="flex-1">
           <Link href={`/cars/${car.id}`}>
             <Eye className="h-4 w-4 mr-2" />
-            Ətraflı
+            {t("details")}
           </Link>
         </Button>
       </CardFooter>
@@ -195,8 +195,6 @@ function CarCard({ car }: { car: UserCar }) {
   )
 }
 export default function CarsPage() {
-  const { language } = useLanguage();
-  const t = (key: string) => getTranslation(language, key);
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedBrand, setSelectedBrand] = useState("all")
   const [selectedYear, setSelectedYear] = useState("all")
@@ -223,6 +221,8 @@ export default function CarsPage() {
   const conditions = useMemo(() => (Array.isArray(conditionsStatic) ? conditionsStatic.slice() : []), [])
   const colors = useMemo(() => (Array.isArray(colorsStatic) ? colorsStatic.slice() : []), [])
   const cities = useMemo(() => (Array.isArray(citiesStatic) ? citiesStatic.slice() : []), [])
+  const { language, changeLanguage } = useLanguage()
+  const t = (key: string) => getTranslation(language, key)
 
   useEffect(() => {
     setSelectedModel("all")
@@ -289,7 +289,7 @@ export default function CarsPage() {
       }
     } catch (err: any) {
       console.error(err)
-      setError(err?.message ?? "Xəta baş verdi")
+      setError(err?.message ?? t("errorOccurred"))
     } finally {
       setLoading(false)
     }
@@ -319,21 +319,23 @@ export default function CarsPage() {
       </Button>
     ))
   }
+  const resultsCountText = (t("resultsCount") || "{count} nəticə").replace("{count}", String(totalCount ?? cars.length))
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
+        <Navbar currentLanguage={language} onLanguageChange={changeLanguage} />
       <section className="bg-white border-b py-8">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold mb-2">Avtomobillər</h1>
-              <p className="text-gray-600">Euro Car-da ən yaxşı avtomobilləri tapın</p>
+              <h1 className="text-3xl md:text-4xl font-bold mb-2">{t("cars")}</h1>
+              <p className="text-gray-600">{t("carsSubtitle")}</p>
             </div>
             <div className="flex items-center gap-4">
               <div className="relative flex-1 md:w-80">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="Marka, model axtarın..."
+                  placeholder={t("searchPlaceholder")}
                   value={searchTerm}
                   onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1) }}
                   className="pl-10"
@@ -341,7 +343,7 @@ export default function CarsPage() {
               </div>
               <Button variant="outline" onClick={() => setShowFilters(!showFilters)} className="md:hidden">
                 <SlidersHorizontal className="h-4 w-4 mr-2" />
-                Filterlər
+                {t("filters")}
               </Button>
             </div>
           </div>
@@ -355,7 +357,7 @@ export default function CarsPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Filter className="h-5 w-5" />
-                    <h3 className="text-lg font-semibold">Filterlər</h3>
+                    <h3 className="text-lg font-semibold">{t("filters")}</h3>
                   </div>
                   <Button variant="ghost" size="sm" onClick={() => setShowFilters(false)} className="xl:hidden">✕</Button>
                 </div>
@@ -382,70 +384,70 @@ export default function CarsPage() {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium mb-2 block">İl</label>
+                  <label className="text-sm font-medium mb-2 block">{t("year")}</label>
                   <Select value={selectedYear} onValueChange={(v: any) => { setSelectedYear(v); setCurrentPage(1) }}>
-                    <SelectTrigger><SelectValue placeholder="İl seçin" /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder={t("selectYear")} /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Hamısı</SelectItem>
+                      <SelectItem value="all">{t("all")}</SelectItem>
                       {years.map((y) => (<SelectItem key={y} value={y.toString()}>{y}</SelectItem>))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Yanacaq</label>
+                  <label className="text-sm font-medium mb-2 block">{t("fuel")}</label>
                   <Select value={selectedFuel} onValueChange={(v: any) => { setSelectedFuel(v); setCurrentPage(1) }}>
-                    <SelectTrigger><SelectValue placeholder="Yanacaq" /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder={t("selectFuel")} /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Hamısı</SelectItem>
-                      {fuels.map((f) => (<SelectItem key={f} value={f}>{f}</SelectItem>))}
+                      <SelectItem value="all">{t("all")}</SelectItem>
+                      {fuels.map((f) => (<SelectItem key={f} value={f}>{t(f) ?? f}</SelectItem>))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Transmissiya</label>
+                  <label className="text-sm font-medium mb-2 block">{t("transmission")}</label>
                   <Select value={selectedTransmission} onValueChange={(v: any) => { setSelectedTransmission(v); setCurrentPage(1) }}>
-                    <SelectTrigger><SelectValue placeholder="Transmissiya" /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder={t("selectTransmission")} /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Hamısı</SelectItem>
-                      {transmissions.map((t) => (<SelectItem key={t} value={t}>{t}</SelectItem>))}
+                      <SelectItem value="all">{t("all")}</SelectItem>
+                      {transmissions.map((tr) => (<SelectItem key={tr} value={tr}>{t(tr) ?? tr}</SelectItem>))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Vəziyyət</label>
+                  <label className="text-sm font-medium mb-2 block">{t("condition")}</label>
                   <Select value={selectedCondition} onValueChange={(v: any) => { setSelectedCondition(v); setCurrentPage(1) }}>
-                    <SelectTrigger><SelectValue placeholder="Vəziyyət" /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder={t("selectCondition")} /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Hamısı</SelectItem>
-                      {conditions.map((c) => (<SelectItem key={c} value={c}>{c}</SelectItem>))}
+                      <SelectItem value="all">{t("all")}</SelectItem>
+                      {conditions.map((c) => (<SelectItem key={c} value={c}>{t(c) ?? c}</SelectItem>))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Şəhər</label>
+                  <label className="text-sm font-medium mb-2 block">{t("city")}</label>
                   <Select value={selectedCity} onValueChange={(v: any) => { setSelectedCity(v); setCurrentPage(1) }}>
-                    <SelectTrigger><SelectValue placeholder="Şəhər seçin" /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder={t("selectCity")} /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Hamısı</SelectItem>
-                      {cities.map((c) => (<SelectItem key={c} value={c}>{c}</SelectItem>))}
+                      <SelectItem value="all">{t("all")}</SelectItem>
+                      {cities.map((c) => (<SelectItem key={c} value={c}>{t(c) ?? c}</SelectItem>))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Rəng</label>
+                  <label className="text-sm font-medium mb-2 block">{t("color")}</label>
                   <Select value={selectedColor} onValueChange={(v: any) => { setSelectedColor(v); setCurrentPage(1) }}>
-                    <SelectTrigger><SelectValue placeholder="Rəng seçin" /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder={t("selectColor")} /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Hamısı</SelectItem>
-                      {colors.map((col) => (<SelectItem key={col} value={col}>{col}</SelectItem>))}
+                      <SelectItem value="all">{t("all")}</SelectItem>
+                      {colors.map((col) => (<SelectItem key={col} value={col}>{t(col) ?? col}</SelectItem>))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Qiymət aralığı (AZN)</label>
+                  <label className="text-sm font-medium mb-2 block">{`${t("priceRange")} (AZN)`}</label>
                   <div className="flex gap-2">
-                    <Input placeholder="Min" value={priceRange.min} onChange={(e) => setPriceRange((prev) => ({ ...prev, min: e.target.value }))} />
-                    <Input placeholder="Max" value={priceRange.max} onChange={(e) => setPriceRange((prev) => ({ ...prev, max: e.target.value }))} />
+                    <Input placeholder={t("min")} value={priceRange.min} onChange={(e) => setPriceRange((prev) => ({ ...prev, min: e.target.value }))} />
+                    <Input placeholder={t("max")} value={priceRange.max} onChange={(e) => setPriceRange((prev) => ({ ...prev, max: e.target.value }))} />
                   </div>
                 </div>
                 <Button variant="outline" className="w-full bg-transparent" onClick={() => {
@@ -461,48 +463,48 @@ export default function CarsPage() {
                   setSearchTerm("")
                   setCurrentPage(1)
                 }}>
-                  Filterləri təmizlə
+                  {t("clearFilters")}
                 </Button>
               </CardContent>
             </Card>
           </div>
           <div className="xl:w-3/4">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-              <h2 className="text-2xl font-bold">{totalCount ?? cars.length} avtomobil tapıldı</h2>
+              <h2 className="text-2xl font-bold">{resultsCountText}</h2>
               <Select value={sortBy} onValueChange={(v: any) => { setSortBy(v); setCurrentPage(1) }}>
                 <SelectTrigger className="w-full sm:w-48"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="newest">Ən yeni</SelectItem>
-                  <SelectItem value="price-low">Qiymət: Aşağıdan yuxarı</SelectItem>
-                  <SelectItem value="price-high">Qiymət: Yuxarıdan aşağı</SelectItem>
-                  <SelectItem value="year-new">İl: Yeni</SelectItem>
-                  <SelectItem value="year-old">İl: Köhnə</SelectItem>
-                  <SelectItem value="mileage-low">Yürüş: Az</SelectItem>
-                  <SelectItem value="mileage-high">Yürüş: Çox</SelectItem>
+                  <SelectItem value="newest">{t("newest")}</SelectItem>
+                  <SelectItem value="price-low">{t("priceLow")}</SelectItem>
+                  <SelectItem value="price-high">{t("priceHigh")}</SelectItem>
+                  <SelectItem value="year-new">{t("yearNew")}</SelectItem>
+                  <SelectItem value="year-old">{t("yearOld")}</SelectItem>
+                  <SelectItem value="mileage-low">{t("mileageLow") ?? "Yürüş: Az"}</SelectItem>
+                  <SelectItem value="mileage-high">{t("mileageHigh") ?? "Yürüş: Çox"}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             {loading ? (
-              <div className="text-center py-12">Yüklənir...</div>
+              <div className="text-center py-12">{t("loading")}</div>
             ) : error ? (
               <div className="text-center py-12 text-red-600">{error}</div>
             ) : (
               <>
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
-                  {paginatedCars.map((car) => (<CarCard key={car.id} car={car} />))}
+                  {paginatedCars.map((car) => (<CarCard key={car.id} car={car} t={t} />))}
                 </div>
                 {paginatedCars.length === 0 && (
                   <div className="text-center py-12">
                     <Car className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-600 mb-2">Heç bir avtomobil tapılmadı</h3>
-                    <p className="text-gray-500">Axtarış kriteriyalarınızı dəyişdirərək yenidən cəhd edin</p>
+                    <h3 className="text-xl font-semibold text-gray-600 mb-2">{t("noResults")}</h3>
+                    <p className="text-gray-500">{t("noResultsDesc")}</p>
                   </div>
                 )}
                 {totalPages > 1 && (
                   <div className="flex justify-center items-center gap-2 mt-8">
-                    <Button variant="outline" onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))} disabled={currentPage === 1}>Əvvəlki</Button>
+                    <Button variant="outline" onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))} disabled={currentPage === 1}>{t("prev")}</Button>
                     {renderPageButtons()}
-                    <Button variant="outline" onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))} disabled={currentPage === totalPages}>Növbəti</Button>
+                    <Button variant="outline" onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))} disabled={currentPage === totalPages}>{t("next")}</Button>
                   </div>
                 )}
               </>
