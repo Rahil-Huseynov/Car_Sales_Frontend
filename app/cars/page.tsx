@@ -58,7 +58,7 @@ type UserCar = {
   [k: string]: any
 }
 
-const itemsPerPage = 20
+const itemsPerPage = 30
 
 function buildQuery(params: Record<string, any>) {
   const q = new URLSearchParams()
@@ -92,9 +92,14 @@ function CarCard({ car, t }: { car: UserCar; t: (k: string) => string }) {
           alt={`${car.brand ?? ""} ${car.model ?? ""}`}
           width={300}
           height={200}
-          className="w-full h-48 object-cover"
+          className="w-full h-48 object-contain"
         />
-        {car.featured && <Badge className="absolute top-2 left-2 bg-yellow-500 z-10">{t("featured")}</Badge>}
+        {car.featured && (
+          <Badge className="absolute top-2 left-2 bg-yellow-500 z-10">
+            {t("featured")}
+          </Badge>
+        )}
+
         {imageUrls.length > 1 && (
           <>
             <Button
@@ -115,15 +120,17 @@ function CarCard({ car, t }: { car: UserCar; t: (k: string) => string }) {
             </Button>
           </>
         )}
+
         <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1">
           {imageUrls.map((_, index) => (
             <button
               key={index}
-              className={`w-2 h-2 rounded-full transition-all ${index === currentImageIndex ? "bg-white" : "bg-white/50"}`}
+              className={`w-2 h-2 rounded-full transition-all ${index === currentImageIndex ? "bg-white" : "bg-white/50"
+                }`}
               onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                setCurrentImageIndex(index)
+                e.preventDefault();
+                e.stopPropagation();
+                setCurrentImageIndex(index);
               }}
             />
           ))}
@@ -133,33 +140,36 @@ function CarCard({ car, t }: { car: UserCar; t: (k: string) => string }) {
           <Camera className="h-3 w-3" />
           {currentImageIndex + 1}/{Math.max(1, imageUrls.length)}
         </div>
+
         <Button
           size="icon"
           variant="ghost"
           className="absolute top-2 right-2 bg-white/80 hover:bg-white z-10"
           onClick={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
+            e.preventDefault();
+            e.stopPropagation();
           }}
         >
           <Heart className="h-4 w-4" />
         </Button>
       </div>
+
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <div>
-            <h3 className="font-bold text-lg">
-              {car.brand} {car.model}
+            <h3 className="font-bold h-16 text-lg text-gray-800 break-word group-hover:text-blue-600 transition-colors duration-300">
+              {car.brand}{" "}
+              {car.model?.length && car.model.length > 32
+                ? car.model.slice(0, 40) + "..."
+                : car.model ?? ""}
             </h3>
             <p className="text-sm text-gray-600">
               {car.year} • {t(car.condition ?? "") || car.condition}
             </p>
           </div>
-          <div className="text-right">
-            <p className="text-2xl font-bold text-blue-600">{(car.price ?? 0).toLocaleString()} ₼</p>
-          </div>
         </div>
       </CardHeader>
+
       <CardContent className="pt-0">
         <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-4">
           <div className="flex items-center gap-1">
@@ -179,19 +189,36 @@ function CarCard({ car, t }: { car: UserCar; t: (k: string) => string }) {
             {t(car.location ?? "") || car.location}
           </div>
         </div>
-        <Badge variant="outline" className="mb-2">
-          {t(car.color ?? "") || car.color}
-        </Badge>
+
+        <div className="flex items-center justify-between">
+          <Badge
+            variant="outline"
+            className="mb-2 border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors duration-300"
+          >
+            {t(car.color ?? "") || car.color}
+          </Badge>
+          <div className="text-right">
+            <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
+              {(car.price ?? 0).toLocaleString()} ₼
+            </p>
+          </div>
+        </div>
       </CardContent>
-      <CardFooter className="pt-0 gap-2">
-        <Button asChild className="flex-1">
+
+      <CardFooter className="mt-auto p-4 border-t border-gray-100 bg-white sticky bottom-0">
+        <Button
+          asChild
+          className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 btn-animate transition-all duration-300 hover:scale-105"
+        >
           <Link href={`/cars/${car.id}`}>
             <Eye className="h-4 w-4 mr-2" />
             {t("details")}
           </Link>
         </Button>
       </CardFooter>
+
     </Card>
+
   )
 }
 export default function CarsPage() {
@@ -222,7 +249,10 @@ export default function CarsPage() {
   const colors = useMemo(() => (Array.isArray(colorsStatic) ? colorsStatic.slice() : []), [])
   const cities = useMemo(() => (Array.isArray(citiesStatic) ? citiesStatic.slice() : []), [])
   const { language, changeLanguage } = useLanguage()
-  const t = (key: string) => getTranslation(language, key)
+  const t = (key: string): string => {
+    const val = getTranslation(language, key)
+    return typeof val === "string" ? val : key
+  }
 
   useEffect(() => {
     setSelectedModel("all")
@@ -323,7 +353,7 @@ export default function CarsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-        <Navbar currentLanguage={language} onLanguageChange={changeLanguage} />
+      <Navbar currentLanguage={language} onLanguageChange={changeLanguage} />
       <section className="bg-white border-b py-8">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

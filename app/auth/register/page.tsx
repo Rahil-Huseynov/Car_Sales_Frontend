@@ -14,13 +14,21 @@ import { Navbar } from "@/components/navbar"
 import { ToastContainer, toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import CountryCodeSelect from "@/components/CountryCodeSelect"
+import { useLanguage } from "@/hooks/use-language"
+import { getTranslation } from "@/lib/i18n"
 
 export default function RegisterPage() {
+  const { language, changeLanguage } = useLanguage()
+const t = (key: string): string => {
+  const val = getTranslation(language, key)
+  return typeof val === "string" ? val : key 
+}
+
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isPending, setIsPending] = useState(false)
   const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
-  const [phoneCode, setPhoneCode] = useState<string>("+93") 
+  const [phoneCode, setPhoneCode] = useState<string>("+93")
   const [phoneNumber, setPhoneNumber] = useState<string>("")
   const [agreeToTerms, setAgreeToTerms] = useState<boolean>(false)
 
@@ -51,7 +59,7 @@ export default function RegisterPage() {
 
     if (password !== confirmPassword) {
       setIsPending(false)
-      const msg = "Şifrələr uyğun deyil."
+      const msg = t("passwordsDoNotMatch")
       setStatusMessage({ type: "error", text: msg })
       toast.error(msg, { position: "top-right", autoClose: 4000 })
       clearStatusAfter(4000)
@@ -60,7 +68,7 @@ export default function RegisterPage() {
 
     if (!agreeToTerms) {
       setIsPending(false)
-      const msg = "İstifadə şərtlərini qəbul etməlisiniz."
+      const msg = t("mustAcceptTerms")
       setStatusMessage({ type: "error", text: msg })
       toast.error(msg, { position: "top-right", autoClose: 4000 })
       clearStatusAfter(4000)
@@ -81,9 +89,11 @@ export default function RegisterPage() {
 
       if (response?.success) {
         if (response.accessToken) {
-          try { localStorage.setItem("accessToken", response.accessToken) } catch { }
+          try {
+            localStorage.setItem("accessToken", response.accessToken)
+          } catch { }
         }
-        const msg = response.message || "Qeydiyyat uğurla tamamlandı."
+        const msg = response.message || t("registrationSuccess")
         setStatusMessage({ type: "success", text: msg })
         toast.success(msg, { position: "top-right", autoClose: 3000 })
         if (timeoutRef.current) window.clearTimeout(timeoutRef.current)
@@ -92,14 +102,14 @@ export default function RegisterPage() {
           router.push("/profile")
         }, 1200)
       } else {
-        const msg = response?.message || "Qeydiyyat zamanı xəta baş verdi."
+        const msg = response?.message || t("registrationFailed")
         setStatusMessage({ type: "error", text: msg })
         toast.error(msg, { position: "top-right", autoClose: 4000 })
         clearStatusAfter(4000)
       }
     } catch (error: any) {
       setIsPending(false)
-      const errorMessage = error?.data?.message || error?.message || "Serverlə əlaqə zamanı problem yarandı."
+      const errorMessage = error?.data?.message || error?.message || t("serverError")
       setStatusMessage({ type: "error", text: errorMessage })
       toast.error(errorMessage, { position: "top-right", autoClose: 4000 })
       clearStatusAfter(4000)
@@ -108,7 +118,7 @@ export default function RegisterPage() {
 
   return (
     <>
-      <Navbar />
+      <Navbar currentLanguage={language} onLanguageChange={changeLanguage} />
       <ToastContainer
         position="top-right"
         autoClose={4000}
@@ -129,35 +139,35 @@ export default function RegisterPage() {
                 <Car className="h-8 w-8 text-white" />
               </div>
             </div>
-            <CardTitle className="text-2xl font-bold">Hesab yaradın</CardTitle>
-            <CardDescription>Euro Car-da qeydiyyatdan keçin</CardDescription>
+            <CardTitle className="text-2xl font-bold">{t("createAccount")}</CardTitle>
+            <CardDescription>{t("registerDescription")}</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="firstName">Ad</Label>
+                  <Label htmlFor="firstName">{t("firstName")}</Label>
                   <div className="relative">
                     <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input id="firstName" name="firstName" placeholder="Adınız" className="pl-10" required />
+                    <Input id="firstName" name="firstName" placeholder={t("firstNamePlaceholder")} className="pl-10" required />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="lastName">Soyad</Label>
-                  <Input id="lastName" name="lastName" placeholder="Soyadınız" required />
+                  <Label htmlFor="lastName">{t("lastName")}</Label>
+                  <Input id="lastName" name="lastName" placeholder={t("lastNamePlaceholder")} required />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">E-mail</Label>
+                <Label htmlFor="email">{t("email")}</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input id="email" type="email" name="email" placeholder="E-mail ünvanınız" className="pl-10" required />
+                  <Input id="email" type="email" name="email" placeholder={t("emailPlaceholder")} className="pl-10" required />
                 </div>
               </div>
 
               <div className="space-y-1">
-                <Label htmlFor="phone">Telefon</Label>
+                <Label htmlFor="phone">{t("phone")}</Label>
                 <div className="flex gap-2 items-center">
                   <div className="max-w-[150px]">
                     <CountryCodeSelect value={phoneCode} onChange={setPhoneCode} />
@@ -168,7 +178,7 @@ export default function RegisterPage() {
                       id="phone"
                       name="phone"
                       type="tel"
-                      placeholder="501234567 (koddan sonra)"
+                      placeholder={t("phonePlaceholder")}
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
                       required
@@ -179,14 +189,14 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Şifrə</Label>
+                <Label htmlFor="password">{t("password")}</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
                     name="password"
-                    placeholder="Şifrəniz"
+                    placeholder={t("passwordPlaceholder")}
                     className="pl-10 pr-10"
                     required
                   />
@@ -203,14 +213,14 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Şifrəni təsdiq edin</Label>
+                <Label htmlFor="confirmPassword">{t("confirmPassword")}</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
                     id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
                     name="confirmPassword"
-                    placeholder="Şifrəni təkrar daxil edin"
+                    placeholder={t("confirmPasswordPlaceholder")}
                     className="pl-10 pr-10"
                     required
                   />
@@ -236,21 +246,23 @@ export default function RegisterPage() {
                   className="rounded border-gray-300"
                 />
                 <Label htmlFor="terms" className="text-sm">
-                  <Link href="/terms" className="text-blue-600 hover:underline">İstifadə şərtləri</Link>{" "}
-                  və{" "}
-                  <Link href="/privacy" className="text-blue-600 hover:underline">Məxfilik siyasəti</Link>
-                  -ni qəbul edirəm
+                  <span>
+                    {t("iAccept")}{" "}
+                    <Link href="/terms" className="text-blue-600 hover:underline">{t("terms")}</Link>{" "}
+                    {t("and")}{" "}
+                    <Link href="/privacy" className="text-blue-600 hover:underline">{t("privacy")}</Link>
+                  </span>
                 </Label>
               </div>
 
               <Button type="submit" className="w-full" disabled={isPending}>
-                {isPending ? "Qeydiyyatdan keçilir..." : "Qeydiyyatdan keç"}
+                {isPending ? t("registering") : t("register")}
               </Button>
             </form>
 
             <div className="mt-6 text-center text-sm">
-              <span className="text-gray-600">Artıq hesabınız var? </span>
-              <Link href="/auth/login" className="text-blue-600 hover:underline font-medium">Daxil olun</Link>
+              <span className="text-gray-600">{t("alreadyHaveAccount")} </span>
+              <Link href="/auth/login" className="text-blue-600 hover:underline font-medium">{t("login")}</Link>
             </div>
           </CardContent>
         </Card>

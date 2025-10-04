@@ -168,8 +168,11 @@ export default function SellPage() {
   const [selectedBrand, setSelectedBrand] = useState<string>("all");
   const [selectedModel, setSelectedModel] = useState<string>("all");
   const { language, changeLanguage } = useLanguage()
-  const t = (key: string) => getTranslation(language, key)
-
+  const t = (key: string): string => {
+    const val = getTranslation(language, key)
+    return typeof val === "string" ? val : key
+  }
+  
   useEffect(() => {
     const fetchUser = async () => {
       try {

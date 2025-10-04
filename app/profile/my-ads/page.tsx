@@ -101,8 +101,10 @@ function AdCard({
   index: number
 }) {
   const { language } = useLanguage()
-  const t = (key: string) => getTranslation(language, key)
-
+  const t = (key: string): string => {
+    const val = getTranslation(language, key)
+    return typeof val === "string" ? val : key
+  }
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isLoaded, setIsLoaded] = useState(false)
 
@@ -281,7 +283,10 @@ function AdCard({
 
 export default function MyAdsPage() {
   const { language } = useLanguage()
-  const t = (key: string) => getTranslation(language, key)
+  const t = (key: string): string => {
+    const val = getTranslation(language, key)
+    return typeof val === "string" ? val : key
+  }
   const [ads, setAds] = useState<CarAd[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<"all" | "Standart" | "Premium">("all")
@@ -383,7 +388,7 @@ export default function MyAdsPage() {
               <Clock className="h-4 w-4" />
               {t("Premium")} ({getTabCount("Premium")})
             </TabsTrigger>
-            <TabsTrigger value="all" className="invisible" /> 
+            <TabsTrigger value="all" className="invisible" />
           </TabsList>
 
           <TabsContent value={activeTab}>

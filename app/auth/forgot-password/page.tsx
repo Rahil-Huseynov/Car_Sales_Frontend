@@ -15,8 +15,11 @@ import { useLanguage } from "@/hooks/use-language"
 import { getTranslation } from "@/lib/i18n"
 
 export default function ForgotPasswordPage() {
-  const { language } = useLanguage()
-  const t = (key: string) => getTranslation(language, key)
+  const { language, changeLanguage } = useLanguage()
+  const t = (key: string): string => {
+    const val = getTranslation(language, key)
+    return typeof val === "string" ? val : key 
+  }
 
   const [email, setEmail] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -48,7 +51,7 @@ export default function ForgotPasswordPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="navbar-slide">
-        <Navbar />
+        <Navbar currentLanguage={language} onLanguageChange={changeLanguage} />
       </div>
       <section className="bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 text-white py-12 md:py-16 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-orange-400/10 to-transparent"></div>

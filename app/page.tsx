@@ -90,12 +90,11 @@ function CarCard({ car, t, index }: { car: UserCar; t: (k: string) => string; in
     e.stopPropagation();
     setCurrentImageIndex((p) => (p - 1 + images.length) % images.length);
   };
-
   return (
     <Card className={`overflow-hidden card-hover border-0 bg-white/90 backdrop-blur-sm transition-all duration-500 ${isLoaded ? "animate-fadeInUp opacity-100" : "opacity-0"}`} style={{ animationDelay: `${index * 0.05}s` }}>
       <div className="relative group">
         <div className="overflow-hidden">
-          <Image src={imageUrl} alt={`${car.brand} ${car.model}`} width={300} height={200} className="w-full h-48 object-cover transition-transform duration-700 group-hover:scale-110" />
+          <Image src={imageUrl} alt={`${car.brand} ${car.model}`} width={300} height={200} className="w-full h-48 object-contain transition-transform duration-700 group-hover:scale-110" />
         </div>
 
         {images.length > 1 && (
@@ -128,27 +127,32 @@ function CarCard({ car, t, index }: { car: UserCar; t: (k: string) => string; in
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <div>
-            <h3 className="font-bold text-lg text-gray-800 group-hover:text-blue-600 transition-colors duration-300">{car.brand} {car.model}</h3>
+            <h3 className="font-bold h-16 text-lg text-gray-800 break-word group-hover:text-blue-600 transition-colors duration-300">
+              {car.brand} {car.model.length > 32 ? car.model.slice(0, 40) + "..." : car.model}
+            </h3>
             <p className="text-sm text-gray-600">{car.year} • {t(car.condition ?? "") || car.condition}</p>
-          </div>
-          <div className="text-right">
-            <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">{(car.price ?? 0).toLocaleString()} ₼</p>
           </div>
         </div>
       </CardHeader>
 
-      <CardContent className="pt-0">
+      <CardContent className="pt-0 pb-24">
         <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-4">
           <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><Car className="h-4 w-4 text-blue-500" />{(car.mileage ?? 0).toLocaleString()} {t("km") || "km"}</div>
           <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><Fuel className="h-4 w-4 text-blue-500" />{t(car.fuel ?? "") || car.fuel}</div>
           <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><Cog className="h-4 w-4 text-blue-500" />{t(car.gearbox ?? "") || car.gearbox}</div>
           <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><MapPin className="h-4 w-4 text-blue-500" />{t(car.location ?? "") || car.location}</div>
         </div>
-        <Badge variant="outline" className="mb-2 border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors duration-300">{t(car.color ?? "") || car.color}</Badge>
+        <div className="flex items-center justify-between">
+          <Badge variant="outline" className="mb-2 border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors duration-300">{t(car.color ?? "") || car.color}</Badge>
+          <div className="text-right">
+            <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">{(car.price ?? 0).toLocaleString()} ₼</p>
+          </div>
+        </div>
       </CardContent>
 
-      <CardFooter className="pt-0 gap-2">
-        <Button asChild className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 btn-animate transition-all duration-300 hover:scale-105">
+
+      <CardFooter className="absolute bottom-3 left-0 w-full gap-2 px-4">
+        <Button asChild className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 btn-animate transition-all duration-300 hover:scale-105">
           <Link href={`/cars/${car.id}`}><Eye className="h-4 w-4 mr-2" />{t("details")}</Link>
         </Button>
       </CardFooter>
@@ -171,10 +175,12 @@ export default function HomePage() {
   const [selectedColor, setSelectedColor] = useState<string>("all");
   const [priceRange, setPriceRange] = useState({ min: "", max: "" });
   const { language, changeLanguage } = useLanguage()
-  const t = (key: string) => getTranslation(language, key)
-
+  const t = (key: string): string => {
+    const val = getTranslation(language, key)
+    return typeof val === "string" ? val : key
+  }
   const [page, setPage] = useState<number>(1);
-  const [limit] = useState<number>(20);
+  const [limit] = useState<number>(30);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [sortBy, setSortBy] = useState<string>("createdAt_desc");
 

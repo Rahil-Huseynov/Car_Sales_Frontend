@@ -24,7 +24,10 @@ import { getTranslation } from "@/lib/i18n"
 
 export default function LoginPage() {
   const { language, changeLanguage } = useLanguage()
-  const t = (key: string) => getTranslation(language, key)
+  const t = (key: string): string => {
+    const val = getTranslation(language, key)
+    return typeof val === "string" ? val : key
+  }
   const [showPassword, setShowPassword] = useState(false)
   const [isPending, setIsPending] = useState(false)
   const router = useRouter()

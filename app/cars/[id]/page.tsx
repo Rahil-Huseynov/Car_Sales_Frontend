@@ -14,7 +14,6 @@ import {
   Share2,
   MapPin,
   Fuel,
-  Users,
   Gauge,
   Palette,
   Shield,
@@ -34,7 +33,8 @@ import { Navbar } from "@/components/navbar"
 import { useLanguage } from "@/hooks/use-language"
 import { getTranslation } from "@/lib/i18n"
 import { apiClient } from "@/lib/api-client"
-
+import { toast, ToastContainer } from "react-toastify"
+import "react-toastify/dist/ReactToastify.css"
 
 type ImageItem = string | { id?: number; url?: string }
 
@@ -54,7 +54,7 @@ type CarType = {
   price?: number
   mileage?: number
   fuel?: string
-  gearbox?: string 
+  gearbox?: string
   transmission?: string
   color?: string
   location?: string
@@ -91,7 +91,6 @@ function safeImageUrl(i?: ImageItem) {
   return API_UPLOADS_BASE ? `${API_UPLOADS_BASE}/${cleaned}` : `/${cleaned}`
 }
 
-
 type ShareModalProps = {
   isOpen: boolean
   onClose: () => void
@@ -107,7 +106,11 @@ function ShareModal({ isOpen, onClose, shareUrl, title, subtitle, image }: Share
   const lastActiveRef = useRef<HTMLElement | null>(null)
   const [isCopying, setIsCopying] = useState(false)
   const [copied, setCopied] = useState(false)
-
+  const { language } = useLanguage()
+  const t = (key: string): string => {
+    const val = getTranslation(language, key)
+    return typeof val === "string" ? val : key
+  }
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose()
@@ -142,6 +145,11 @@ function ShareModal({ isOpen, onClose, shareUrl, title, subtitle, image }: Share
     }
   }, [isOpen, onClose])
 
+  useEffect(() => {
+    setCopied(false)
+    setIsCopying(false)
+  }, [language])
+
   if (!isOpen) return null
 
   const handleOverlayClick = (e: React.MouseEvent) => {
@@ -154,10 +162,11 @@ function ShareModal({ isOpen, onClose, shareUrl, title, subtitle, image }: Share
       setIsCopying(true)
       await navigator.clipboard.writeText(shareUrl)
       setCopied(true)
+      toast.success(t("copied"))
       setTimeout(() => setCopied(false), 1800)
     } catch (err) {
       console.error(err)
-      alert("Kopyalanmadı — brauzer dəstəyi olmayabilir.")
+      toast.error(t("copyFailed"))
     } finally {
       setIsCopying(false)
     }
@@ -175,6 +184,7 @@ function ShareModal({ isOpen, onClose, shareUrl, title, subtitle, image }: Share
         onClose()
       } catch (err) {
         console.error("Share failed", err)
+        toast.error(t("shareFailed"))
       }
     } else {
       await handleCopy()
@@ -206,7 +216,7 @@ function ShareModal({ isOpen, onClose, shareUrl, title, subtitle, image }: Share
               <Share2 className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold leading-none">{title ?? "Paylaş"}</h3>
+              <h3 className="text-lg font-semibold leading-none">{title ?? t("share")}</h3>
               {subtitle && <p className="text-sm text-gray-500 mt-0.5">{subtitle}</p>}
             </div>
           </div>
@@ -220,7 +230,7 @@ function ShareModal({ isOpen, onClose, shareUrl, title, subtitle, image }: Share
               className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
               aria-label="Open link in new tab"
             >
-              <ExternalLink className="h-4 w-4 text-gray-600" /> Aç
+              <ExternalLink className="h-4 w-4 text-gray-600" /> {t("open")}
             </button>
 
             <button onClick={onClose} className="rounded-full p-2 text-gray-600 hover:bg-gray-100" aria-label="Close share modal">
@@ -234,15 +244,15 @@ function ShareModal({ isOpen, onClose, shareUrl, title, subtitle, image }: Share
             <div className="relative flex-shrink-0">
               <div className="h-28 w-40 overflow-hidden rounded-lg bg-gray-100">
                 {image ? (
-                  <img src={image} alt={title ?? "preview"} className="h-full w-full object-cover" />
+                  <img src={image} alt={title ?? "preview"} className="h-full w-full object-contain" />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center text-gray-400">Preview</div>
+                  <div className="flex h-full w-full items-center justify-center text-gray-400">{t("preview")}</div>
                 )}
               </div>
             </div>
 
             <div className="flex-1">
-              <label className="block text-xs font-medium text-gray-500 mb-2">Link</label>
+              <label className="block text-xs font-medium text-gray-500 mb-2">{t("link")}</label>
               <div className="flex w-full gap-2">
                 <input
                   ref={inputRef}
@@ -259,20 +269,16 @@ function ShareModal({ isOpen, onClose, shareUrl, title, subtitle, image }: Share
                   aria-label="Copy link"
                 >
                   {copied ? <Check className="h-4 w-4" /> : <Clipboard className="h-4 w-4" />}
-                  <span>{copied ? "Kopyalandı" : "Kopyala"}</span>
+                  <span>{copied ? t("copied") : t("copy")}</span>
                 </button>
               </div>
-
-              <p className="mt-3 text-sm text-gray-500">
-                Mobil cihazda native paylaşma pəncərəsi varsa <span className="font-medium">Paylaş</span> düyməsi açacaq.
-              </p>
 
               <div className="mt-4 flex flex-wrap items-center gap-3">
                 <button
                   onClick={handleNativeShare}
                   className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow"
                 >
-                  <Share2 className="h-4 w-4" /> Paylaş
+                  <Share2 className="h-4 w-4" /> {t("share")}
                 </button>
 
                 <button onClick={() => openSocial("facebook")} className="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm hover:bg-gray-50">
@@ -289,7 +295,7 @@ function ShareModal({ isOpen, onClose, shareUrl, title, subtitle, image }: Share
               </div>
 
               <div className="mt-4 flex items-center justify-between">
-                <p className="text-xs text-gray-400">URL təminatı: təhlükəsiz və birbaşa paylaşım üçün hazırdır.</p>
+                <p className="text-xs text-gray-400">{t("urlAssurance")}</p>
                 <div className="text-xs text-gray-400" />
               </div>
             </div>
@@ -306,18 +312,17 @@ function ShareModal({ isOpen, onClose, shareUrl, title, subtitle, image }: Share
             }}
             className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-gray-100"
           >
-            Mail ilə göndər
+            {t("sendByMail")}
           </button>
 
           <button onClick={onClose} className="rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
-            Bağla
+            {t("close")}
           </button>
         </div>
       </div>
     </div>
   )
 }
-
 
 type ContactModalProps = {
   isOpen: boolean
@@ -332,14 +337,15 @@ function ContactModal({ isOpen, onClose, toEmail, subject, prefillPhone, carTitl
   const overlayRef = useRef<HTMLDivElement | null>(null)
   const [name, setName] = useState("")
   const [fromEmail, setFromEmail] = useState("")
-  const [message, setMessage] = useState(
-    `Salam,\n\nMən ${carTitle ?? ""} avtomobili ilə maraqlanıram. Xahiş edirəm əlavə məlumat və təklif etdiyiniz şərtlər haqqında ətraflı məlumat verəsiniz.\n\nƏvvəlcədən təşəkkür edirəm.\n`
-  )
+  const [message, setMessage] = useState("")
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-
+  const [error, setError] = useState<string | null | undefined>(null)
+  const { language } = useLanguage()
+  const t = (key: string): string => {
+    const val = getTranslation(language, key)
+    return typeof val === "string" ? val : key
+  }
   useEffect(() => {
     if (isOpen) {
       setError(null)
@@ -351,6 +357,18 @@ function ContactModal({ isOpen, onClose, toEmail, subject, prefillPhone, carTitl
       document.body.style.overflow = ""
     }
   }, [isOpen])
+
+  useEffect(() => {
+    if (!isOpen) return
+    const lang = (language || "").toString().toLowerCase()
+    let defaultMsg = ""
+    if (lang.startsWith("az")) {
+      defaultMsg = `Salam,\n\nMən ${carTitle ?? ""} avtomobili ilə maraqlanıram. Xahiş edirəm əlavə məlumat və təklif etdiyiniz şərtlər haqqında ətraflı məlumat verəsiniz.\n\nƏvvəlcədən təşəkkür edirəm.\n`
+    } else {
+      defaultMsg = `Hello,\n\nI'm interested in the ${carTitle ?? ""} car. Please send more details and the terms you offer.\n\nThank you in advance.\n`
+    }
+    setMessage(defaultMsg)
+  }, [isOpen, language, carTitle])
 
   if (!isOpen) return null
 
@@ -364,8 +382,8 @@ function ContactModal({ isOpen, onClose, toEmail, subject, prefillPhone, carTitl
     setError(null)
 
     const payload = {
-      to: toEmail || '',
-      subject: subject || `Maraqlanan: ${carTitle ?? ""}`,
+      to: toEmail || "",
+      subject: subject || `${t("interestedIn")}: ${carTitle ?? ""}`,
       name,
       from: fromEmail,
       message,
@@ -378,6 +396,7 @@ function ContactModal({ isOpen, onClose, toEmail, subject, prefillPhone, carTitl
           const res = await apiClient.sendEmail(payload)
           if (res.success) {
             setSent(true)
+            toast.success(t("messageSentSuccessfully"))
             setTimeout(() => {
               window.location.reload()
             }, 2000)
@@ -386,7 +405,9 @@ function ContactModal({ isOpen, onClose, toEmail, subject, prefillPhone, carTitl
           }
         } catch (err: any) {
           console.error(err)
-          setError(err?.message || "Göndərilmə zamanı xəta baş verdi.")
+          const errMsg = err?.message || t("sendError")
+          setError(errMsg)
+          toast.error(errMsg)
         }
       } else {
         const API_BASE = process.env.NEXT_PUBLIC_API_URL || ""
@@ -394,23 +415,29 @@ function ContactModal({ isOpen, onClose, toEmail, subject, prefillPhone, carTitl
           try {
             const res = await apiClient.sendEmail(payload)
             setSent(true)
+            toast.success(t("messageSentSuccessfully"))
           } catch (err: any) {
             console.error(err)
-            setError(err?.message || "Server göndərmə xətası")
+            const errMsg = err?.message || t("serverSendError")
+            setError(errMsg)
+            toast.error(errMsg)
           }
         } else {
           const mailtoTo = encodeURIComponent(String(toEmail || ""))
           const mailSubj = encodeURIComponent(payload.subject || "")
           const mailBody = encodeURIComponent(
-            `${payload.message}\n\nAd: ${payload.name || ""}\nE-mail: ${payload.from || ""}\nTelefon: ${payload.phone || ""}`
+            `${payload.message}\n\n${t("name")}: ${payload.name || ""}\n${t("email")}: ${payload.from || ""}\n${t("phone")}: ${payload.phone || ""}`
           )
           window.location.href = `mailto:${mailtoTo}?subject=${mailSubj}&body=${mailBody}`
           setSent(true)
+          toast.success(t("messageSentSuccessfully"))
         }
       }
     } catch (err: any) {
       console.error(err)
-      setError(err?.message || "Göndərilmə zamanı xəta baş verdi.")
+      const errMsg = err?.message || t("sendError")
+      setError(errMsg)
+      toast.error(errMsg)
     } finally {
       setSending(false)
     }
@@ -427,8 +454,8 @@ function ContactModal({ isOpen, onClose, toEmail, subject, prefillPhone, carTitl
       <form onSubmit={handleSubmit} className="w-full max-w-md transform overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-black/5">
         <div className="flex items-center justify-between px-5 py-3 border-b">
           <div>
-            <h3 className="text-lg font-semibold">Satıcıya mesaj göndər</h3>
-            <p className="text-xs text-gray-500 mt-0.5">Sualınızı yazın, biz göndərməyə kömək edək.</p>
+            <h3 className="text-lg font-semibold">{t("sendMessageToSeller")}</h3>
+            <p className="text-xs text-gray-500 mt-0.5">{t("writeYourQuestion")}</p>
           </div>
 
           <button type="button" onClick={onClose} className="text-gray-600 rounded-full p-2 hover:bg-gray-100">
@@ -437,32 +464,32 @@ function ContactModal({ isOpen, onClose, toEmail, subject, prefillPhone, carTitl
         </div>
 
         <div className="px-5 py-4 space-y-3">
-          {sent ? <div className="rounded-md bg-green-50 px-4 py-3 text-green-700">Mesaj uğurla göndərildi.</div> : null}
+          {sent ? <div className="rounded-md bg-green-50 px-4 py-3 text-green-700">{t("messageSentSuccessfully")}</div> : null}
           {error ? <div className="rounded-md bg-red-50 px-4 py-3 text-red-700">{error}</div> : null}
 
           <div>
-            <label className="text-xs text-gray-500">Ad (istəyə bağlı)</label>
+            <label className="text-xs text-gray-500">{t("nameOptional")}</label>
             <input
               className="mt-1 w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Adınızı daxil edin"
+              placeholder={t("enterYourName")}
             />
           </div>
 
           <div>
-            <label className="text-xs text-gray-500">E-mail (təmas üçün)</label>
+            <label className="text-xs text-gray-500">{t("emailForContact")}</label>
             <input
               className="mt-1 w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
               value={fromEmail}
               onChange={(e) => setFromEmail(e.target.value)}
-              placeholder="sizin@email.com"
+              placeholder={t("yourEmail")}
               type="email"
             />
           </div>
 
           <div>
-            <label className="text-xs text-gray-500">Mesaj</label>
+            <label className="text-xs text-gray-500">{t("message")}</label>
             <textarea
               className="mt-1 h-28 w-full rounded-md border resize-none px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
               value={message}
@@ -471,7 +498,7 @@ function ContactModal({ isOpen, onClose, toEmail, subject, prefillPhone, carTitl
           </div>
 
           <div>
-            <label className="text-xs text-gray-500">Satıcının e-maili</label>
+            <label className="text-xs text-gray-500">{t("sellersEmail")}</label>
             <input readOnly value={toEmail ?? ""} className="mt-1 w-full rounded-md border bg-gray-50 px-3 py-2 text-sm" />
           </div>
         </div>
@@ -481,17 +508,17 @@ function ContactModal({ isOpen, onClose, toEmail, subject, prefillPhone, carTitl
             type="button"
             onClick={() => {
               const mailtoTo = encodeURIComponent(String(toEmail || ""))
-              const mailSubj = encodeURIComponent(subject || `Maraqlanma: ${carTitle ?? ""}`)
-              const mailBody = encodeURIComponent(`${message}\n\nAd: ${name}\nE-mail: ${fromEmail}\nTelefon: ${prefillPhone || ""}`)
+              const mailSubj = encodeURIComponent(subject || `${t("interestedIn")}: ${carTitle ?? ""}`)
+              const mailBody = encodeURIComponent(`${message}\n\n${t("name")}: ${name}\n${t("email")}: ${fromEmail}\n${t("phone")}: ${prefillPhone || ""}`)
               window.location.href = `mailto:${mailtoTo}?subject=${mailSubj}&body=${mailBody}`
             }}
             className="rounded-md px-3 py-2 text-sm hover:bg-gray-100"
           >
-            MailClient ilə aç
+            {t("openWithMailClient")}
           </button>
 
           <button type="submit" disabled={sending} className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
-            {sending ? "Göndərilir..." : "Mesaj göndər"}
+            {sending ? t("sending") : t("sendMessage")}
           </button>
         </div>
       </form>
@@ -500,9 +527,6 @@ function ContactModal({ isOpen, onClose, toEmail, subject, prefillPhone, carTitl
 }
 
 export default function CarDetailPage() {
-  const { language } = useLanguage()
-  const t = (key: string) => getTranslation(language, key)
-
   const params = useParams()
   const router = useRouter()
   const idParam = Array.isArray(params?.id) ? params?.id[0] : params?.id
@@ -511,7 +535,7 @@ export default function CarDetailPage() {
   const [loading, setLoading] = useState(true)
   const [car, setCar] = useState<CarType | null>(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null | undefined>(null)
 
   const [isShareOpen, setIsShareOpen] = useState(false)
   const [shareUrl, setShareUrl] = useState<string>("")
@@ -520,9 +544,13 @@ export default function CarDetailPage() {
 
   const [descExpanded, setDescExpanded] = useState(false)
   const descRef = useRef<HTMLDivElement | null>(null)
-  const animDuration = 300 
+  const animDuration = 300
   const transitionProperty = `max-height ${animDuration}ms ease, opacity ${Math.round(animDuration * 0.7)}ms ease, transform ${animDuration}ms cubic-bezier(.2,.8,.2,1)`
-
+  const { language, changeLanguage } = useLanguage()
+  const t = (key: string): string => {
+    const val = getTranslation(language, key)
+    return typeof val === "string" ? val : key
+  }
   useEffect(() => {
     const el = descRef.current
     if (!el) return
@@ -530,7 +558,7 @@ export default function CarDetailPage() {
     el.style.transition = transitionProperty
     el.style.maxHeight = "0px"
     el.style.opacity = "0"
-    el.style.transform = "translateY(-6px)" 
+    el.style.transform = "translateY(-6px)"
     el.style.display = "none"
   }, [])
 
@@ -611,8 +639,10 @@ export default function CarDetailPage() {
   }
   useEffect(() => {
     if (!id || Number.isNaN(id)) {
-      setError("Uyğun ID tapılmadı.")
+      const msg = t("invalidId") || t("fetchError")
+      setError(msg)
       setLoading(false)
+      toast.error(msg)
       return
     }
 
@@ -625,16 +655,20 @@ export default function CarDetailPage() {
       try {
         const res = await apiClient.getCarId(id)
         if (!res) {
-          setError("Maşın tapılmadı.")
+          const msg = t("carNotFound")
+          setError(msg)
           setCar(null)
           setLoading(false)
+          toast.error(msg)
           return
         }
         setCar(res)
         setCurrentImageIndex(0)
       } catch (e: any) {
         console.error(e)
-        setError(e?.message || "Məlumat çəkilərkən xəta baş verdi.")
+        const msg = (e && (e as any).message) ? String((e as any).message) : t("fetchError")
+        setError(msg)
+        toast.error(msg)
       } finally {
         setLoading(false)
       }
@@ -642,7 +676,7 @@ export default function CarDetailPage() {
 
     fetchCar()
     return () => controller.abort()
-  }, [id])
+  }, [id, language])
 
   useEffect(() => {
     if (!car) return
@@ -660,90 +694,12 @@ export default function CarDetailPage() {
     setCurrentImageIndex((prev) => (prev - 1 + (car.images!.length || 1)) % (car.images!.length || 1))
   }
 
-  const pageContentDefaults = {
-    az: {
-      description: "Təsvir",
-      features: "Xüsusiyyətlər",
-      contactSeller: "Satıcı ilə əlaqə",
-      quickInfo: "Qısa məlumat",
-      brand: "Marka",
-      model: "Model",
-      year: "İl",
-      Creation_date: "Yaradılma tarixi",
-      condition: "Vəziyyət",
-      location: "Yer",
-      mileage: "Yürüş",
-      fuel: "Yanacaq",
-      transmission: "Transmissiya",
-      gearbox: "Qutu (Gearbox)",
-      color: "Rəng",
-      engine: "Mühərrik",
-      power: "Güc",
-      drivetrain: "Ötürücü",
-      bodyType: "Ban tipi",
-      sendEmail: "E-mail göndər",
-      safetyTip: "Təhlükəsizlik məsləhəti",
-      safetyText: "Avtomobili almadan əvvəl mütləq şəkildə yoxlayın və sənədləri diqqətlə nəzərdən keçirin.",
-      status: "Vəziyyət",
-    },
-    en: {
-      description: "Description",
-      features: "Features",
-      contactSeller: "Contact Seller",
-      quickInfo: "Quick Info",
-      brand: "Brand",
-      model: "Model",
-      year: "Year",
-      Creation_date: "Creation date",
-      condition: "Condition",
-      location: "Location",
-      mileage: "Mileage",
-      fuel: "Fuel",
-      transmission: "Transmission",
-      gearbox: "Gearbox",
-      color: "Color",
-      engine: "Engine",
-      power: "Power",
-      drivetrain: "Drivetrain",
-      bodyType: "Body Type",
-      sendEmail: "Send Email",
-      safetyTip: "Safety Tip",
-      safetyText: "Be sure to inspect the car and carefully review the documents before purchasing.",
-      status: "Status",
-    },
-    ru: {
-      description: "Описание",
-      features: "Особенности",
-      contactSeller: "Связаться с продавцом",
-      quickInfo: "Краткая информация",
-      brand: "Марка",
-      model: "Модель",
-      year: "Год",
-      condition: "Состояние",
-      location: "Местоположение",
-      mileage: "Пробег",
-      fuel: "Топливо",
-      transmission: "Коробка передач",
-      gearbox: "Коробка (Gearbox)",
-      color: "Цвет",
-      engine: "Двигатель",
-      power: "Мощность",
-      drivetrain: "Привод",
-      bodyType: "Тип кузова",
-      sendEmail: "Отправить Email",
-      safetyTip: "Совет по безопасности",
-      safetyText: "Обязательно осмотрите автомобиль и внимательно изучите документы перед покупкой.",
-      status: "Статус",
-    },
-  }
-
-  const pageContent = (pageContentDefaults as any)[language] ?? pageContentDefaults.az
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <div className="container mx-auto px-4 py-10">Yüklənir...</div>
+        <Navbar currentLanguage={language} onLanguageChange={changeLanguage} />
+        <div className="container mx-auto px-4 py-10">{t("loading")}</div>
+        <ToastContainer position="top-right" autoClose={3000} />
       </div>
     )
   }
@@ -751,15 +707,16 @@ export default function CarDetailPage() {
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
+        <Navbar currentLanguage={language} onLanguageChange={changeLanguage} />
         <div className="container mx-auto px-4 py-6">
           <Card>
             <CardContent>
               <p className="text-red-600 mb-4">{error}</p>
-              <Button onClick={() => router.back()}>Geri</Button>
+              <Button onClick={() => router.back()}>{t("back")}</Button>
             </CardContent>
           </Card>
         </div>
+        <ToastContainer position="top-right" autoClose={3000} />
       </div>
     )
   }
@@ -767,15 +724,16 @@ export default function CarDetailPage() {
   if (!car) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
+        <Navbar currentLanguage={language} onLanguageChange={changeLanguage} />
         <div className="container mx-auto px-4 py-6">
           <Card>
             <CardContent>
-              <p>Maşın tapılmadı.</p>
-              <Button onClick={() => router.push("/")}>Ana Səhifəyə</Button>
+              <p>{t("carNotFound")}</p>
+              <Button onClick={() => router.push("/")}>{t("toHome")}</Button>
             </CardContent>
           </Card>
         </div>
+        <ToastContainer position="top-right" autoClose={3000} />
       </div>
     )
   }
@@ -788,7 +746,7 @@ export default function CarDetailPage() {
   const isLongDesc = descriptionText.length > 200
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
+      <Navbar currentLanguage={language} onLanguageChange={changeLanguage} />
 
       <div className="container mx-auto px-4 py-6 md:py-8">
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 md:gap-8">
@@ -801,7 +759,7 @@ export default function CarDetailPage() {
                     alt={`${car.brand} ${car.model} - Image ${currentImageIndex + 1}`}
                     width={600}
                     height={400}
-                    className="w-full h-64 md:h-96 object-cover rounded-t-lg"
+                    className="w-full h-64 md:h-96 object-contain rounded-t-lg"
                   />
 
                   <Button
@@ -809,7 +767,7 @@ export default function CarDetailPage() {
                     variant="secondary"
                     className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white"
                     onClick={prevImage}
-                    aria-label="Previous image"
+                    aria-label={t("previousImage")}
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
@@ -819,7 +777,7 @@ export default function CarDetailPage() {
                     variant="secondary"
                     className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white"
                     onClick={nextImage}
-                    aria-label="Next image"
+                    aria-label={t("nextImage")}
                   >
                     <ChevronRight className="h-4 w-4" />
                   </Button>
@@ -829,7 +787,7 @@ export default function CarDetailPage() {
                   </div>
 
                   <div className="absolute top-4 right-4 flex gap-2">
-                    <Button size="icon" variant="secondary" aria-label="Favorite">
+                    <Button size="icon" variant="secondary" aria-label={t("favorite")}>
                       <Heart className="h-4 w-4" />
                     </Button>
 
@@ -837,7 +795,7 @@ export default function CarDetailPage() {
                       size="icon"
                       variant="secondary"
                       onClick={() => setIsShareOpen(true)}
-                      aria-label="Share"
+                      aria-label={t("share")}
                     >
                       <Share2 className="h-4 w-4" />
                     </Button>
@@ -856,7 +814,7 @@ export default function CarDetailPage() {
                         alt={`${car.brand} ${car.model} thumbnail ${index + 1}`}
                         width={120}
                         height={80}
-                        className="w-full h-16 object-cover hover:opacity-80 transition-opacity"
+                        className="w-full h-16 object-contain hover:opacity-80 transition-opacity"
                       />
                     </button>
                   ))}
@@ -879,7 +837,7 @@ export default function CarDetailPage() {
                     <p className="text-3xl font-bold text-blue-600">{(car.price ?? 0).toLocaleString()} ₼</p>
                     {car.status ? (
                       <div className="mt-2">
-                        <Badge variant={car.status === "premium" ? "default" : "outline"}>{car.status}</Badge>
+                        <Badge>{car.status}</Badge>
                       </div>
                     ) : null}
                   </div>
@@ -890,28 +848,28 @@ export default function CarDetailPage() {
                   <div className="flex items-center gap-2">
                     <Gauge className="h-5 w-5 text-gray-500" />
                     <div>
-                      <p className="text-sm text-gray-500">{pageContent.mileage}</p>
+                      <p className="text-sm text-gray-500">{t("mileage")}</p>
                       <p className="font-semibold">{(car.mileage ?? 0).toLocaleString()} km</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Fuel className="h-5 w-5 text-gray-500" />
                     <div>
-                      <p className="text-sm text-gray-500">{pageContent.fuel}</p>
+                      <p className="text-sm text-gray-500">{t("fuel")}</p>
                       <p className="font-semibold">{t(car.fuel ?? "")}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Cog className="h-5 w-5 text-gray-500" />
                     <div>
-                      <p className="text-sm text-gray-500">{pageContent.gearbox}</p>
+                      <p className="text-sm text-gray-500">{t("gearbox")}</p>
                       <p className="font-semibold">{car.gearbox ?? car.transmission ?? t("-")}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Palette className="h-5 w-5 text-gray-500" />
                     <div>
-                      <p className="text-sm text-gray-500">{pageContent.color}</p>
+                      <p className="text-sm text-gray-500">{t("color")}</p>
                       <p className="font-semibold">{t(car.color ?? "")}</p>
                     </div>
                   </div>
@@ -923,28 +881,28 @@ export default function CarDetailPage() {
                   <div className="flex items-center gap-2">
                     <CarFront className="h-5 w-5 text-gray-500" />
                     <div>
-                      <p className="text-sm text-gray-500">{pageContent.engine}</p>
+                      <p className="text-sm text-gray-500">{t("engine")}</p>
                       <p className="font-semibold">{car.engine}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Car className="h-5 w-5 text-gray-500" />
                     <div>
-                      <p className="text-sm text-gray-500">{pageContent.bodyType}</p>
+                      <p className="text-sm text-gray-500">{t("bodyType")}</p>
                       <p className="font-semibold">{car.ban}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <IdCard className="h-5 w-5 text-gray-500" />
                     <div>
-                      <p className="text-sm text-gray-500">{pageContent.brand}</p>
+                      <p className="text-sm text-gray-500">{t("brand")}</p>
                       <p className="font-semibold">{car.brand}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Puzzle className="h-5 w-5 text-gray-500" />
                     <div>
-                      <p className="text-sm text-gray-500">{pageContent.model}</p>
+                      <p className="text-sm text-gray-500">{t("model")}</p>
                       <p className="font-semibold">{car.model}</p>
                     </div>
                   </div>
@@ -953,7 +911,7 @@ export default function CarDetailPage() {
                 <Separator className="my-6" />
 
                 <div>
-                  <h3 className="text-lg font-semibold mb-3">{pageContent.description}</h3>
+                  <h3 className="text-lg font-semibold mb-3">{t("description")}</h3>
 
                   <p className="text-gray-700 leading-relaxed">
                     {descriptionText.slice(0, 200)}
@@ -978,7 +936,7 @@ export default function CarDetailPage() {
                         aria-controls="car-description-more"
                         className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:underline"
                       >
-                        {descExpanded ? "Daha az" : "Daha çox"}
+                        {descExpanded ? t("showLess") : t("showMore")}
                       </button>
                     </>
                   ) : null}
@@ -989,7 +947,7 @@ export default function CarDetailPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>{pageContent.features}</CardTitle>
+                <CardTitle>{t("features")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-3">
@@ -1007,7 +965,7 @@ export default function CarDetailPage() {
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>{pageContent.contactSeller}</CardTitle>
+                <CardTitle>{t("contactSeller")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
@@ -1025,12 +983,12 @@ export default function CarDetailPage() {
                       className="inline-flex items-center justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-medium text-white hover:bg-green-700"
                     >
                       <Phone className="h-4 w-4 mr-2" />
-                      {sellerPhone ?? "Nömrə yoxdur"}
+                      {sellerPhone ?? t("noPhone")}
                     </a>
 
                     <button type="button" onClick={() => setContactOpen(true)} className="inline-flex items-center justify-center rounded-md border px-3 py-2 text-sm font-medium hover:bg-gray-50">
                       <Mail className="h-4 w-4 mr-2" />
-                      {pageContent.sendEmail}
+                      {t("sendEmail")}
                     </button>
                   </div>
                 </div>
@@ -1039,32 +997,32 @@ export default function CarDetailPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>{pageContent.quickInfo}</CardTitle>
+                <CardTitle>{t("quickInfo")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">{pageContent.brand}:</span>
+                  <span className="text-gray-600">{t("brand")}:</span>
                   <span className="font-semibold">{car.brand}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">{pageContent.model}:</span>
+                  <span className="text-gray-600">{t("model")}:</span>
                   <span className="font-semibold">{car.model}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">{pageContent.year}:</span>
+                  <span className="text-gray-600">{t("year")}:</span>
                   <span className="font-semibold">{car.year}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">{pageContent.condition}:</span>
+                  <span className="text-gray-600">{t("condition")}:</span>
                   <Badge variant="outline">{t(car.condition ?? "")}</Badge>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">{pageContent.location}:</span>
+                  <span className="text-gray-600">{t("location")}:</span>
                   <span className="font-semibold">{t(car.location ?? "")}</span>
                 </div>
                 {car.createdAt ? (
                   <div className="flex justify-between">
-                    <span className="text-gray-600">{pageContent.Creation_date}:</span>
+                    <span className="text-gray-600">{t("Creation_date")}:</span>
                     <span className="font-semibold">{new Date(car.createdAt).toLocaleDateString()}</span>
                   </div>
                 ) : null}
@@ -1076,8 +1034,8 @@ export default function CarDetailPage() {
                 <div className="flex items-start gap-3">
                   <Shield className="h-5 w-5 text-yellow-600 mt-0.5" />
                   <div>
-                    <h4 className="font-semibold text-yellow-800 mb-1">{pageContent.safetyTip}</h4>
-                    <p className="text-sm text-yellow-700">{pageContent.safetyText}</p>
+                    <h4 className="font-semibold text-yellow-800 mb-1">{t("safetyTip")}</h4>
+                    <p className="text-sm text-yellow-700">{t("safetyText")}</p>
                   </div>
                 </div>
               </CardContent>
@@ -1102,6 +1060,8 @@ export default function CarDetailPage() {
         subject={`${car.brand} ${car.model}`}
         carTitle={`${car.brand} ${car.model}`}
       />
+
+      <ToastContainer position="top-right" autoClose={3000} />
     </div>
   )
 }

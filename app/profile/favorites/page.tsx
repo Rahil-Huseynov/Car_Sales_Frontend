@@ -101,7 +101,10 @@ function FavoriteCarCard({
   index,
 }: { car: (typeof favoriteCars)[0]; onRemove: (id: number) => void; index: number }) {
   const { language } = useLanguage()
-  const t = (key: string) => getTranslation(language, key)
+  const t = (key: string): string => {
+    const val = getTranslation(language, key)
+    return typeof val === "string" ? val : key
+  }
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isLoaded, setIsLoaded] = useState(false)
 
@@ -124,9 +127,8 @@ function FavoriteCarCard({
 
   return (
     <Card
-      className={`overflow-hidden card-hover border-0 bg-white/90 backdrop-blur-sm transition-all duration-500 ${
-        isLoaded ? "animate-fadeInUp opacity-100" : "opacity-0"
-      }`}
+      className={`overflow-hidden card-hover border-0 bg-white/90 backdrop-blur-sm transition-all duration-500 ${isLoaded ? "animate-fadeInUp opacity-100" : "opacity-0"
+        }`}
       style={{ animationDelay: `${index * 0.1}s` }}
     >
       <div className="relative group">
@@ -172,9 +174,8 @@ function FavoriteCarCard({
           {car.images.map((_, imgIndex) => (
             <button
               key={imgIndex}
-              className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                imgIndex === currentImageIndex ? "bg-white scale-125" : "bg-white/50"
-              }`}
+              className={`w-2 h-2 rounded-full transition-all duration-300 ${imgIndex === currentImageIndex ? "bg-white scale-125" : "bg-white/50"
+                }`}
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
@@ -284,7 +285,10 @@ function FavoriteCarCard({
 
 export default function FavoritesPage() {
   const { language } = useLanguage()
-  const t = (key: string) => getTranslation(language, key)
+  const t = (key: string): string => {
+    const val = getTranslation(language, key)
+    return typeof val === "string" ? val : key
+  }
   const [favorites, setFavorites] = useState(favoriteCars)
   const [isLoading, setIsLoading] = useState(true)
 
