@@ -19,7 +19,7 @@ export function LanguageSwitcher({ currentLanguage, onLanguageChange }: Language
           <span className="sm:hidden">{currentLanguage.toUpperCase()}</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className="mt-2.5 mr-[-18px]">
         {Object.entries(languages).map(([code, name]) => (
           <DropdownMenuItem
             key={code}

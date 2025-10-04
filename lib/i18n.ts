@@ -3,7 +3,7 @@ export const languages = {
   en: "English",
 }
 
-export const defaultLanguage = "az"
+export const defaultLanguage = "en"
 
 export type Language = keyof typeof languages
 

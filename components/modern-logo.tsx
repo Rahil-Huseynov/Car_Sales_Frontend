@@ -9,7 +9,7 @@ interface ModernLogoProps {
 
 export function ModernLogo({ className = "", showText = true }: ModernLogoProps) {
   return (
-    <div className={`flex items-center gap-3 ${className}`}>
+    <div className={`flex w-[140px] items-center gap-3 ${className}`}>
       <div className="relative">
         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 p-0.5">
           <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center relative overflow-hidden">

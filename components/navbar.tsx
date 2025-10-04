@@ -61,35 +61,35 @@ export function Navbar({ currentLanguage, onLanguageChange }: NavbarProps) {
 
   return (
     <header className="border-b bg-white sticky top-0 z-50 shadow-sm">
-      <div className="container mx-auto px-4">
+      <div className="mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="hover:opacity-80 transition-opacity">
             <ModernLogo />
           </Link>
-          <nav className="hidden lg:flex items-center gap-6">
-            <Link href="/" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
+          <nav className="hidden mobile:flex items-center gap-6 w-[450px]">
+            <Link href="/" className="text-gray-700 text-sm lg:text-base hover:text-blue-600 transition-colors font-medium">
               {t("home")}
             </Link>
-            <Link href="/cars" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
+            <Link href="/cars" className="text-gray-700 text-sm lg:text-base hover:text-blue-600 transition-colors font-medium">
               {t("cars")}
             </Link>
-            <Link href="/sell" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
+            <Link href="/sell" className="text-gray-700 text-sm lg:text-base hover:text-blue-600 transition-colors font-medium">
               {t("sell")}
             </Link>
-            <Link href="/about" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
+            <Link href="/about" className="text-gray-700 text-sm lg:text-base hover:text-blue-600 transition-colors font-medium">
               {t("about")}
             </Link>
-            <Link href="/contact" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
+            <Link href="/contact" className="text-gray-700 text-sm lg:text-base hover:text-blue-600 transition-colors font-medium">
               {t("contact")}
             </Link>
           </nav>
-          <div className="hidden lg:flex items-center gap-3">
+          <div className="hidden mobile:flex items-center gap-3">
             <LanguageSwitcher currentLanguage={currentLanguage} onLanguageChange={onLanguageChange} />
 
             <Button
               variant="outline"
               asChild
-              className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200 hover:from-blue-100 hover:to-blue-200"
+              className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200 hover:from-blue-100 hover:to-blue-200 w-[200px]"
             >
               <Link href={postAdPath}>
                 {" "}
@@ -139,12 +139,12 @@ export function Navbar({ currentLanguage, onLanguageChange }: NavbarProps) {
               </DropdownMenu>
             ) : (
               <div className="flex gap-2">
-                <Button variant="ghost" asChild className="hover:bg-blue-50">
+                <Button variant="ghost" asChild className="w-[100px] hover:bg-blue-50">
                   <Link href="/auth/login">{t("login")}</Link>
                 </Button>
                 <Button
                   asChild
-                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+                  className="bg-gradient-to-r w-[100px] from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
                 >
                   <Link href="/auth/register">{t("register")}</Link>
                 </Button>
@@ -152,7 +152,7 @@ export function Navbar({ currentLanguage, onLanguageChange }: NavbarProps) {
             )}
           </div>
 
-          <div className="flex items-center gap-2 lg:hidden">
+          <div className="flex items-center gap-2 mobile:hidden">
             <LanguageSwitcher currentLanguage={currentLanguage} onLanguageChange={onLanguageChange} />
 
             <Sheet>
