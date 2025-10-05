@@ -21,6 +21,9 @@ import {
   CheckCircle,
   XCircle,
   BarChart3,
+  PackageCheck,
+  ReceiptText,
+  Megaphone,
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -100,13 +103,14 @@ function AdCard({
   onDelete: (id: number) => void
   index: number
 }) {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [isLoaded, setIsLoaded] = useState(false)
   const { language } = useLanguage()
   const t = (key: string): string => {
     const val = getTranslation(language, key)
     return typeof val === "string" ? val : key
   }
-  const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const [isLoaded, setIsLoaded] = useState(false)
+  const locale = language || "en-US"
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoaded(true), index * 80)
@@ -228,7 +232,7 @@ function AdCard({
         <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-4">
           <div className="flex items-center gap-1">
             <Car className="h-4 w-4 text-blue-500" />
-            {ad.mileage.toLocaleString()} km
+            {ad.mileage.toLocaleString()} {t("km")}
           </div>
           <div className="flex items-center gap-1">
             <Fuel className="h-4 w-4 text-blue-500" />
@@ -282,14 +286,15 @@ function AdCard({
 }
 
 export default function MyAdsPage() {
+  const [ads, setAds] = useState<CarAd[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState<"all" | "Standart" | "Premium" | "Sold">("all")
   const { language } = useLanguage()
   const t = (key: string): string => {
     const val = getTranslation(language, key)
     return typeof val === "string" ? val : key
   }
-  const [ads, setAds] = useState<CarAd[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<"all" | "Standart" | "Premium">("all")
+  const locale = language || "en-US"
 
   useEffect(() => {
     const fetch = async () => {
@@ -346,7 +351,7 @@ export default function MyAdsPage() {
   const handleDelete = (id: number) => setAds((prev) => prev.filter((a) => a.id !== id))
 
   const filteredAds = ads.filter((ad) => (activeTab === "all" ? true : ad.status === activeTab))
-  const getTabCount = (status: "all" | "Standart" | "Premium") =>
+  const getTabCount = (status: "all" | "Standart" | "Premium" | "Sold") =>
     status === "all" ? ads.length : ads.filter((a) => a.status === status).length
 
   if (isLoading) {
@@ -368,16 +373,18 @@ export default function MyAdsPage() {
           <Button asChild className="bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm">
             <Link href="/sell">
               <Plus className="h-4 w-4 mr-2" />
-              {t("Yeni elan")}
+              <Megaphone className="h-4 w-4" />
+              {t("newAd")}
             </Link>
           </Button>
         </div>
       </section>
 
       <div className="container mx-auto px-4 py-8">
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "all" | "Standart" | "Premium")} className="w-full">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "all" | "Standart" | "Premium" | "Sold")} className="w-full">
           <TabsList className="grid w-full grid-cols-4 mb-8">
             <TabsTrigger value="all" className="flex items-center gap-2">
+              <ReceiptText className="h-4 w-4" />
               {t("all")} ({getTabCount("all")})
             </TabsTrigger>
             <TabsTrigger value="Standart" className="flex items-center gap-2">
@@ -388,6 +395,10 @@ export default function MyAdsPage() {
               <Clock className="h-4 w-4" />
               {t("Premium")} ({getTabCount("Premium")})
             </TabsTrigger>
+            <TabsTrigger value="Sold" className="flex items-center gap-2">
+              <PackageCheck className="h-4 w-4" />
+              {t("Sold")} ({getTabCount("Sold")})
+            </TabsTrigger>
             <TabsTrigger value="all" className="invisible" />
           </TabsList>
 
@@ -395,11 +406,11 @@ export default function MyAdsPage() {
             {filteredAds.length === 0 ? (
               <div className="text-center py-16 animate-fadeInUp">
                 <BarChart3 className="h-24 w-24 mx-auto text-gray-300 mb-6" />
-                <h2 className="text-2xl font-bold text-gray-600 mb-4">{t("Elan Yoxdur")}</h2>
+                <h2 className="text-2xl font-bold text-gray-600 mb-4">{t("noAds")}</h2>
                 <Button asChild className="bg-gradient-to-r from-green-600 to-green-700">
                   <Link href="/sell">
                     <Plus className="h-4 w-4 mr-2" />
-                    {t("Elan əlavə et")}
+                    {t("addAd")}
                   </Link>
                 </Button>
               </div>

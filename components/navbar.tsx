@@ -16,7 +16,7 @@ import { ModernLogo } from "./modern-logo"
 import { LanguageSwitcher } from "./language-switcher"
 import { getTranslation } from "@/lib/i18n"
 import { useRouter } from "next/navigation"
-import { logout } from "@/actions/auth" 
+import { logout } from "@/actions/auth"
 import { useToast } from "@/hooks/use-toast"
 import type { Language } from "@/lib/i18n"
 
@@ -38,7 +38,7 @@ export function Navbar({ currentLanguage, onLanguageChange }: NavbarProps) {
   }, [])
 
   const handleLogout = async () => {
-    const result = await logout() 
+    const result = await logout()
     if (result.success) {
       localStorage.removeItem("accessToken")
       setIsLoggedIn(false)
@@ -47,7 +47,7 @@ export function Navbar({ currentLanguage, onLanguageChange }: NavbarProps) {
         description: result.message,
         variant: "default",
       })
-      router.push("/auth/login") 
+      router.push("/auth/login")
     } else {
       toast({
         title: "Xəta",
@@ -58,7 +58,17 @@ export function Navbar({ currentLanguage, onLanguageChange }: NavbarProps) {
   }
 
   const postAdPath = isLoggedIn ? "/sell" : "/auth/login"
-
+  const handleLanguageChange = (lang: Language) => {
+    try {
+      onLanguageChange(lang)
+    } catch (e) {
+    }
+    if (typeof window !== "undefined") {
+      setTimeout(() => {
+        window.location.reload()
+      }, 50)
+    }
+  }
   return (
     <header className="border-b bg-white sticky top-0 z-50 shadow-sm">
       <div className="mx-auto px-4">
@@ -84,7 +94,7 @@ export function Navbar({ currentLanguage, onLanguageChange }: NavbarProps) {
             </Link>
           </nav>
           <div className="hidden mobile:flex items-center gap-3">
-            <LanguageSwitcher currentLanguage={currentLanguage} onLanguageChange={onLanguageChange} />
+            <LanguageSwitcher currentLanguage={currentLanguage} onLanguageChange={handleLanguageChange} />
 
             <Button
               variant="outline"
@@ -153,7 +163,7 @@ export function Navbar({ currentLanguage, onLanguageChange }: NavbarProps) {
           </div>
 
           <div className="flex items-center gap-2 mobile:hidden">
-            <LanguageSwitcher currentLanguage={currentLanguage} onLanguageChange={onLanguageChange} />
+            <LanguageSwitcher currentLanguage={currentLanguage} onLanguageChange={handleLanguageChange} />
 
             <Sheet>
               <SheetTrigger asChild>

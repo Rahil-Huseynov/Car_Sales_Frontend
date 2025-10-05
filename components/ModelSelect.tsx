@@ -9,6 +9,8 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { apiClient } from "@/lib/api-client";
+import { useLanguage } from "@/hooks/use-language";
+import { getTranslation } from "@/lib/i18n";
 
 type Props = {
   value: string;
@@ -25,6 +27,9 @@ export default function ModelSelect({
   placeholder = "All",
   searchPlaceholder = "Search...",
 }: Props) {
+  const { language } = useLanguage();
+  const t = (key: string) => getTranslation(language, key) as string;
+
   const LIMIT = 10;
   const [items, setItems] = useState<string[]>([]);
   const [page, setPage] = useState(1);
@@ -44,8 +49,7 @@ export default function ModelSelect({
       try {
         const vals = Object.values(res).flat();
         if (Array.isArray(vals)) return vals as string[];
-      } catch {
-      }
+      } catch {}
     }
     return [];
   };
@@ -63,7 +67,7 @@ export default function ModelSelect({
         res = await apiClient.carsModel(p, LIMIT);
       }
 
-      if (thisRequestId !== requestIdRef.current) return; // stale
+      if (thisRequestId !== requestIdRef.current) return;
 
       const arr = normalizeResponse(res);
       setItems((prev) => {
@@ -94,12 +98,12 @@ export default function ModelSelect({
     const thisRequestId = ++requestIdRef.current;
     try {
       const res = await apiClient.carsModelSearch(trimmed);
-      if (thisRequestId !== requestIdRef.current) return; // stale
+      if (thisRequestId !== requestIdRef.current) return;
 
       let matched = normalizeResponse(res);
       if (brd && brd !== "all") {
         const brandRes = await apiClient.carsSpesificData(1, 10000, brd);
-        if (thisRequestId !== requestIdRef.current) return; // stale
+        if (thisRequestId !== requestIdRef.current) return;
 
         const brandVals = normalizeResponse(brandRes);
         const brandSet = new Set(brandVals.map((v) => v.toLowerCase()));
@@ -126,6 +130,7 @@ export default function ModelSelect({
       loadPage(1, brand);
     }
   }, []);
+
   useEffect(() => {
     setItems([]);
     setPage(1);
@@ -138,9 +143,7 @@ export default function ModelSelect({
   }, [brand]);
 
   useEffect(() => {
-    if (debounceRef.current) {
-      window.clearTimeout(debounceRef.current);
-    }
+    if (debounceRef.current) window.clearTimeout(debounceRef.current);
     debounceRef.current = window.setTimeout(() => {
       setItems([]);
       setPage(1);
@@ -163,7 +166,7 @@ export default function ModelSelect({
   return (
     <Select value={value} onValueChange={(v) => onChange(v)}>
       <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300">
-        <SelectValue placeholder={placeholder} />
+        <SelectValue placeholder={t(placeholder)} />
       </SelectTrigger>
 
       <SelectContent side="bottom" align="start" className="p-0">
@@ -172,7 +175,7 @@ export default function ModelSelect({
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder={searchPlaceholder}
+            placeholder={t(searchPlaceholder)}
             className="w-full text-sm p-2 border rounded-md border-gray-200 focus:outline-none focus:ring-1 focus:ring-blue-400"
           />
         </div>
@@ -183,15 +186,17 @@ export default function ModelSelect({
           className="max-h-60 overflow-auto"
           style={{ minWidth: 220 }}
         >
-          <SelectItem value="all">{placeholder}</SelectItem>
+          <SelectItem value="all">{t(placeholder)}</SelectItem>
           {items.map((m) => (
             <SelectItem key={m} value={m}>
               {m}
             </SelectItem>
           ))}
-          {loading && <div className="p-2 text-center text-sm text-gray-500">Loading...</div>}
+          {loading && (
+            <div className="p-2 text-center text-sm text-gray-500">{t("loading")}...</div>
+          )}
           {!hasMore && !loading && items.length === 0 && (
-            <div className="p-2 text-center text-sm text-gray-500">No models</div>
+            <div className="p-2 text-center text-sm text-gray-500">{t("noModels")}</div>
           )}
         </div>
       </SelectContent>

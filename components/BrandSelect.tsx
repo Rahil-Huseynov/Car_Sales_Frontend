@@ -9,6 +9,8 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { apiClient } from "@/lib/api-client";
+import { useLanguage } from "@/hooks/use-language";
+import { getTranslation } from "@/lib/i18n";
 
 type Props = {
   value: string;
@@ -23,6 +25,9 @@ export default function BrandSelect({
   placeholder = "All",
   searchPlaceholder = "Search...",
 }: Props) {
+  const { language } = useLanguage();
+  const t = (key: string) => getTranslation(language, key) as string;
+
   const LIMIT = 10;
   const [items, setItems] = useState<string[]>([]);
   const [page, setPage] = useState(1);
@@ -33,6 +38,7 @@ export default function BrandSelect({
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const debounceRef = useRef<number | null>(null);
   const requestIdRef = useRef(0);
+
   const normalizeResponse = (res: any): string[] => {
     if (!res) return [];
     if (Array.isArray(res)) return res as string[];
@@ -127,6 +133,7 @@ export default function BrandSelect({
       }
     };
   }, [search]);
+
   const displayedItems = React.useMemo(() => {
     if (!localFilter) return items;
     const q = localFilter.toLowerCase();
@@ -136,7 +143,7 @@ export default function BrandSelect({
   return (
     <Select value={value} onValueChange={(v) => onChange(v)}>
       <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300">
-        <SelectValue placeholder={placeholder} />
+        <SelectValue placeholder={t(placeholder)} />
       </SelectTrigger>
 
       <SelectContent side="bottom" align="start" className="p-0">
@@ -145,7 +152,7 @@ export default function BrandSelect({
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder={searchPlaceholder}
+            placeholder={t(searchPlaceholder)}
             className="w-full text-sm p-2 border rounded-md border-gray-200 focus:outline-none focus:ring-1 focus:ring-blue-400"
           />
         </div>
@@ -156,7 +163,7 @@ export default function BrandSelect({
           className="max-h-60 overflow-auto"
           style={{ minWidth: 220 }}
         >
-          <SelectItem value="all">{placeholder}</SelectItem>
+          <SelectItem value="all">{t(placeholder)}</SelectItem>
 
           {displayedItems.map((b) => (
             <SelectItem key={b} value={b}>
@@ -165,11 +172,15 @@ export default function BrandSelect({
           ))}
 
           {loading && (
-            <div className="p-2 text-center text-sm text-gray-500">Loading...</div>
+            <div className="p-2 text-center text-sm text-gray-500">
+              {t("loading")}...
+            </div>
           )}
 
           {!hasMore && !loading && displayedItems.length === 0 && (
-            <div className="p-2 text-center text-sm text-gray-500">No brands</div>
+            <div className="p-2 text-center text-sm text-gray-500">
+              {t("noBrands")}
+            </div>
           )}
         </div>
       </SelectContent>

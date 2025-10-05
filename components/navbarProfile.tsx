@@ -3,17 +3,25 @@
 import React, { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-
-const navLinks = [
-  { href: "/profile", label: "Profil məlumatları" },
-  { href: "/profile/my-ads", label: "Mənim elanlarım" },
-  { href: "/profile/favorites", label: "Seçilmişlər" },
-  { href: "/profile/settings", label: "Ayarlar" },
-]
+import { getTranslation } from "@/lib/i18n"
+import { useLanguage } from "@/hooks/use-language"
 
 export default function NavbarProfile() {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
+  const { language } = useLanguage()
+  const t = (key: string): string => {
+    const val = getTranslation(language, key)
+    return typeof val === "string" ? val : key
+  }
+  const locale = language || "en-US"
+
+  const navLinks = [
+    { href: "/profile", label: t("profileInfo") },
+    { href: "/profile/my-ads", label: t("myAds") },
+    { href: "/profile/favorites", label: t("favorites") },
+    { href: "/profile/settings", label: t("settings") },
+  ]
 
   return (
     <nav className="bg-white shadow-md rounded-lg p-4 sticky top-4">
@@ -54,8 +62,6 @@ export default function NavbarProfile() {
           </svg>
         )}
       </button>
-
-      {/* Menu */}
       <ul className={`md:block ${isOpen ? "block" : "hidden"}`}>
         {navLinks.map(({ href, label }) => {
           const isActive = pathname === href || (href !== "/profile" && pathname?.startsWith(href))
@@ -63,11 +69,10 @@ export default function NavbarProfile() {
             <li key={href} className="mb-2 last:mb-0">
               <Link
                 href={href}
-                className={`block px-4 py-2 rounded-md transition ${
-                  isActive
-                    ? "bg-blue-600 text-white font-semibold"
-                    : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
-                }`}
+                className={`block px-4 py-2 rounded-md transition ${isActive
+                  ? "bg-blue-600 text-white font-semibold"
+                  : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+                  }`}
                 onClick={() => setIsOpen(false)}
               >
                 {label}
