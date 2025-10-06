@@ -43,7 +43,7 @@ type Seller = {
   firstName?: string
   lastName?: string
   email?: string
-  phone?: string | null
+  phoneNumber?: string | null
   phoneCode?: string | null
 }
 
@@ -72,7 +72,7 @@ type CarType = {
   features?: string[]
   seller?: {
     name?: string
-    phone?: string
+    phoneNumber?: string
     phoneCode?: string
     email?: string
     location?: string
@@ -744,9 +744,11 @@ export default function CarDetailPage() {
   const images = car.images && car.images.length ? car.images.map(safeImageUrl) : ["/placeholder.svg"]
   const sellerName = car.user ? `${car.user.firstName ?? ""} ${car.user.lastName ?? ""}`.trim() : car.name
   const sellerEmail = car.email ?? car.user?.email
-  const phoneCode = car.phoneCode ?? car.user?.phoneCode ?? "";
-  const phone = car.phone ?? car.user?.phone ?? "";
+  const phoneCode = car.seller?.phoneCode ?? car.user?.phoneCode ?? "";
+  const phone = car.seller?.phoneNumber ?? car.user?.phoneNumber ?? "";
   const sellerPhone = `${phoneCode}${phone}`;
+  console.log(phone)
+  console.log(phoneCode)
   const descriptionText = String(car.description ?? "")
   const isLongDesc = descriptionText.length > 200
   return (

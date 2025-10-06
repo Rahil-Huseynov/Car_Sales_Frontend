@@ -22,13 +22,12 @@ import { ToastContainer, toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import BrandSelect from "@/components/BrandSelect"
 import ModelSelect from "@/components/ModelSelect"
+import { useDebouncedCallback } from 'use-debounce';
 
 type UserType = {
   id: number
   firstName?: string
   lastName?: string
-  email?: string
-  phoneNumber?: string
   role?: string
   createdAt?: string
 }
@@ -160,6 +159,7 @@ export const VirtualScrollFeatures = ({
 }
 
 export default function SellPage() {
+
   const router = useRouter()
   const { logout } = useAuth()
   const [page, setPage] = useState<number>(1);
@@ -167,26 +167,6 @@ export default function SellPage() {
   const [loadingProfile, setLoadingProfile] = useState(true)
   const [selectedBrand, setSelectedBrand] = useState<string>("all");
   const [selectedModel, setSelectedModel] = useState<string>("all");
-  const { language, changeLanguage } = useLanguage()
-  const t = (key: string): string => {
-    const val = getTranslation(language, key)
-    return typeof val === "string" ? val : key
-  }
-  
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const data = await apiClient.getCurrentUser()
-        setProfileData(data)
-      } catch {
-        logout()
-      } finally {
-        setLoadingProfile(false)
-      }
-    }
-    fetchUser()
-  }, [logout])
-
   const [formData, setFormData] = useState({
     brand: "",
     model: "",
@@ -203,45 +183,48 @@ export default function SellPage() {
     gearbox: "",
     description: "",
     features: [] as string[],
-    name: "",
-    phone: "",
-    email: "",
     userId: profileData?.id ?? null,
     status: ""
   })
+  const [descriptionText, setDescriptionText] = useState(formData.description || "");
+  const debounced = useDebouncedCallback((value: string) => {
+    setFormData((p) => ({ ...p, description: value }));
+  }, 1);
+
+  const { language, changeLanguage } = useLanguage()
+  const t = (key: string): string => {
+    const val = getTranslation(language, key)
+    return typeof val === "string" ? val : key
+  }
 
   useEffect(() => {
-    if (profileData) {
-      let initialPhone = profileData.phoneNumber || ""
-      let detectedCode = "+93"
-      let numberPart = initialPhone
-
-      if (initialPhone.startsWith("+")) {
-        const m = initialPhone.match(/^\+[\d]{1,4}/)
-        if (m) {
-          detectedCode = m[0]
-          numberPart = initialPhone.slice(m[0].length)
-        }
+    const fetchUser = async () => {
+      try {
+        const data = await apiClient.getCurrentUser()
+        setProfileData(data)
+      } catch {
+        logout()
+      } finally {
+        setLoadingProfile(false)
       }
-
-      setPhoneCode(detectedCode)
-      setFormData((prev) => ({
-        ...prev,
-        userId: profileData.id,
-        name: `${profileData.firstName || ""} ${profileData.lastName || ""}`.trim(),
-        email: profileData.email || "",
-        phone: numberPart || ""
-      }))
     }
-  }, [profileData])
+    fetchUser()
+  }, [logout])
+
+
 
   const [images, setImages] = useState<ImageItem[]>([])
-  const [phoneCode, setPhoneCode] = useState<string>("+93")
 
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken")
     if (!accessToken) router.push("/auth/login")
   }, [router])
+
+  useEffect(() => {
+    if (profileData?.id) {
+      setFormData((prev) => ({ ...prev, userId: profileData.id }))
+    }
+  }, [profileData])
 
   const handleFeatureChange = useCallback((feature: string, checked: boolean) => {
     setFormData((prev) => {
@@ -348,11 +331,8 @@ export default function SellPage() {
         location: formData.location || null,
         engine: formData.engine || null,
         gearbox: formData.gearbox || null,
-        description: formData.description || null,
+        description: descriptionText,
         features: formData.features || [],
-        name: formData.name || null,
-        phone: formData.phone ? `${phoneCode}${formData.phone}` : null,
-        email: formData.email || null,
         userId: formData.userId,
         status: "Standart"
       }
@@ -663,51 +643,16 @@ export default function SellPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
-                  {t("contactInfo")}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="name">{t("fullName")}</Label>
-                  <Input id="name" required value={formData.name} onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))} placeholder={t("namePlaceholder")} />
-                </div>
-
-                <div className="space-y-1">
-                  <Label htmlFor="phone">{t("phone")}</Label>
-                  <div className="flex gap-2 items-center">
-                    <div className="max-w-[150px]">
-                      <CountryCodeSelect value={phoneCode} onChange={setPhoneCode} />
-                    </div>
-                    <div className="flex-1 relative">
-                      <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="phone"
-                        name="phone"
-                        type="tel"
-                        placeholder={t("phonePlaceholder")}
-                        value={formData.phone}
-                        onChange={(e) => setFormData((p) => ({ ...p, phone: e.target.value }))}
-                        required
-                        className="pl-10"
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div className="md:col-span-2">
-                  <Label htmlFor="email">{t("email")}</Label>
-                  <Input id="email" type="email" required value={formData.email} onChange={(e) => setFormData((p) => ({ ...p, email: e.target.value }))} placeholder="example@email.com" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
                 <CardTitle>{t("description")}</CardTitle>
               </CardHeader>
               <CardContent>
-                <Textarea className="resize-none h-[200px]" value={formData.description} onChange={(e) => setFormData((p) => ({ ...p, description: e.target.value }))} placeholder={t("descriptionPlaceholder")} rows={4} />
+                <Textarea
+                  className="resize-none h-[200px]"
+                  value={formData.description}
+                  onChange={(e) => debounced(e.target.value)}
+                  placeholder="Description..."
+                  rows={4}
+                />
               </CardContent>
             </Card>
 
