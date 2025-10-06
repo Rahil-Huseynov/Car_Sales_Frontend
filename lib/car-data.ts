@@ -1,53 +1,423 @@
+// fuels.ts
 export const fuels = [
-  "Benzin",
-  "Dizel",
-  "Hibrid",
-  "Plug-in Hibrid",
-  "Elektrik",
-  "CNG",
-  "LPG",
-  "Hidrogen",
-  "Etanol",
-  "Metanol",
-  "Biofuel"
-]
+  {
+    key: "Petrol",
+    translations: {
+      en: "Petrol",
+      az: "Benzin"
+    }
+  },
+  {
+    key: "Diesel",
+    translations: {
+      en: "Diesel",
+      az: "Dizel"
+    }
+  },
+  {
+    key: "Hybrid",
+    translations: {
+      en: "Hybrid",
+      az: "Hibrid"
+    }
+  },
+  {
+    key: "Plug-in Hybrid",
+    translations: {
+      en: "Plug-in Hybrid",
+      az: "Plug-in Hibrid"
+    }
+  },
+  {
+    key: "Electric",
+    translations: {
+      en: "Electric",
+      az: "Elektrik"
+    }
+  },
+  {
+    key: "CNG",
+    translations: {
+      en: "CNG",
+      az: "CNG"
+    }
+  },
+  {
+    key: "LPG",
+    translations: {
+      en: "LPG",
+      az: "LPG"
+    }
+  },
+  {
+    key: "Hydrogen",
+    translations: {
+      en: "Hydrogen",
+      az: "Hidrogen"
+    }
+  },
+  {
+    key: "Ethanol",
+    translations: {
+      en: "Ethanol",
+      az: "Etanol"
+    }
+  },
+  {
+    key: "Methanol",
+    translations: {
+      en: "Methanol",
+      az: "Metanol"
+    }
+  },
+  {
+    key: "Biofuel",
+    translations: {
+      en: "Biofuel",
+      az: "Biofuel"
+    }
+  }
+];
 
 export const gearboxOptions = [
-  "Manual",
-  "Automatic",
-  "Dual-clutch",
-  "eCVT",
-  "Semi-automatic"
-]
+  { key: "Manual", translations: { en: "Manual", az: "Mexaniki" } },
+  { key: "Automatic", translations: { en: "Automatic", az: "Avtomatik" } },
+  { key: "Dual-clutch", translations: { en: "Dual-clutch", az: "İkili-qatlı" } },
+  { key: "eCVT", translations: { en: "eCVT", az: "eCVT" } },
+  { key: "Semi-automatic", translations: { en: "Semi-automatic", az: "Yarı avtomatik" } }
+];
 
 export const conditions = [
-  "Yeni",
-  "İstifadə Olunmuş",
-  "Sertifikatlı",
-  "Təmir Edilmiş",
-  "Bərpa Edilmiş",
-  "Salvage",
-  "Rebuild"
-]
+  { key: "New", translations: { en: "New", az: "Yeni" } },
+  { key: "Used", translations: { en: "Used", az: "İstifadə olunmuş" } },
+  { key: "Certified", translations: { en: "Certified", az: "Sertifikatlı" } },
+  { key: "Repaired", translations: { en: "Repaired", az: "Təmir edilmiş" } },
+  { key: "Restored", translations: { en: "Restored", az: "Bərpa edilmiş" } },
+  { key: "Salvage", translations: { en: "Salvage", az: "Salvage" } },
+  { key: "Rebuild", translations: { en: "Rebuild", az: "Rebuild" } }
+];
 
 export const colors = [
-  "Qara", "Ağ", "Gümüşü", "Boz", "Qırmızı", "Mavi", "Yaşıl", "Sarı", "Narıncı", "Qəhvəyi", "Bej", "Qızılı", "Bənövşəyi", "Lavanda", "Çəhrayı", "Bordo", "Tünd Mavi", "Zeytun", "Göy", "Türkuaz", "Magenta", "Krem", "Şaftalı", "Tan", "Şokolad", "Bürünc", "Gül", "Nanə", "Aprikot", "Kömür Boz", "Teal", "Indigo", "Smaragd", "Safir", "Rubin", "Amber", "Qum", "Pas", "Jad", "Alabaster", "Opal", "Qrafit"
-]
+  { key: "Black", translations: { en: "Black", az: "Qara" } },
+  { key: "White", translations: { en: "White", az: "Ağ" } },
+  { key: "Silver", translations: { en: "Silver", az: "Gümüşü" } },
+  { key: "Gray", translations: { en: "Gray", az: "Boz" } },
+  { key: "Red", translations: { en: "Red", az: "Qırmızı" } },
+  { key: "Blue", translations: { en: "Blue", az: "Mavi" } },
+  { key: "Green", translations: { en: "Green", az: "Yaşıl" } },
+  { key: "Yellow", translations: { en: "Yellow", az: "Sarı" } },
+  { key: "Orange", translations: { en: "Orange", az: "Narıncı" } },
+  { key: "Brown", translations: { en: "Brown", az: "Qəhvəyi" } },
+  { key: "Beige", translations: { en: "Beige", az: "Bej" } },
+  { key: "Gold", translations: { en: "Gold", az: "Qızılı" } },
+  { key: "Purple", translations: { en: "Purple", az: "Bənövşəyi" } },
+  { key: "Lavender", translations: { en: "Lavender", az: "Lavanda" } },
+  { key: "Pink", translations: { en: "Pink", az: "Çəhrayı" } },
+  { key: "Bordeaux", translations: { en: "Bordeaux", az: "Bordo" } },
+  { key: "Dark Blue", translations: { en: "Dark Blue", az: "Tünd Mavi" } },
+  { key: "Olive", translations: { en: "Olive", az: "Zeytun" } },
+  { key: "Turquoise", translations: { en: "Turquoise", az: "Türkuaz" } },
+  { key: "Magenta", translations: { en: "Magenta", az: "Magenta" } },
+  { key: "Cream", translations: { en: "Cream", az: "Krem" } },
+  { key: "Peach", translations: { en: "Peach", az: "Şaftalı" } },
+  { key: "Tan", translations: { en: "Tan", az: "Tan" } },
+  { key: "Chocolate", translations: { en: "Chocolate", az: "Şokolad" } },
+  { key: "Bronze", translations: { en: "Bronze", az: "Bürünc" } },
+  { key: "Rose", translations: { en: "Rose", az: "Gül" } },
+  { key: "Mint", translations: { en: "Mint", az: "Nanə" } },
+  { key: "Apricot", translations: { en: "Apricot", az: "Aprikot" } },
+  { key: "Charcoal", translations: { en: "Charcoal", az: "Kömür Boz" } },
+  { key: "Teal", translations: { en: "Teal", az: "Teal" } },
+  { key: "Indigo", translations: { en: "Indigo", az: "Indigo" } },
+  { key: "Emerald", translations: { en: "Emerald", az: "Smaragd" } },
+  { key: "Sapphire", translations: { en: "Sapphire", az: "Safir" } },
+  { key: "Ruby", translations: { en: "Ruby", az: "Rubin" } },
+  { key: "Amber", translations: { en: "Amber", az: "Amber" } },
+  { key: "Sand", translations: { en: "Sand", az: "Qum" } },
+  { key: "Rust", translations: { en: "Rust", az: "Pas" } },
+  { key: "Jade", translations: { en: "Jade", az: "Jad" } },
+  { key: "Alabaster", translations: { en: "Alabaster", az: "Alabaster" } },
+  { key: "Opal", translations: { en: "Opal", az: "Opal" } },
+  { key: "Graphite", translations: { en: "Graphite", az: "Qrafit" } }
+];
 
 export const bodyTypes = [
-  "Sedan", "Hatchback", "SUV", "Crossover", "Coupe", "Convertible", "Van", "Minivan", "Pickup", "Wagon", "City car", "Microcar", "Roadster", "Targa", "Shooting Brake", "Fastback", "Liftback", "Panel Van", "Box Truck", "Crew Cab", "Extended Cab"
-]
+  { key: "Sedan", translations: { en: "Sedan", az: "Sedan" } },
+  { key: "Hatchback", translations: { en: "Hatchback", az: "Hatchback" } },
+  { key: "SUV", translations: { en: "SUV", az: "SUV" } },
+  { key: "Crossover", translations: { en: "Crossover", az: "Crossover" } },
+  { key: "Coupe", translations: { en: "Coupe", az: "Coupe" } },
+  { key: "Convertible", translations: { en: "Convertible", az: "Convertible" } },
+  { key: "Van", translations: { en: "Van", az: "Van" } },
+  { key: "Minivan", translations: { en: "Minivan", az: "Minivan" } },
+  { key: "Pickup", translations: { en: "Pickup", az: "Pickup" } },
+  { key: "Wagon", translations: { en: "Wagon", az: "Wagon" } },
+  { key: "City car", translations: { en: "City car", az: "Şəhər avtomobili" } },
+  { key: "Microcar", translations: { en: "Microcar", az: "Mikroavtomobil" } },
+  { key: "Roadster", translations: { en: "Roadster", az: "Roadster" } },
+  { key: "Targa", translations: { en: "Targa", az: "Targa" } },
+  { key: "Shooting Brake", translations: { en: "Shooting Brake", az: "Shooting Brake" } },
+  { key: "Fastback", translations: { en: "Fastback", az: "Fastback" } },
+  { key: "Liftback", translations: { en: "Liftback", az: "Liftback" } },
+  { key: "Panel Van", translations: { en: "Panel Van", az: "Panel Van" } },
+  { key: "Box Truck", translations: { en: "Box Truck", az: "Box Truck" } },
+  { key: "Crew Cab", translations: { en: "Crew Cab", az: "Crew Cab" } },
+  { key: "Extended Cab", translations: { en: "Extended Cab", az: "Extended Cab" } }
+];
 
 export const engineOptions = [
-  "0.6L", "0.8L", "1.0L", "1.2L", "1.3L", "1.4L", "1.5L", "1.6L", "1.8L", "2.0L", "2.2L", "2.4L", "2.5L", "3.0L", "3.5L", "4.0L", "4.4L", "5.0L", "6.0L", "Electric (kW)", "Hybrid (mild)", "Plug-in Hybrid", "Rotary", "Diesel Turbo", "Bi-Turbo", "Twin-Turbo"
-]
+  { key: "0.6L", translations: { en: "0.6L", az: "0.6L" } },
+  { key: "0.8L", translations: { en: "0.8L", az: "0.8L" } },
+  { key: "1.0L", translations: { en: "1.0L", az: "1.0L" } },
+  { key: "1.2L", translations: { en: "1.2L", az: "1.2L" } },
+  { key: "1.3L", translations: { en: "1.3L", az: "1.3L" } },
+  { key: "1.4L", translations: { en: "1.4L", az: "1.4L" } },
+  { key: "1.5L", translations: { en: "1.5L", az: "1.5L" } },
+  { key: "1.6L", translations: { en: "1.6L", az: "1.6L" } },
+  { key: "1.8L", translations: { en: "1.8L", az: "1.8L" } },
+  { key: "2.0L", translations: { en: "2.0L", az: "2.0L" } },
+  { key: "2.2L", translations: { en: "2.2L", az: "2.2L" } },
+  { key: "2.4L", translations: { en: "2.4L", az: "2.4L" } },
+  { key: "2.5L", translations: { en: "2.5L", az: "2.5L" } },
+  { key: "3.0L", translations: { en: "3.0L", az: "3.0L" } },
+  { key: "3.5L", translations: { en: "3.5L", az: "3.5L" } },
+  { key: "4.0L", translations: { en: "4.0L", az: "4.0L" } },
+  { key: "4.4L", translations: { en: "4.4L", az: "4.4L" } },
+  { key: "5.0L", translations: { en: "5.0L", az: "5.0L" } },
+  { key: "6.0L", translations: { en: "6.0L", az: "6.0L" } },
+  { key: "Electric (kW)", translations: { en: "Electric (kW)", az: "Elektrik (kW)" } },
+  { key: "Hybrid (mild)", translations: { en: "Hybrid (mild)", az: "Hibrid (mild)" } },
+  { key: "Plug-in Hybrid", translations: { en: "Plug-in Hybrid", az: "Plug-in Hibrid" } },
+  { key: "Rotary", translations: { en: "Rotary", az: "Rotary" } },
+  { key: "Diesel Turbo", translations: { en: "Diesel Turbo", az: "Dizel Turbo" } },
+  { key: "Bi-Turbo", translations: { en: "Bi-Turbo", az: "Bi-Turbo" } },
+  { key: "Twin-Turbo", translations: { en: "Twin-Turbo", az: "Twin-Turbo" } }
+];
 
 export const cities = [
   "Bakı", "Gəncə", "Sumqayıt", "Mingəçevir", "Lənkəran", "Şəki", "Quba", "Naxçıvan", "Yevlax", "Tovuz", "Naftalan", "Qəbələ", "Salyan", "Biləsuvar", "Masallı", "Şamaxı", "Saatlı", "Bərdə", "Füzuli", "Cəlilabad", "Qazax", "Sabirabad", "Zaqatala", "Ağsu", "Oğuz", "Tərtər"
 ]
 
-export const features = [
-  "ABS", "EBD (Elektron əyləc paylanması)", "ESP/ESC", "Traction Control", "Airbags (Ön)", "Airbags (Yan)", "Curtain Airbags", "Kolliziya xəbərdarlığı", "Avtomatik təcili əyləc (AEB)", "Təkər təzyiqi monitorinqi (TPMS)", "Dəyişən yol köməyi (Hill Descent Control)", "Yüksək yamacda enmə köməyi", "Ölü nöqtə monitorinqi (BSM)", "Zolaq kömək sistemi (Lane Assist)", "Zolaq saxlama yardımçısı", "Tire Pressure Monitor", "Adaptive Headlights", "Night Vision", "Roll-over Protection", "Pedestrian Detection", "Driver Attention Alert", "Blind Spot Intervention", "Rear Cross Traffic Alert", "Tyre Pressure Warning", "ISO-FIX Child Anchors", "Lane Keep Assist", "Traffic Sign Recognition", "Kondisioner (Manuel)", "Avtomatik İqlim Nəzarəti (Dual-Zone)", "Avtomatik İqlim (Tri-Zone)", "Heated Seats (İsitməli oturacaqlar)", "Ventilated Seats (Sərinlənən oturacaqlar)", "Massaging Seats", "Memory Seats", "Leather Upholstery (Dəri salon)", "Fabric Upholstery", "Alcantara Trim", "Heated Steering Wheel", "Ventilated Steering Wheel", "Power Seats", "Electric Lumbar Support", "Rear Seat Recline", "Rear Armrest", "Rear Climate Control", "Sunroof", "Panoramic Sunroof", "Power Sunshade", "Ambient Lighting", "Wireless Phone Charger", "Cup Holders", "Center Console Storage", "Adjustable Steering Column", "Keyless Entry", "Push Button Start", "Remote Start", "Hands-free Tailgate", "Power Tailgate", "Soft-close Doors", "Noise Insulation Package", "Cabin Air Purifier", "Touchscreen Display", "Apple CarPlay", "Android Auto", "Built-in Navigation", "Satellite Navigation", "Bluetooth", "In-car WiFi", "Adaptive Sound System", "Premium Sound System (Bose/ Harman/ Bang & Olufsen)", "Multiple USB Ports", "12V Socket", "HD Radio", "DAB+", "Voice Recognition", "OTA Updates", "Telematics Service", "Connected Car Services", "Driver Profiles", "Over-the-air Maps", "In-car Apps", "Rear Entertainment System", "Head-up Display (HUD)", "Instrument Cluster LCD", "Gesture Control", "Wireless Mirroring", "Rear Camera", "Front Camera", "360 Degree Camera", "Parking Sensors (Front)", "Parking Sensors (Rear)", "Autonomous Parking", "Rear View Mirror Camera", "Top-view Camera", "Park Assist", "Trailer Assist", "Bird's Eye View", "Rear Cross Traffic Braking", "LED Headlights", "Xenon Headlights", "Matrix LED", "Adaptive LED Headlights", "Daytime Running Lights (DRL)", "Automatic Headlights", "Cornering Lights", "Fog Lights", "LED Tail Lights", "Roof Rails", "Panoramic Roof", "Power Folding Mirrors", "Heated Mirrors", "Auto-dimming Mirrors", "Rain-sensing Wipers", "Electric Windows", "Privacy Glass", "Tinted Glass", "Sunshade", "Spoiler", "Diffuser", "Sport Mode", "Eco Mode", "Adaptive Suspension", "Air Suspension", "Magnetic Ride Control", "Limited Slip Differential", "Active Aero", "Launch Control", "Torque Vectoring", "Four Wheel Drive", "All Wheel Drive", "Rear Wheel Drive", "Front Wheel Drive", "Adjustable Ride Height", "Performance Brakes", "Brembo Brakes", "Ceramic Brakes", "Regenerative Braking", "Start/Stop System", "Alloy Wheels", "Run-flat Tires", "TPMS", "Tire Repair Kit", "Wheel Size 15\"", "Wheel Size 16\"", "Wheel Size 17\"", "Wheel Size 18\"", "Wheel Size 19\"", "Wheel Size 20\"", "Wheel Size 21\"", "Snow Tires Included", "Off-road Tires", "Sport Tires", "Spare Wheel", "Roof Box Compatible", "Tow Hitch", "Tow Package", "Fold-flat Rear Seats", "Underfloor Storage", "Hands-free Liftgate", "Remote Trunk Release", "Adjustable Cargo Floor", "Cargo Net", "Roof Rails", "Bike Rack Prep", "Trailer Hitch", "Dual-zone Climate", "Tri-zone Climate", "Cabin Pre-heater", "Eco Driving Indicator", "Start-Stop System", "Low Emissions", "Euro 6 Compliant", "ULEZ Compliant", "AdBlue System", "Particulate Filter", "CO2 Low Emission", "Adaptive Cruise Control", "Full-Speed Adaptive Cruise", "Traffic Jam Assist", "Highway Assist", "Autonomous Emergency Steering", "Automatic Lane Change", "Hands-free Driving Mode", "Driver Monitoring", "Child Seat Recognition", "Rear Occupant Alert", "Floor Mats (All-weather)", "Cargo Cover", "Illuminated Sill Plates", "Ambient Lighting Customizable", "Wood Trim", "Carbon Fiber Trim", "Aluminum Pedals", "Sport Steering Wheel", "Heated Rear Seats", "Ventilated Rear Seats", "Refrigerated Glovebox", "Alarm System", "Immobilizer", "GPS Tracking", "Wheel Locking Bolts", "PIN to Drive", "Remote Vehicle Disable", "Keyless-Go", "Valet Mode", "Anti-theft Wheel Locks", "Central Locking", "Hill Start Assist", "Hill Descent Control", "Skid Plates", "Off-road Mode", "4x4 Low Range", "Tow Package with Wiring", "Trailer Sway Control", "Rear Differential Lock", "Roof Racks", "Underbody Protection", "Winter Package", "Summer Package", "Sport Package", "Technology Package", "Luxury Package", "Cold Climate Package", "Premium Paint", "Extended Warranty", "Service Plan Included", "Dealer Installed Options", "Owner's Manual in English/AZ", "First Aid Kit", "Fire Extinguisher", "Roadside Assistance Included"
-].sort((a, b) => a.localeCompare(b))
-
 export const years = Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i)
+
+export const features: { key: string; translations: { en: string; az: string } }[] = [
+  { key: "ABS", translations: { en: "ABS", az: "ABS" } },
+  { key: "EBD", translations: { en: "EBD (Electronic Brake Distribution)", az: "EBD (Elektron əyləc paylanması)" } },
+  { key: "ESP/ESC", translations: { en: "ESP/ESC", az: "ESP/ESC" } },
+  { key: "Traction Control", translations: { en: "Traction Control", az: "Çəkici Nəzarət" } },
+  { key: "Airbags (Front)", translations: { en: "Airbags (Front)", az: "Airbags (Ön)" } },
+  { key: "Airbags (Side)", translations: { en: "Airbags (Side)", az: "Airbags (Yan)" } },
+  { key: "Curtain Airbags", translations: { en: "Curtain Airbags", az: "Perde Airbags" } },
+  { key: "Collision Warning", translations: { en: "Collision Warning", az: "Kolliziya xəbərdarlığı" } },
+  { key: "Automatic Emergency Braking (AEB)", translations: { en: "Automatic Emergency Braking (AEB)", az: "Avtomatik təcili əyləc (AEB)" } },
+  { key: "Tire Pressure Monitoring System (TPMS)", translations: { en: "Tire Pressure Monitoring System (TPMS)", az: "Təkər təzyiqi monitorinqi (TPMS)" } },
+  { key: "Hill Descent Control", translations: { en: "Hill Descent Control", az: "Dəyişən yol köməyi (Hill Descent Control)" } },
+  { key: "Blind Spot Monitoring (BSM)", translations: { en: "Blind Spot Monitoring (BSM)", az: "Ölü nöqtə monitorinqi (BSM)" } },
+  { key: "Lane Assist", translations: { en: "Lane Assist", az: "Zolaq kömək sistemi (Lane Assist)" } },
+  { key: "Lane Keeping Assist", translations: { en: "Lane Keeping Assist", az: "Zolaq saxlama yardımçısı" } },
+  { key: "Tire Pressure Monitor", translations: { en: "Tire Pressure Monitor", az: "Tire Pressure Monitor" } },
+  { key: "Adaptive Headlights", translations: { en: "Adaptive Headlights", az: "Adaptiv faralar" } },
+  { key: "Night Vision", translations: { en: "Night Vision", az: "Gecə Görmə" } },
+  { key: "Roll-over Protection", translations: { en: "Roll-over Protection", az: "Ters çevrilməyə qarşı qoruma" } },
+  { key: "Pedestrian Detection", translations: { en: "Pedestrian Detection", az: "Piyada aşkarlanması" } },
+  { key: "Driver Attention Alert", translations: { en: "Driver Attention Alert", az: "Sürücü diqqət xəbərdarlığı" } },
+  { key: "Blind Spot Intervention", translations: { en: "Blind Spot Intervention", az: "Ölü nöqtə müdaxiləsi" } },
+  { key: "Rear Cross Traffic Alert", translations: { en: "Rear Cross Traffic Alert", az: "Arxa çarpaz trafik xəbərdarlığı" } },
+  { key: "ISO-FIX Child Anchors", translations: { en: "ISO-FIX Child Anchors", az: "ISO-FIX uşaq oturacağı" } },
+  { key: "Traffic Sign Recognition", translations: { en: "Traffic Sign Recognition", az: "Trafik nişanlarını tanıma" } },
+  { key: "Manual Air Conditioning", translations: { en: "Manual Air Conditioning", az: "Kondisioner (Manuel)" } },
+  { key: "Dual-zone Automatic Climate", translations: { en: "Dual-zone Automatic Climate", az: "Avtomatik İqlim Nəzarəti (Dual-Zone)" } },
+  { key: "Tri-zone Automatic Climate", translations: { en: "Tri-zone Automatic Climate", az: "Avtomatik İqlim (Tri-Zone)" } },
+  { key: "Heated Seats", translations: { en: "Heated Seats", az: "İsitməli oturacaqlar" } },
+  { key: "Ventilated Seats", translations: { en: "Ventilated Seats", az: "Sərinlənən oturacaqlar" } },
+  { key: "Massaging Seats", translations: { en: "Massaging Seats", az: "Masaj oturacaqları" } },
+  { key: "Memory Seats", translations: { en: "Memory Seats", az: "Xatırlayan oturacaqlar" } },
+  { key: "Leather Upholstery", translations: { en: "Leather Upholstery", az: "Dəri salon" } },
+  { key: "Fabric Upholstery", translations: { en: "Fabric Upholstery", az: "Parça salon" } },
+  { key: "Alcantara Trim", translations: { en: "Alcantara Trim", az: "Alkantara trim" } },
+  { key: "Heated Steering Wheel", translations: { en: "Heated Steering Wheel", az: "İsitməli sükan" } },
+  { key: "Ventilated Steering Wheel", translations: { en: "Ventilated Steering Wheel", az: "Sərinlənən sükan" } },
+  { key: "Power Seats", translations: { en: "Power Seats", az: "Elektrik oturacaqlar" } },
+  { key: "Electric Lumbar Support", translations: { en: "Electric Lumbar Support", az: "Elektrik bel dəstəyi" } },
+  { key: "Rear Seat Recline", translations: { en: "Rear Seat Recline", az: "Arxa oturacaq meyli" } },
+  { key: "Rear Armrest", translations: { en: "Rear Armrest", az: "Arxa qol dayağı" } },
+  { key: "Rear Climate Control", translations: { en: "Rear Climate Control", az: "Arxa iqlim nəzarəti" } },
+  { key: "Sunroof", translations: { en: "Sunroof", az: "Sunroof" } },
+  { key: "Panoramic Sunroof", translations: { en: "Panoramic Sunroof", az: "Panoramik sunroof" } },
+  { key: "Power Sunshade", translations: { en: "Power Sunshade", az: "Elektrik günəşlik" } },
+  { key: "Ambient Lighting", translations: { en: "Ambient Lighting", az: "Ambiyans işıqlandırması" } },
+  { key: "Wireless Phone Charger", translations: { en: "Wireless Phone Charger", az: "Simsiz telefon şarjı" } },
+  { key: "Cup Holders", translations: { en: "Cup Holders", az: "Stəkan tutacaqları" } },
+  { key: "Center Console Storage", translations: { en: "Center Console Storage", az: "Mərkəzi konsol saxlama" } },
+  { key: "Adjustable Steering Column", translations: { en: "Adjustable Steering Column", az: "Tənzimlənən sükan sütunu" } },
+  { key: "Keyless Entry", translations: { en: "Keyless Entry", az: "Açar olmadan giriş" } },
+  { key: "Push Button Start", translations: { en: "Push Button Start", az: "Düymə ilə işə salma" } },
+  { key: "Remote Start", translations: { en: "Remote Start", az: "Uzaqdan işə salma" } },
+  { key: "Hands-free Tailgate", translations: { en: "Hands-free Tailgate", az: "Əllərsiz baqaj qapağı" } },
+  { key: "Power Tailgate", translations: { en: "Power Tailgate", az: "Elektrik baqaj qapağı" } },
+  { key: "Soft-close Doors", translations: { en: "Soft-close Doors", az: "Yumşaq bağlanan qapılar" } },
+  { key: "Noise Insulation Package", translations: { en: "Noise Insulation Package", az: "Səs izolyasiya paketi" } },
+  { key: "Cabin Air Purifier", translations: { en: "Cabin Air Purifier", az: "Salon hava təmizləyicisi" } },
+  { key: "Touchscreen Display", translations: { en: "Touchscreen Display", az: "Sensorlu ekran" } },
+  { key: "Apple CarPlay", translations: { en: "Apple CarPlay", az: "Apple CarPlay" } },
+  { key: "Android Auto", translations: { en: "Android Auto", az: "Android Auto" } },
+  { key: "Built-in Navigation", translations: { en: "Built-in Navigation", az: "Daxili Naviqasiya" } },
+  { key: "Bluetooth", translations: { en: "Bluetooth", az: "Bluetooth" } },
+  { key: "In-car WiFi", translations: { en: "In-car WiFi", az: "Avtomobildə WiFi" } },
+  { key: "Adaptive Sound System", translations: { en: "Adaptive Sound System", az: "Adaptiv səs sistemi" } },
+  { key: "Premium Sound System", translations: { en: "Premium Sound System (Bose/Harman/Bang & Olufsen)", az: "Premium Səs Sistemi (Bose/Harman/Bang & Olufsen)" } },
+  { key: "Multiple USB Ports", translations: { en: "Multiple USB Ports", az: "Bir neçə USB portu" } },
+  { key: "12V Socket", translations: { en: "12V Socket", az: "12V priz" } },
+  { key: "HD Radio", translations: { en: "HD Radio", az: "HD Radio" } },
+  { key: "DAB+", translations: { en: "DAB+", az: "DAB+" } },
+  { key: "Voice Recognition", translations: { en: "Voice Recognition", az: "Səs tanıma" } },
+  { key: "OTA Updates", translations: { en: "OTA Updates", az: "OTA Yeniləmələri" } },
+  { key: "Telematics Service", translations: { en: "Telematics Service", az: "Telematik Xidmət" } },
+  { key: "Connected Car Services", translations: { en: "Connected Car Services", az: "Qoşulmuş Avtomobil Xidmətləri" } },
+  { key: "Driver Profiles", translations: { en: "Driver Profiles", az: "Sürücü profilləri" } },
+  { key: "Over-the-air Maps", translations: { en: "Over-the-air Maps", az: "Hava vasitəsilə xəritələr" } },
+  { key: "In-car Apps", translations: { en: "In-car Apps", az: "Avtomobil tətbiqləri" } },
+  { key: "Rear Entertainment System", translations: { en: "Rear Entertainment System", az: "Arxa əyləncə sistemi" } },
+  { key: "Head-up Display (HUD)", translations: { en: "Head-up Display (HUD)", az: "Baş üstü ekran (HUD)" } },
+  { key: "Instrument Cluster LCD", translations: { en: "Instrument Cluster LCD", az: "Alət paneli LCD" } },
+  { key: "Gesture Control", translations: { en: "Gesture Control", az: "Jestlə idarəetmə" } },
+  { key: "Wireless Mirroring", translations: { en: "Wireless Mirroring", az: "Simsiz mirroring" } },
+  { key: "Rear Camera", translations: { en: "Rear Camera", az: "Arxa kamera" } },
+  { key: "Front Camera", translations: { en: "Front Camera", az: "Ön kamera" } },
+  { key: "360 Degree Camera", translations: { en: "360 Degree Camera", az: "360 Dərəcə Kamera" } },
+  { key: "Parking Sensors (Front)", translations: { en: "Parking Sensors (Front)", az: "Park sensorları (Ön)" } },
+  { key: "Parking Sensors (Rear)", translations: { en: "Parking Sensors (Rear)", az: "Park sensorları (Arxa)" } },
+  { key: "Autonomous Parking", translations: { en: "Autonomous Parking", az: "Avtonom park" } },
+  { key: "Rear View Mirror Camera", translations: { en: "Rear View Mirror Camera", az: "Arxa güzgü kamerası" } },
+  { key: "Top-view Camera", translations: { en: "Top-view Camera", az: "Üst baxış kamerası" } },
+  { key: "Park Assist", translations: { en: "Park Assist", az: "Park köməyi" } },
+  { key: "Trailer Assist", translations: { en: "Trailer Assist", az: "Treyler köməyi" } },
+  { key: "Bird's Eye View", translations: { en: "Bird's Eye View", az: "Quş baxışı" } },
+  { key: "Rear Cross Traffic Braking", translations: { en: "Rear Cross Traffic Braking", az: "Arxa çarpaz trafik əyləcləri" } },
+  { key: "LED Headlights", translations: { en: "LED Headlights", az: "LED faralar" } },
+  { key: "Xenon Headlights", translations: { en: "Xenon Headlights", az: "Xenon faralar" } },
+  { key: "Matrix LED", translations: { en: "Matrix LED", az: "Matrix LED" } },
+  { key: "Adaptive LED Headlights", translations: { en: "Adaptive LED Headlights", az: "Adaptiv LED faralar" } },
+  { key: "Daytime Running Lights (DRL)", translations: { en: "Daytime Running Lights (DRL)", az: "Gündüz işıqları (DRL)" } },
+  { key: "Automatic Headlights", translations: { en: "Automatic Headlights", az: "Avtomatik faralar" } },
+  { key: "Cornering Lights", translations: { en: "Cornering Lights", az: "Künc işıqları" } },
+  { key: "Fog Lights", translations: { en: "Fog Lights", az: "Duman işıqları" } },
+  { key: "LED Tail Lights", translations: { en: "LED Tail Lights", az: "LED arxa işıqlar" } },
+  { key: "Roof Rails", translations: { en: "Roof Rails", az: "Tavan relsləri" } },
+  { key: "Panoramic Roof", translations: { en: "Panoramic Roof", az: "Panoramik tavan" } },
+  { key: "Power Folding Mirrors", translations: { en: "Power Folding Mirrors", az: "Elektrik qatlanan güzgülər" } },
+  { key: "Heated Mirrors", translations: { en: "Heated Mirrors", az: "İsitməli güzgülər" } },
+  { key: "Auto-dimming Mirrors", translations: { en: "Auto-dimming Mirrors", az: "Avtomatik qaralayan güzgülər" } },
+  { key: "Rain-sensing Wipers", translations: { en: "Rain-sensing Wipers", az: "Yağış sensorlu silecekler" } },
+  { key: "Electric Windows", translations: { en: "Electric Windows", az: "Elektrik pəncərələr" } },
+  { key: "Privacy Glass", translations: { en: "Privacy Glass", az: "Məxfilik şüşəsi" } },
+  { key: "Tinted Glass", translations: { en: "Tinted Glass", az: "Tonlaşdırılmış şüşə" } },
+  { key: "Sunshade", translations: { en: "Sunshade", az: "Günəşlik" } },
+  { key: "Spoiler", translations: { en: "Spoiler", az: "Spoiler" } },
+  { key: "Diffuser", translations: { en: "Diffuser", az: "Difüzor" } },
+  { key: "Sport Mode", translations: { en: "Sport Mode", az: "Sport rejimi" } },
+  { key: "Eco Mode", translations: { en: "Eco Mode", az: "Eco rejimi" } },
+  { key: "Adaptive Suspension", translations: { en: "Adaptive Suspension", az: "Adaptiv Asqı" } },
+  { key: "Air Suspension", translations: { en: "Air Suspension", az: "Hava asqısı" } },
+  { key: "Magnetic Ride Control", translations: { en: "Magnetic Ride Control", az: "Maqnit sürüş nəzarəti" } },
+  { key: "Limited Slip Differential", translations: { en: "Limited Slip Differential", az: "Məhdud sürüş diferensialı" } },
+  { key: "Active Aero", translations: { en: "Active Aero", az: "Aktiv aero" } },
+  { key: "Launch Control", translations: { en: "Launch Control", az: "Launch Control" } },
+  { key: "Torque Vectoring", translations: { en: "Torque Vectoring", az: "Tork vektorlaşması" } },
+  { key: "Four Wheel Drive", translations: { en: "Four Wheel Drive", az: "Dörd təkərdən sürüş" } },
+  { key: "All Wheel Drive", translations: { en: "All Wheel Drive", az: "Bütün təkərlərdən sürüş" } },
+  { key: "Rear Wheel Drive", translations: { en: "Rear Wheel Drive", az: "Arxa təkərdən sürüş" } },
+  { key: "Front Wheel Drive", translations: { en: "Front Wheel Drive", az: "Ön təkərdən sürüş" } },
+  { key: "Adjustable Ride Height", translations: { en: "Adjustable Ride Height", az: "Tənzimlənən sürüş hündürlüyü" } },
+  { key: "Performance Brakes", translations: { en: "Performance Brakes", az: "Performans əyləcləri" } },
+  { key: "Brembo Brakes", translations: { en: "Brembo Brakes", az: "Brembo əyləcləri" } },
+  { key: "Ceramic Brakes", translations: { en: "Ceramic Brakes", az: "Keramik əyləclər" } },
+  { key: "Regenerative Braking", translations: { en: "Regenerative Braking", az: "Regenerativ əyləc" } },
+  { key: "Start/Stop System", translations: { en: "Start/Stop System", az: "Start/Stop Sistemi" } },
+  { key: "Alloy Wheels", translations: { en: "Alloy Wheels", az: "Döküm disklər" } },
+  { key: "Run-flat Tires", translations: { en: "Run-flat Tires", az: "Run-flat təkərlər" } },
+  { key: "Tire Repair Kit", translations: { en: "Tire Repair Kit", az: "Təkər təmir dəsti" } },
+  { key: "Wheel Size 15\"", translations: { en: "Wheel Size 15\"", az: "Təkər Ölçüsü 15\"" } },
+  { key: "Wheel Size 16\"", translations: { en: "Wheel Size 16\"", az: "Təkər Ölçüsü 16\"" } },
+  { key: "Wheel Size 17\"", translations: { en: "Wheel Size 17\"", az: "Təkər Ölçüsü 17\"" } },
+  { key: "Wheel Size 18\"", translations: { en: "Wheel Size 18\"", az: "Təkər Ölçüsü 18\"" } },
+  { key: "Wheel Size 19\"", translations: { en: "Wheel Size 19\"", az: "Təkər Ölçüsü 19\"" } },
+  { key: "Wheel Size 20\"", translations: { en: "Wheel Size 20\"", az: "Təkər Ölçüsü 20\"" } },
+  { key: "Wheel Size 21\"", translations: { en: "Wheel Size 21\"", az: "Təkər Ölçüsü 21\"" } },
+  { key: "Snow Tires Included", translations: { en: "Snow Tires Included", az: "Qış təkərləri daxil" } },
+  { key: "Off-road Tires", translations: { en: "Off-road Tires", az: "Off-road təkərlər" } },
+  { key: "Sport Tires", translations: { en: "Sport Tires", az: "Sport təkərlər" } },
+  { key: "Spare Wheel", translations: { en: "Spare Wheel", az: "Ehtiyat təkər" } },
+  { key: "Roof Box Compatible", translations: { en: "Roof Box Compatible", az: "Tavan qutusu ilə uyğundur" } },
+  { key: "Tow Hitch", translations: { en: "Tow Hitch", az: "Çəkmə bükümü" } },
+  { key: "Tow Package", translations: { en: "Tow Package", az: "Çəkmə paketi" } },
+  { key: "Fold-flat Rear Seats", translations: { en: "Fold-flat Rear Seats", az: "Düzləşdirilə bilən arxa oturacaqlar" } },
+  { key: "Underfloor Storage", translations: { en: "Underfloor Storage", az: "Altlıq saxlama" } },
+  { key: "Hands-free Liftgate", translations: { en: "Hands-free Liftgate", az: "Əllərsiz baqaj qapağı" } },
+  { key: "Remote Trunk Release", translations: { en: "Remote Trunk Release", az: "Uzaqdan baqaj açma" } },
+  { key: "Adjustable Cargo Floor", translations: { en: "Adjustable Cargo Floor", az: "Tənzimlənən yük döşəməsi" } },
+  { key: "Cargo Net", translations: { en: "Cargo Net", az: "Yük toru" } },
+  { key: "Bike Rack Prep", translations: { en: "Bike Rack Prep", az: "Velosiped daşıyıcı hazırlığı" } },
+  { key: "Trailer Hitch", translations: { en: "Trailer Hitch", az: "Treyler çəkməsi" } },
+  { key: "Dual-zone Climate", translations: { en: "Dual-zone Climate", az: "İki zonalı iqlim" } },
+  { key: "Tri-zone Climate", translations: { en: "Tri-zone Climate", az: "Üç zonalı iqlim" } },
+  { key: "Cabin Pre-heater", translations: { en: "Cabin Pre-heater", az: "Salon əvvəlcədən qızdırıcı" } },
+  { key: "Eco Driving Indicator", translations: { en: "Eco Driving Indicator", az: "Eco sürüş göstəricisi" } },
+  { key: "Low Emissions", translations: { en: "Low Emissions", az: "Aşağı emissiya" } },
+  { key: "Euro 6 Compliant", translations: { en: "Euro 6 Compliant", az: "Euro 6 standartına uyğun" } },
+  { key: "ULEZ Compliant", translations: { en: "ULEZ Compliant", az: "ULEZ standartına uyğun" } },
+  { key: "AdBlue System", translations: { en: "AdBlue System", az: "AdBlue sistemi" } },
+  { key: "Particulate Filter", translations: { en: "Particulate Filter", az: "Hissəcik filtri" } },
+  { key: "CO2 Low Emission", translations: { en: "CO2 Low Emission", az: "CO2 aşağı emissiya" } },
+  { key: "Adaptive Cruise Control", translations: { en: "Adaptive Cruise Control", az: "Adaptiv kruiz nəzarəti" } },
+  { key: "Full-Speed Adaptive Cruise", translations: { en: "Full-Speed Adaptive Cruise", az: "Tam sürətli adaptiv kruiz" } },
+  { key: "Traffic Jam Assist", translations: { en: "Traffic Jam Assist", az: "Tıxac köməyi" } },
+  { key: "Highway Assist", translations: { en: "Highway Assist", az: "Avtomobil yolu köməyi" } },
+  { key: "Autonomous Emergency Steering", translations: { en: "Autonomous Emergency Steering", az: "Avtonom təcili sükan" } },
+  { key: "Automatic Lane Change", translations: { en: "Automatic Lane Change", az: "Avtomatik zolaq dəyişməsi" } },
+  { key: "Hands-free Driving Mode", translations: { en: "Hands-free Driving Mode", az: "Əllərsiz sürüş rejimi" } },
+  { key: "Driver Monitoring", translations: { en: "Driver Monitoring", az: "Sürücü monitorinqi" } },
+  { key: "Child Seat Recognition", translations: { en: "Child Seat Recognition", az: "Uşaq oturacağı tanınması" } },
+  { key: "Rear Occupant Alert", translations: { en: "Rear Occupant Alert", az: "Arxa sərnişin xəbərdarlığı" } },
+  { key: "Floor Mats (All-weather)", translations: { en: "Floor Mats (All-weather)", az: "Məxmər döşəmələr (Hər hava üçün)" } },
+  { key: "Cargo Cover", translations: { en: "Cargo Cover", az: "Yük örtüyü" } },
+  { key: "Illuminated Sill Plates", translations: { en: "Illuminated Sill Plates", az: "İşıqlı eşik lövhələri" } },
+  { key: "Ambient Lighting Customizable", translations: { en: "Ambient Lighting Customizable", az: "Ambiyans işıqlandırması özelleştirilebilir" } },
+  { key: "Wood Trim", translations: { en: "Wood Trim", az: "Ağac trimi" } },
+  { key: "Carbon Fiber Trim", translations: { en: "Carbon Fiber Trim", az: "Karbon lif trimi" } },
+  { key: "Aluminum Pedals", translations: { en: "Aluminum Pedals", az: "Alüminium pedallar" } },
+  { key: "Sport Steering Wheel", translations: { en: "Sport Steering Wheel", az: "Sport sükan" } },
+  { key: "Heated Rear Seats", translations: { en: "Heated Rear Seats", az: "İsitməli arxa oturacaqlar" } },
+  { key: "Ventilated Rear Seats", translations: { en: "Ventilated Rear Seats", az: "Sərinlənən arxa oturacaqlar" } },
+  { key: "Refrigerated Glovebox", translations: { en: "Refrigerated Glovebox", az: "Soyuduculu əl cibi" } },
+  { key: "Alarm System", translations: { en: "Alarm System", az: "Alarm Sistemi" } },
+  { key: "Immobilizer", translations: { en: "Immobilizer", az: "Immobilizer" } },
+  { key: "GPS Tracking", translations: { en: "GPS Tracking", az: "GPS izləmə" } },
+  { key: "Wheel Locking Bolts", translations: { en: "Wheel Locking Bolts", az: "Təkər kilidi boltları" } },
+  { key: "PIN to Drive", translations: { en: "PIN to Drive", az: "PIN ilə sürüş" } },
+  { key: "Remote Vehicle Disable", translations: { en: "Remote Vehicle Disable", az: "Uzaqdan avtomobil söndürmə" } },
+  { key: "Keyless-Go", translations: { en: "Keyless-Go", az: "Açar olmadan getmə" } },
+  { key: "Valet Mode", translations: { en: "Valet Mode", az: "Valet rejimi" } },
+  { key: "Anti-theft Wheel Locks", translations: { en: "Anti-theft Wheel Locks", az: "Oğurluğa qarşı təkər kilidləri" } },
+  { key: "Central Locking", translations: { en: "Central Locking", az: "Mərkəzi kilid" } },
+  { key: "Hill Start Assist", translations: { en: "Hill Start Assist", az: "Yamacda start köməyi" } },
+  { key: "Skid Plates", translations: { en: "Skid Plates", az: "Alt qoruyucu lövhələr" } },
+  { key: "Off-road Mode", translations: { en: "Off-road Mode", az: "Off-road rejimi" } },
+  { key: "4x4 Low Range", translations: { en: "4x4 Low Range", az: "4x4 aşağı sürüş" } },
+  { key: "Trailer Sway Control", translations: { en: "Trailer Sway Control", az: "Treyler yellənmə nəzarəti" } },
+  { key: "Rear Differential Lock", translations: { en: "Rear Differential Lock", az: "Arxa diferensial kilidi" } },
+  { key: "Winter Package", translations: { en: "Winter Package", az: "Qış paketi" } },
+  { key: "Summer Package", translations: { en: "Summer Package", az: "Yay paketi" } },
+  { key: "Sport Package", translations: { en: "Sport Package", az: "Sport paketi" } },
+  { key: "Technology Package", translations: { en: "Technology Package", az: "Texnologiya paketi" } },
+  { key: "Luxury Package", translations: { en: "Luxury Package", az: "Lüks paketi" } },
+  { key: "Cold Climate Package", translations: { en: "Cold Climate Package", az: "Soyuq iqlim paketi" } },
+  { key: "Premium Paint", translations: { en: "Premium Paint", az: "Premium boyama" } },
+  { key: "Extended Warranty", translations: { en: "Extended Warranty", az: "Uzadılmış zəmanət" } },
+  { key: "Service Plan Included", translations: { en: "Service Plan Included", az: "Xidmət planı daxil" } },
+  { key: "Dealer Installed Options", translations: { en: "Dealer Installed Options", az: "Satıcı quraşdırılmış seçimlər" } },
+  { key: "Owner's Manual in English/AZ", translations: { en: "Owner's Manual in English/AZ", az: "İstifadəçi təlimatı İngilis/AZ" } },
+  { key: "First Aid Kit", translations: { en: "First Aid Kit", az: "Təcili yardım dəsti" } },
+  { key: "Fire Extinguisher", translations: { en: "Fire Extinguisher", az: "Yanğınsöndürən" } },
+  { key: "Roadside Assistance Included", translations: { en: "Roadside Assistance Included", az: "Yolda kömək daxil" } },
+];

@@ -459,8 +459,10 @@ export default function SellPage() {
                       <SelectValue placeholder={t("selectFuel")} />
                     </SelectTrigger>
                     <SelectContent>
-                      {fuels.map((f) => (
-                        <SelectItem key={f} value={f}>{t(f) ?? f}</SelectItem>
+                      {fuels.map(fuel => (
+                        <SelectItem key={fuel.key} value={fuel.key}>
+                          {fuel.translations[language]}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -473,8 +475,10 @@ export default function SellPage() {
                       <SelectValue placeholder={t("selectCondition")} />
                     </SelectTrigger>
                     <SelectContent>
-                      {conditions.map((c) => (
-                        <SelectItem key={c} value={c}>{t(c) ?? c}</SelectItem>
+                      {conditions.map(conditions => (
+                        <SelectItem key={conditions.key} value={conditions.key}>
+                          {conditions.translations[language]}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -487,8 +491,10 @@ export default function SellPage() {
                       <SelectValue placeholder={t("selectColor")} />
                     </SelectTrigger>
                     <SelectContent>
-                      {colors.map((c) => (
-                        <SelectItem key={c} value={c}>{t(c) ?? c}</SelectItem>
+                      {colors.map(colors => (
+                        <SelectItem key={colors.key} value={colors.key}>
+                          {colors.translations[language]}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -501,8 +507,10 @@ export default function SellPage() {
                       <SelectValue placeholder={t("selectBan")} />
                     </SelectTrigger>
                     <SelectContent>
-                      {bodyTypes.map((b) => (
-                        <SelectItem key={b} value={b}>{b}</SelectItem>
+                      {bodyTypes.map(bodyTypes => (
+                        <SelectItem key={bodyTypes.key} value={bodyTypes.key}>
+                          {bodyTypes.translations[language]}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -515,8 +523,10 @@ export default function SellPage() {
                       <SelectValue placeholder={t("selectEngine")} />
                     </SelectTrigger>
                     <SelectContent>
-                      {engineOptions.map((eng) => (
-                        <SelectItem key={eng} value={eng}>{eng}</SelectItem>
+                      {engineOptions.map(engineOptions => (
+                        <SelectItem key={engineOptions.key} value={engineOptions.key}>
+                          {engineOptions.translations[language]}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -529,8 +539,10 @@ export default function SellPage() {
                       <SelectValue placeholder={t("selectGearbox")} />
                     </SelectTrigger>
                     <SelectContent>
-                      {gearboxOptions.map((g) => (
-                        <SelectItem key={g} value={g}>{g}</SelectItem>
+                      {gearboxOptions.map(gearboxOptions => (
+                        <SelectItem key={gearboxOptions.key} value={gearboxOptions.key}>
+                          {gearboxOptions.translations[language]}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -559,7 +571,7 @@ export default function SellPage() {
               </CardHeader>
               <CardContent>
                 <VirtualScrollFeatures
-                  features={features}
+                  features={features.map(f => f.translations[language])}
                   selectedFeatures={formData.features}
                   onFeatureChange={handleFeatureChange}
                   language={language}
