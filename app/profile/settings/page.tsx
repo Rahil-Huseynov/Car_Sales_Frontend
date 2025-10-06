@@ -85,7 +85,7 @@ export default function SettingsPage() {
     }
     setLoading(true)
     try {
-      const body = { firstName, lastName, email, phoneNumber: `${phoneCode}${phone}` }
+      const body = { firstName, lastName, email, phoneNumber: phone, phoneCode: phoneCode }
       const res = await apiClient.updateUser(String(userId), body)
       setProfileData(res)
       toast.success(t("profileUpdated"))

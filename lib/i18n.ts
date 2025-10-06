@@ -412,7 +412,26 @@ export const translations = {
     "noBrands": "Brend yoxdur",
     "noModels": "Model yoxdur",
     "placeholderAllItems": "Hamısı",
-    "searchbuttonPlaceholder": "Axtar"
+    "searchbuttonPlaceholder": "Axtar",
+    "brandRequired": "Zəhmət olmasa marka seçin",
+    "modelRequired": "Zəhmət olmasa model seçin",
+    "editAd": "Elanı redaktə et",
+    "cancel": "Ləğv et",
+    "saving": "Yüklənir...",
+    "save": "Yadda saxla",
+    "failedLoadCar": "Avtomobil məlumatları yüklənmədi",
+    "failedLoadProfile": "Profil yüklənmədi",
+    "deleted": "Silindi",
+    "deleteFailed": "Silinmə alınmadı",
+    "uploadSuccess": "Yükləmə uğurlu oldu",
+    "uploadFailed": "Yükləmə alınmadı",
+    "imageRemoved": "Şəkil çıxarıldı",
+    "imageDeleted": "Şəkil silindi",
+    "saveFailed": "Yadda saxlanmadı",
+    "saved": "Saxlanıldı",
+    "confirmDelete": "Silmək istədiyinizə əminsiniz?",
+    "Sold": "Satıldı",
+
   },
 
   en: {
@@ -815,7 +834,26 @@ export const translations = {
     "noBrands": "No brands",
     "noModels": "No models",
     "placeholderAllItems": "All",
-    "searchbuttonPlaceholder": "Search"
+    "searchbuttonPlaceholder": "Search",
+    "brandRequired": "Please select a brand",
+    "modelRequired": "Please select a model",
+    "editAd": "Edit ad",
+    "cancel": "Cancel",
+    "saving": "Saving...",
+    "save": "Save",
+    "failedLoadCar": "Failed to load car data",
+    "failedLoadProfile": "Failed to load profile",
+    "deleted": "Deleted",
+    "deleteFailed": "Delete failed",
+    "uploadSuccess": "Upload successful",
+    "uploadFailed": "Upload failed",
+    "imageRemoved": "Image removed",
+    "imageDeleted": "Image deleted",
+    "saveFailed": "Save failed",
+    "saved": "Saved",
+    "confirmDelete": "Are you sure you want to delete?",
+    "Sold": "Sold"
+
   }
 
 

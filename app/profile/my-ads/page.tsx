@@ -45,6 +45,10 @@ import { Input } from "@/components/ui/input"
 import { VirtualScrollFeatures } from "@/app/sell/page"
 import CountrySelect from "@/components/CountryCodeSelect"
 import { Textarea } from "@/components/ui/textarea"
+import { ToastContainer, toast } from "react-toastify"
+import "react-toastify/dist/ReactToastify.css"
+import { useAuth } from "@/lib/auth-context"
+
 const API = process.env.NEXT_PUBLIC_API_URL || ""
 const IMAGE_BASE = process.env.NEXT_PUBLIC_API_URL_FOR_IMAGE || ""
 const PUBLIC_API_KEY = process.env.NEXT_PUBLIC_API_KEY || ""
@@ -65,6 +69,7 @@ function getAuthHeaders() {
   }
   return headers
 }
+
 type RawCarImage = { id?: number; url?: string } | string
 type RawUserCar = {
   id: number
@@ -94,6 +99,49 @@ type RawUserCar = {
   phoneCode?: string
   phone?: string
   email?: string
+}
+
+type CarImage = {
+  id: number
+  url: string
+}
+
+type UserCar = {
+  id: number
+  createdAt: string
+  updatedAt: string
+  brand?: string
+  model?: string
+  year?: number
+  price?: number
+  mileage?: number
+  fuel?: string
+  transmission?: string
+  condition?: string
+  color?: string
+  location?: string
+  city?: string
+  description?: string
+  features?: string[]
+  name?: string
+  phone?: string
+  phoneCode: string
+  email?: string
+  status?: string
+  views?: number
+  images?: CarImage[]
+}
+
+type User = {
+  id: number
+  firstName?: string
+  lastName?: string
+  email?: string
+  phoneNumber?: string
+  phoneCode?: string
+  role?: string
+  createdAt?: string
+  userCars?: UserCar[]
 }
 
 type CarAd = {
@@ -210,7 +258,7 @@ function AdCard({
             alt={`${ad.brand} ${ad.model}`}
             width={600}
             height={400}
-            className="w-full h-48 object-cover transition-transform duration-700 group-hover:scale-110"
+            className="w-full h-48 object-contain transition-transform duration-700 group-hover:scale-110"
             unoptimized={isRemote}
           />
         </div>
@@ -251,8 +299,8 @@ function AdCard({
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <div>
-            <h3 className="font-bold text-lg text-gray-800">
-              {ad.brand} {ad.model}
+            <h3 className="font-bold h-16 text-lg text-gray-800 break-word group-hover:text-blue-600 transition-colors duration-300">
+              {ad.brand} {ad.model.length > 32 ? ad.model.slice(0, 40) + "..." : ad.model}
             </h3>
             <p className="text-sm text-gray-600">
               {ad.year} • {t(ad.condition ?? "unknown")}
@@ -262,11 +310,6 @@ function AdCard({
                 {t("createdOn")}: {new Date(ad.createdAt).toLocaleDateString()}
               </p>
             )}
-          </div>
-          <div className="text-right">
-            <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
-              {ad.price.toLocaleString()} ₼
-            </p>
           </div>
         </div>
       </CardHeader>
@@ -291,12 +334,19 @@ function AdCard({
           </div>
         </div>
 
-        <Badge variant="outline" className="mb-2 border-blue-200 text-blue-600">
-          {t(ad.color || "unknown")}
-        </Badge>
+        <div className="flex items-center justify-between">
+          <Badge variant="outline" className="mb-2 border-blue-200 text-blue-600">
+            {t(ad.color || "unknown")}
+          </Badge>
+          <div className="text-right">
+            <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
+              {ad.price.toLocaleString()} ₼
+            </p>
+          </div>
+        </div>
       </CardContent>
 
-      <CardFooter className="pt-0 gap-2">
+      <CardFooter className="pt-0  gap-2">
         <Button
           variant="outline"
           className="flex-1 border-blue-200 text-blue-600 hover:bg-blue-50 bg-transparent pointer-events-auto z-20"
@@ -340,6 +390,98 @@ function AdCard({
   )
 }
 
+function FeaturesMultiSelect({
+  features,
+  value,
+  onChange,
+  language,
+}: {
+  features: string[]
+  value: string[] | string | undefined
+  onChange: (v: string[]) => void
+  language?: string
+}) {
+  const [query, setQuery] = useState("")
+  const parseInitial = (val: any) => {
+    if (!val) return [] as string[]
+    if (Array.isArray(val)) return val
+    if (typeof val === "string") return val.split(",").map((s) => s.trim()).filter(Boolean)
+    return [] as string[]
+  }
+
+  const [selected, setSelected] = useState<Set<string>>(new Set(parseInitial(value)))
+
+  useEffect(() => {
+    setSelected(new Set(parseInitial(value)))
+  }, [value])
+
+  const toggle = (feat: string) => {
+    setSelected((prev) => {
+      const s = new Set(prev)
+      if (s.has(feat)) s.delete(feat)
+      else s.add(feat)
+      const arr = Array.from(s)
+      onChange(arr)
+      return s
+    })
+  }
+
+  const selectAll = () => {
+    const s = new Set(features)
+    setSelected(s)
+    onChange(Array.from(s))
+  }
+
+  const clearAll = () => {
+    setSelected(new Set())
+    onChange([])
+  }
+
+  const filtered = features.filter((f) => {
+    if (!query) return true
+    const lower = query.toLowerCase()
+    return f.toLowerCase().includes(lower) || (typeof (window as any) !== "undefined" && (f || "").toLowerCase().includes(lower))
+  })
+
+  return (
+    <div>
+      <div className="flex gap-2 items-center mb-3">
+        <input
+          className="flex-1 border rounded px-3 py-2 text-sm"
+          placeholder={language === "az" ? "Axtar..." : "Search..."}
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+        <button type="button" className="px-3 py-2 rounded border text-sm" onClick={selectAll}>
+          {language === "az" ? "Hamısını seç" : "Select all"}
+        </button>
+        <button type="button" className="px-3 py-2 rounded border text-sm" onClick={clearAll}>
+          {language === "az" ? "Təmizlə" : "Clear"}
+        </button>
+        <div className="ml-2 text-sm text-gray-600">{Array.from(selected).length}/{features.length}</div>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-64 overflow-auto pr-2">
+        {filtered.map((f) => (
+          <label
+            key={f}
+            className={`flex items-center gap-2 p-2 rounded border cursor-pointer select-none ${selected.has(f) ? "bg-blue-50 border-blue-200" : "bg-white border-gray-200"
+              }`}
+          >
+            <input
+              type="checkbox"
+              checked={selected.has(f)}
+              onChange={() => toggle(f)}
+              className="w-4 h-4"
+            />
+            <span className="text-sm truncate">{f}</span>
+          </label>
+        ))}
+        {filtered.length === 0 && <div className="col-span-full text-sm text-gray-500 p-4">{language === "az" ? "Nəticə tapılmadı" : "No results"}</div>}
+      </div>
+    </div>
+  )
+}
+
 function Modal({ open, onClose, title, children }: any) {
   if (!open) return null
   return (
@@ -366,13 +508,29 @@ export default function MyAdsPage() {
   const [editingData, setEditingData] = useState<any>(null)
   const [images, setImages] = useState<Array<{ id?: number; url: string }>>([])
   const [isSaving, setIsSaving] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement | null>(null)
-
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { language } = useLanguage()
   const t = (key: string): string => {
     const val = getTranslation(language, key)
     return typeof val === "string" ? val : key
   }
+  const { logout } = useAuth()
+  const [profileData, setProfileData] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const data = await apiClient.getCurrentUser()
+        setProfileData(data)
+      } catch {
+        logout()
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchUser()
+  }, [logout])
 
   useEffect(() => {
     const fetch = async () => {
@@ -418,6 +576,7 @@ export default function MyAdsPage() {
       } catch (err) {
         console.error("Failed to load profile or cars", err)
         setAds([])
+        toast.error(t("failedLoadProfile") || "Profil yüklənmədi")
       } finally {
         setIsLoading(false)
       }
@@ -469,7 +628,7 @@ export default function MyAdsPage() {
         engine: car.engine ?? "",
         gearbox: car.gearbox ?? "",
         name: car.name ?? "",
-        phoneCode: car.phoneCode ?? "+994",
+        phoneCode: car.phoneCode || "",
         phone: car.phone ?? "",
         email: car.email ?? "",
       })
@@ -477,7 +636,7 @@ export default function MyAdsPage() {
       setImages(imgs)
     } catch (err) {
       console.error(err)
-      alert(t("failedLoadCar") || "Could not load car data. Check API URL and backend auth.")
+      toast.error(t("failedLoadCar") || "Could not load car data. Check API URL and backend auth.")
       setIsModalOpen(false)
       setEditingId(null)
     }
@@ -504,9 +663,10 @@ export default function MyAdsPage() {
         }
       }
       setAds((prev) => prev.filter((a) => a.id !== id))
+      toast.success(t("deleted") || "Silindi")
     } catch (err) {
       console.error("Failed to delete ad", err)
-      alert(t("deleteFailed") || "Silinmə alınmadı. Xahiş edirəm yenidən cəhd edin.")
+      toast.error(t("deleteFailed") || "Silinmə alınmadı. Xahiş edirəm yenidən cəhd edin.")
     } finally {
       setDeletingIds((prev) => prev.filter((x) => x !== id))
     }
@@ -518,12 +678,26 @@ export default function MyAdsPage() {
   const handleInputChange = (k: string, v: any) => {
     setEditingData((prev: any) => ({ ...prev, [k]: v }))
   }
+  const MAX_IMAGES = 10
 
   const handleFileChange = async (files: FileList | null) => {
     if (!files || !editingId) return
 
+    const incoming = Array.from(files)
+    const allowedRemaining = MAX_IMAGES - images.length
+
+    if (allowedRemaining <= 0) {
+      toast.error(`Ümumi ${MAX_IMAGES} şəkildən artıq yükləməyə icazə yoxdur.`)
+      return
+    }
+
+    if (incoming.length > allowedRemaining) {
+      toast.error(`Siz yalnız ${allowedRemaining} əlavə şəkil yükləyə bilərsiniz.`)
+      return
+    }
+
     const fd = new FormData()
-    for (let i = 0; i < files.length; i++) fd.append("images", files[i])
+    for (let i = 0; i < incoming.length; i++) fd.append("images", incoming[i])
     fd.append("userCarId", String(editingId))
 
     try {
@@ -548,15 +722,17 @@ export default function MyAdsPage() {
       }))
 
       setImages((prev) => [...prev, ...newImgs])
+      toast.success(t("uploadSuccess") || "Şəkil(lər) yükləndi")
     } catch (err) {
       console.error(err)
-      alert(t("uploadFailed") || "Image upload failed")
+      toast.error(t("uploadFailed") || "Image upload failed")
     }
   }
 
   const handleDeleteImage = async (img: { id?: number; url: string }) => {
     if (!img.id) {
       setImages((prev) => prev.filter((i) => i.url !== img.url))
+      toast.success(t("imageRemoved") || "Şəkil silindi")
       return
     }
 
@@ -573,9 +749,10 @@ export default function MyAdsPage() {
         }
       }
       setImages((prev) => prev.filter((i) => i.id !== img.id))
+      toast.success(t("imageDeleted") || "Şəkil silindi")
     } catch (err) {
       console.error(err)
-      alert(t("deleteFailed") || "Could not delete image")
+      toast.error(t("deleteFailed") || "Could not delete image")
     }
   }
 
@@ -590,70 +767,128 @@ export default function MyAdsPage() {
   };
 
   const handleSave = async () => {
-    if (!editingId || !editingData) return
-    setIsSaving(true)
+    if (!editingId || !editingData) return;
+
+    if (!editingData.brand || String(editingData.brand).trim() === "") {
+      toast.error(t("brandRequired"))
+      return
+    }
+    if (!editingData.model || String(editingData.model).trim() === "") {
+      toast.error(t("modelRequired"))
+      return
+    }
+
+    setIsSaving(true);
+    let featuresPayload: string[] = [];
+    if (Array.isArray(editingData.features)) {
+      featuresPayload = editingData.features;
+    } else if (typeof editingData.features === "string" && editingData.features.trim().length > 0) {
+      featuresPayload = editingData.features.split(",").map((s: string) => s.trim()).filter(Boolean);
+    }
+    const imagesUrls = images.map((img) => {
+      const url = img.url || "";
+      if (!url) return url;
+      try {
+        if (url.startsWith("http")) {
+          return url;
+        }
+        let trimmed = url;
+        if (IMAGE_BASE && trimmed.startsWith(IMAGE_BASE)) trimmed = trimmed.slice(IMAGE_BASE.length);
+        trimmed = trimmed.replace(/^\/+/, "");
+        return trimmed;
+      } catch {
+        return url;
+      }
+    });
 
     const payload: any = {
       brand: editingData.brand,
       model: editingData.model,
-      year: editingData.year,
-      price: editingData.price,
-      mileage: editingData.mileage,
+      year: Number(editingData.year) || undefined,
+      price: Number(editingData.price) || undefined,
+      mileage: Number(editingData.mileage) || undefined,
       fuel: editingData.fuel,
       condition: editingData.condition,
       color: editingData.color,
       location: editingData.location,
       description: editingData.description,
-      features: editingData.features ? editingData.features.split(",").map((s: string) => s.trim()) : [],
+      features: featuresPayload,
+      ban: editingData.ban,
+      engine: editingData.engine,
+      gearbox: editingData.gearbox,
+      name: editingData.name,
+      email: editingData.email,
+      status: editingData.status,
+      phoneCode: editingData.phoneCode,
+      phone: editingData.phone,
+    };
+
+    if (imagesUrls.length > 0) {
+      payload.imagesUrls = imagesUrls;
     }
 
     try {
-      let updated: any = null
+      let updated: any = null;
       if (apiClient && typeof (apiClient as any).put === "function") {
-        const res = await (apiClient as any).put(`/user-cars/${editingId}`, payload)
-        updated = res?.data ?? res
+        const res = await (apiClient as any).put(`/user-cars/${editingId}`, payload);
+        updated = res?.data ?? res;
       } else {
-        const headers = { ...getAuthHeaders(), "Content-Type": "application/json" }
-        const res = await fetch(`${API}/user-cars/${editingId}`, { method: "PUT", headers, body: JSON.stringify(payload), credentials: "include" })
+        const headers = { ...getAuthHeaders(), "Content-Type": "application/json" };
+        const res = await fetch(`${API}/user-cars/${editingId}`, {
+          method: "PUT",
+          headers,
+          credentials: "include",
+          body: JSON.stringify(payload),
+        });
         if (!res.ok) {
-          const txt = await res.text().catch(() => null)
-          console.error("update failed", res.status, txt)
-          throw new Error("Update failed")
+          const txt = await res.text().catch(() => null);
+          console.error("update failed", res.status, txt);
+          throw new Error("Update failed");
         }
-        updated = await res.json()
+        updated = await res.json();
       }
+      const normalizedImages: string[] =
+        (updated.images ?? []).map((img: any) => {
+          const u = img?.url ?? "";
+          if (!u) return "/placeholder.svg";
+          if (/^https?:\/\//i.test(u)) return u;
+          const cleaned = String(u).replace(/^\/+/, "");
+          return IMAGE_BASE ? `${IMAGE_BASE}${cleaned}` : cleaned;
+        });
+
       setAds((prev) =>
         prev.map((a) =>
           a.id === updated.id
             ? {
               ...a,
-              brand: updated.brand,
-              model: updated.model,
-              year: updated.year,
-              price: updated.price,
-              mileage: updated.mileage,
-              color: updated.color,
-              fuel: updated.fuel,
-              condition: updated.condition,
-              location: updated.location,
-              description: updated.description,
-              images: (updated.images ?? []).map((img: any) => (img.url && img.url.startsWith("http") ? img.url : `${IMAGE_BASE}${img.url}`)),
+              brand: updated.brand ?? a.brand,
+              model: updated.model ?? a.model,
+              year: updated.year ?? a.year,
+              price: updated.price ?? a.price,
+              mileage: updated.mileage ?? a.mileage,
+              color: updated.color ?? a.color,
+              fuel: updated.fuel ?? a.fuel,
+              condition: updated.condition ?? a.condition,
+              location: updated.location ?? a.location,
+              description: updated.description ?? a.description,
+              images: normalizedImages.length ? normalizedImages : a.images,
             }
             : a
         )
-      )
+      );
 
-      setIsModalOpen(false)
-      setEditingId(null)
-      setEditingData(null)
-      alert(t("saved") || "Saved")
+      setIsModalOpen(false);
+      setEditingId(null);
+      setEditingData(null);
+      toast.success(t("saved"))
     } catch (err) {
-      console.error(err)
-      alert(t("saveFailed") || "Save failed")
+      console.error(err);
+      toast.error(t("saveFailed"));
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
+
 
   if (isLoading) {
     return (
@@ -665,6 +900,8 @@ export default function MyAdsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <ToastContainer position="top-right" autoClose={4000} hideProgressBar={false} newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
+
       <section className="bg-gradient-to-br from-green-500 via-green-600 to-green-700 text-white py-12 md:py-16 relative overflow-hidden">
         <div className="container mx-auto px-4 relative z-10 flex justify-between items-center">
           <h1 className="text-3xl md:text-4xl font-bold flex items-center gap-3">
@@ -732,7 +969,7 @@ export default function MyAdsPage() {
             <div className="grid grid-cols-1 gap-4">
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex	items-center gap-2">
                     <Car className="h-5 w-5" />
                     {t("carInfo")}
                   </CardTitle>
@@ -743,7 +980,7 @@ export default function MyAdsPage() {
                       <label className="text-sm font-medium mb-2 block text-gray-700">{t("brand")}</label>
                       <BrandSelect
                         value={editingData.brand}
-                        onChange={(e) => handleInputChange("brand", e.target.value)}
+                        onChange={(v) => handleInputChange("brand", v)}
                         placeholder={t("all")}
                       />
                     </div>
@@ -753,13 +990,17 @@ export default function MyAdsPage() {
                     <ModelSelect
                       value={editingData.model}
                       brand={editingData.brand}
-                      onChange={(e) => handleInputChange("model", e.target.value)}
+                      onChange={(v) => handleInputChange("model", v)}
                       placeholder={t("all")}
                     />
                   </div>
+
                   <div>
                     <Label htmlFor="year">{t("year")}</Label>
-                    <Select value={editingData.year} onValueChange={(v) => handleInputChange("year", Number(v))}>
+                    <Select
+                      value={editingData.year !== undefined && editingData.year !== null ? String(editingData.year) : ""}
+                      onValueChange={(v) => handleInputChange("year", Number(v))}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder={t("selectYear")} />
                       </SelectTrigger>
@@ -886,10 +1127,10 @@ export default function MyAdsPage() {
                   <CardTitle>{t("features")}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <VirtualScrollFeatures
+                  <FeaturesMultiSelect
                     features={features}
-                    selectedFeatures={editingData.features}
-                    onFeatureChange={(value) => handleInputChange("features", value)}
+                    value={editingData.features}
+                    onChange={(arr) => handleInputChange("features", arr)}
                     language={language}
                   />
                 </CardContent>
@@ -909,13 +1150,23 @@ export default function MyAdsPage() {
                       <Upload className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                       <p className="text-gray-600 mb-2">{t("dragDrop")}</p>
                       <p className="text-sm text-gray-500 mb-4">{t("supportedFormats")}</p>
-                      <input required={images.length === 0} type="file" multiple accept="image/*" onChange={(e) => handleFileChange(e.target.files)} className="hidden" id="image-upload" disabled={images.length >= 10} />
-                      <Button type="button" variant="outline" className="bg-transparent" onClick={() => document.getElementById("image-upload")?.click()} disabled={images.length >= 10}>
+                      <input
+                        required={images.length === 0}
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={(e) => handleFileChange(e.target.files)}
+                        className="hidden"
+                        id="image-upload"
+                        disabled={images.length >= MAX_IMAGES}
+                        ref={fileInputRef}
+                      />
+                      <Button type="button" variant="outline" className="bg-transparent" onClick={() => document.getElementById("image-upload")?.click()} disabled={images.length >= MAX_IMAGES}>
                         <Plus className="h-4 w-4 mr-2" />
                         {t("chooseImages")}
                       </Button>
-                      {images.length >= 10 && (
-                        <p className="text-sm text-orange-600 mt-2">{t("maxImages")}</p>
+                      {images.length >= MAX_IMAGES && (
+                        <p className="text-sm text-orange-600 mt-2">{`Ümumi maksimum ${MAX_IMAGES} şəkilə icazə verilir.`}</p>
                       )}
                     </div>
 
@@ -923,7 +1174,7 @@ export default function MyAdsPage() {
                       <div className="flex items-center gap-2 mb-4">
                         <ImageIcon className="h-5 w-5 text-gray-600" />
                         <h3 className="text-lg font-semibold text-gray-800">{t("uploadedImages")}</h3>
-                        <Badge variant="outline" className="ml-auto">{images.length}/10</Badge>
+                        <Badge variant="outline" className="ml-auto">{images.length}/{MAX_IMAGES}</Badge>
                       </div>
 
                       {images.length === 0 ? (
@@ -935,7 +1186,7 @@ export default function MyAdsPage() {
                       ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                           {images.map((image, index) => (
-                            <div key={image.id} className="relative group bg-white rounded-lg border shadow-sm overflow-hidden">
+                            <div key={image.id ?? image.url} className="relative group bg-white rounded-lg border shadow-sm overflow-hidden">
                               <div className="aspect-video relative">
                                 <Image src={image.url || "/placeholder.svg"} alt={`Car image ${index + 1}`} width={300} height={200} className="w-full h-full object-cover" />
                                 <Button type="button" size="icon" variant="destructive" className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleDeleteImage(image)}>
@@ -944,12 +1195,12 @@ export default function MyAdsPage() {
                                 {index === 0 && (
                                   <div className="absolute top-2 left-2 bg-blue-600 text-white px-2 py-1 rounded text-xs font-medium">{t("mainImage")}</div>
                                 )}
-                                <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">{index + 1}/10</div>
+                                <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">{index + 1}/{MAX_IMAGES}</div>
                               </div>
                               <div className="p-3">
                                 <p className="text-sm font-medium text-gray-800 truncate">{`Image ${index + 1}`}</p>
                                 <div className="flex items-center justify-between mt-2">
-                                  <p className="text-xs text-gray-500">{index === 0 ? t("mainImage") || (language === "az" ? "Əsas şəkil" : "Main image") : `${t("image") || (language === "az" ? "Şəkil" : "Image")} ${index + 1}`}</p>
+                                  <p className="text-xs text-gray-500">{index === 0 ? t("mainImage") || "Main image" : `${t("image") || "Image"} ${index + 1}`}</p>
                                   <div className="flex gap-1">
                                     {index > 0 && (
                                       <Button type="button" size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => moveImage(index, index - 1)}>←</Button>
@@ -986,7 +1237,7 @@ export default function MyAdsPage() {
                     <Label htmlFor="phone">{t("phone")}</Label>
                     <div className="flex gap-2 items-center">
                       <div className="max-w-[150px]">
-                        <CountrySelect value={editingData.phoneCode} onChange={(e) => handleInputChange("phoneCode", e.target.value)} />
+                        <CountrySelect value={editingData.phoneCode} onChange={(v) => handleInputChange("phoneCode", v)} />
                       </div>
                       <div className="flex-1 relative">
                         <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -1008,7 +1259,6 @@ export default function MyAdsPage() {
                   </div>
                 </CardContent>
               </Card>
-
 
               <Card>
                 <CardHeader>

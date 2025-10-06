@@ -28,7 +28,7 @@ export default function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isPending, setIsPending] = useState(false)
   const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
-  const [phoneCode, setPhoneCode] = useState<string>("+93")
+  const [phoneCode, setPhoneCode] = useState<string>("")
   const [phoneNumber, setPhoneNumber] = useState<string>("")
   const [agreeToTerms, setAgreeToTerms] = useState<boolean>(false)
 
