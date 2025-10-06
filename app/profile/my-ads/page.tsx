@@ -1,8 +1,8 @@
 "use client"
 
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
@@ -24,16 +24,48 @@ import {
   PackageCheck,
   ReceiptText,
   Megaphone,
+  Upload,
+  ImageIcon,
+  X,
+  User,
+  Phone,
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useLanguage } from "@/hooks/use-language"
 import { getTranslation } from "@/lib/i18n"
 import { apiClient } from "@/lib/api-client"
-import { logout } from "@/actions/auth"
+import BrandSelect from "@/components/BrandSelect"
+import ModelSelect from "@/components/ModelSelect"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { bodyTypes, cities, colors, conditions, engineOptions, features, fuels, gearboxOptions, years } from "@/lib/car-data"
+import { Input } from "@/components/ui/input"
+import { VirtualScrollFeatures } from "@/app/sell/page"
+import CountrySelect from "@/components/CountryCodeSelect"
+import { Textarea } from "@/components/ui/textarea"
+const API = process.env.NEXT_PUBLIC_API_URL || ""
+const IMAGE_BASE = process.env.NEXT_PUBLIC_API_URL_FOR_IMAGE || ""
+const PUBLIC_API_KEY = process.env.NEXT_PUBLIC_API_KEY || ""
 
+function getAuthHeaders() {
+  const headers: Record<string, string> = { Accept: "application/json" }
+  try {
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("token")
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`
+      }
+    }
+  } catch (err) {
+  }
+  if (!headers["Authorization"] && PUBLIC_API_KEY) {
+    headers["x-api-key"] = PUBLIC_API_KEY
+  }
+  return headers
+}
 type RawCarImage = { id?: number; url?: string } | string
-
 type RawUserCar = {
   id: number
   brand: string
@@ -54,6 +86,14 @@ type RawUserCar = {
   calls?: number
   messages?: number
   description?: string
+  allCarsListId?: number
+  ban?: string
+  engine?: string
+  gearbox?: string
+  name?: string
+  phoneCode?: string
+  phone?: string
+  email?: string
 }
 
 type CarAd = {
@@ -76,6 +116,7 @@ type CarAd = {
   calls: number
   messages: number
   description?: string
+  allCarsListId?: number
 }
 
 const buildImageUrl = (maybe: RawCarImage | undefined): string | null => {
@@ -83,12 +124,12 @@ const buildImageUrl = (maybe: RawCarImage | undefined): string | null => {
   if (typeof maybe === "string") {
     if (!maybe) return null
     if (maybe.startsWith("http")) return maybe
-    return `${process.env.NEXT_PUBLIC_API_URL_FOR_IMAGE}${maybe}`
+    return `${IMAGE_BASE}${maybe}`
   } else {
     const url = maybe.url ?? ""
     if (!url) return null
     if (url.startsWith("http")) return url
-    return `${process.env.NEXT_PUBLIC_API_URL_FOR_IMAGE}${url}`
+    return `${IMAGE_BASE}${url}`
   }
 }
 
@@ -97,11 +138,13 @@ function AdCard({
   onEdit,
   onDelete,
   index,
+  isDeleting,
 }: {
   ad: CarAd
   onEdit: (id: number) => void
   onDelete: (id: number) => void
   index: number
+  isDeleting?: boolean
 }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isLoaded, setIsLoaded] = useState(false)
@@ -110,7 +153,7 @@ function AdCard({
     const val = getTranslation(language, key)
     return typeof val === "string" ? val : key
   }
-  const locale = language || "en-US"
+  const router = useRouter()
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoaded(true), index * 80)
@@ -255,33 +298,61 @@ function AdCard({
 
       <CardFooter className="pt-0 gap-2">
         <Button
-          asChild
           variant="outline"
-          className="flex-1 border-blue-200 text-blue-600 hover:bg-blue-50 bg-transparent"
+          className="flex-1 border-blue-200 text-blue-600 hover:bg-blue-50 bg-transparent pointer-events-auto z-20"
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            router.push(`/cars/${ad.allCarsListId}`)
+          }}
         >
-          <Link href={`/cars/${ad.id}`}>
-            <Eye className="h-4 w-4 mr-2" />
-            {t("view")}
-          </Link>
+          <Eye className="h-4 w-4 mr-2" />
+          {t("view")}
         </Button>
         <Button
           variant="outline"
           size="icon"
-          className="border-green-200 text-green-600 hover:bg-green-50 bg-transparent"
-          onClick={() => onEdit(ad.id)}
+          className="border-green-200 text-green-600 hover:bg-green-50 bg-transparent pointer-events-auto z-20"
+          onClick={(e: React.MouseEvent) => {
+            e.preventDefault()
+            e.stopPropagation()
+            onEdit(ad.id)
+          }}
         >
           <Edit className="h-4 w-4" />
         </Button>
         <Button
+          type="button"
           variant="outline"
           size="icon"
-          className="border-red-200 text-red-600 hover:bg-red-50 bg-transparent"
-          onClick={() => onDelete(ad.id)}
+          className="border-red-200 text-red-600 hover:bg-red-50 bg-transparent z-20 pointer-events-auto"
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            onDelete(ad.id)
+          }}
+          disabled={isDeleting}
         >
-          <Trash2 className="h-4 w-4" />
+          {isDeleting ? <Trash2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
         </Button>
       </CardFooter>
     </Card>
+  )
+}
+
+function Modal({ open, onClose, title, children }: any) {
+  if (!open) return null
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div className="fixed inset-0 bg-black/50 transition-opacity" onClick={onClose} />
+      <div className="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-auto max-h-[90vh] p-6">
+        <div className="flex items-start justify-between gap-4">
+          <h3 id="modal-title" className="text-xl font-semibold">{title}</h3>
+          <Button variant="ghost" size="icon" onClick={onClose}>✕</Button>
+        </div>
+        <div className="mt-4">{children}</div>
+      </div>
+    </div>
   )
 }
 
@@ -289,17 +360,24 @@ export default function MyAdsPage() {
   const [ads, setAds] = useState<CarAd[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<"all" | "Standart" | "Premium" | "Sold">("all")
+  const [deletingIds, setDeletingIds] = useState<number[]>([])
+  const [editingId, setEditingId] = useState<number | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingData, setEditingData] = useState<any>(null)
+  const [images, setImages] = useState<Array<{ id?: number; url: string }>>([])
+  const [isSaving, setIsSaving] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+
   const { language } = useLanguage()
   const t = (key: string): string => {
     const val = getTranslation(language, key)
     return typeof val === "string" ? val : key
   }
-  const locale = language || "en-US"
 
   useEffect(() => {
     const fetch = async () => {
       try {
-        const profile = await apiClient.getCurrentUser()
+        const profile = await (apiClient as any).getCurrentUser()
         const rawCars: RawUserCar[] = profile?.userCars ?? []
 
         const normalized: CarAd[] = rawCars.map((c): CarAd => {
@@ -332,6 +410,7 @@ export default function MyAdsPage() {
             calls: c.calls ?? 0,
             messages: c.messages ?? 0,
             description: c.description,
+            allCarsListId: c.allCarsListId
           }
         })
 
@@ -347,12 +426,234 @@ export default function MyAdsPage() {
     fetch()
   }, [])
 
-  const handleEdit = (id: number) => console.log("Edit ad:", id)
-  const handleDelete = (id: number) => setAds((prev) => prev.filter((a) => a.id !== id))
+  const openEditModal = async (id: number) => {
+    setEditingId(id)
+    setIsModalOpen(true)
+    setEditingData(null)
+    setImages([])
+
+    try {
+      let car: any = null
+      if (apiClient && typeof (apiClient as any).get === "function") {
+        const res = await (apiClient as any).get(`/user-cars/${id}`)
+        car = res?.data ?? res
+      } else {
+        const headers = getAuthHeaders()
+        const res = await fetch(`${API}/user-cars/${id}`, { headers, credentials: "include" })
+        if (!res.ok) {
+          const text = await res.text().catch(() => null)
+          console.error("user-cars fetch failed", res.status, text)
+          throw new Error("Failed to fetch car")
+        }
+        car = await res.json()
+      }
+
+      const imgs = (car.images ?? []).map((img: any) => ({
+        id: img.id,
+        url: img.url && img.url.startsWith("http") ? img.url : `${IMAGE_BASE}${img.url}`,
+      }))
+
+      setEditingData({
+        brand: car.brand ?? "",
+        model: car.model ?? "",
+        year: car.year ?? new Date().getFullYear(),
+        price: car.price ?? 0,
+        mileage: car.mileage ?? 0,
+        fuel: car.fuel ?? "",
+        condition: car.condition ?? "",
+        color: car.color ?? "",
+        location: car.location ?? "",
+        description: car.description ?? "",
+        features: (car.features || []).join(", "),
+        ban: car.ban ?? "",
+        engine: car.engine ?? "",
+        gearbox: car.gearbox ?? "",
+        name: car.name ?? "",
+        phoneCode: car.phoneCode ?? "+994",
+        phone: car.phone ?? "",
+        email: car.email ?? "",
+      })
+
+      setImages(imgs)
+    } catch (err) {
+      console.error(err)
+      alert(t("failedLoadCar") || "Could not load car data. Check API URL and backend auth.")
+      setIsModalOpen(false)
+      setEditingId(null)
+    }
+  }
+
+  const handleEdit = (id: number) => openEditModal(id)
+
+  const handleDelete = async (id: number) => {
+    const confirmed = typeof window !== "undefined" ? window.confirm(t("confirmDelete") || "Silmək istədiyinizə əminsiniz?") : true
+    if (!confirmed) return
+
+    setDeletingIds((prev) => [...prev, id])
+
+    try {
+      if (apiClient && typeof (apiClient as any).delete === "function") {
+        await (apiClient as any).delete(`/user-cars/${id}`)
+      } else {
+        const headers = getAuthHeaders()
+        const res = await fetch(`${API}/user-cars/${id}`, { method: "DELETE", headers, credentials: "include" })
+        if (!res.ok) {
+          const txt = await res.text().catch(() => null)
+          console.error("delete car failed", res.status, txt)
+          throw new Error("Delete failed")
+        }
+      }
+      setAds((prev) => prev.filter((a) => a.id !== id))
+    } catch (err) {
+      console.error("Failed to delete ad", err)
+      alert(t("deleteFailed") || "Silinmə alınmadı. Xahiş edirəm yenidən cəhd edin.")
+    } finally {
+      setDeletingIds((prev) => prev.filter((x) => x !== id))
+    }
+  }
 
   const filteredAds = ads.filter((ad) => (activeTab === "all" ? true : ad.status === activeTab))
-  const getTabCount = (status: "all" | "Standart" | "Premium" | "Sold") =>
-    status === "all" ? ads.length : ads.filter((a) => a.status === status).length
+  const getTabCount = (status: "all" | "Standart" | "Premium" | "Sold") => (status === "all" ? ads.length : ads.filter((a) => a.status === status).length)
+
+  const handleInputChange = (k: string, v: any) => {
+    setEditingData((prev: any) => ({ ...prev, [k]: v }))
+  }
+
+  const handleFileChange = async (files: FileList | null) => {
+    if (!files || !editingId) return
+
+    const fd = new FormData()
+    for (let i = 0; i < files.length; i++) fd.append("images", files[i])
+    fd.append("userCarId", String(editingId))
+
+    try {
+      let created: any = null
+      if (apiClient && typeof (apiClient as any).post === "function") {
+        const res = await (apiClient as any).post("/car-images/upload", fd)
+        created = res?.data ?? res
+      } else {
+        const headers = getAuthHeaders()
+        const res = await fetch(`${API}/car-images/upload`, { method: "POST", body: fd, headers: headers, credentials: "include" })
+        if (!res.ok) {
+          const txt = await res.text().catch(() => null)
+          console.error("upload failed", res.status, txt)
+          throw new Error("Upload failed")
+        }
+        created = await res.json()
+      }
+
+      const newImgs = (created ?? []).map((img: any) => ({
+        id: img.id,
+        url: img.url && img.url.startsWith("http") ? img.url : `${IMAGE_BASE}${img.url}`,
+      }))
+
+      setImages((prev) => [...prev, ...newImgs])
+    } catch (err) {
+      console.error(err)
+      alert(t("uploadFailed") || "Image upload failed")
+    }
+  }
+
+  const handleDeleteImage = async (img: { id?: number; url: string }) => {
+    if (!img.id) {
+      setImages((prev) => prev.filter((i) => i.url !== img.url))
+      return
+    }
+
+    try {
+      if (apiClient && typeof (apiClient as any).delete === "function") {
+        await (apiClient as any).delete(`/car-images/${img.id}`)
+      } else {
+        const headers = getAuthHeaders()
+        const res = await fetch(`${API}/car-images/${img.id}`, { method: "DELETE", headers, credentials: "include" })
+        if (!res.ok) {
+          const txt = await res.text().catch(() => null)
+          console.error("delete image failed", res.status, txt)
+          throw new Error("Delete failed")
+        }
+      }
+      setImages((prev) => prev.filter((i) => i.id !== img.id))
+    } catch (err) {
+      console.error(err)
+      alert(t("deleteFailed") || "Could not delete image")
+    }
+  }
+
+  const moveImage = (from: number, to: number) => {
+    if (to < 0 || to >= images.length) return;
+    setImages((prev) => {
+      const newArr = [...prev];
+      const [item] = newArr.splice(from, 1);
+      newArr.splice(to, 0, item);
+      return newArr;
+    });
+  };
+
+  const handleSave = async () => {
+    if (!editingId || !editingData) return
+    setIsSaving(true)
+
+    const payload: any = {
+      brand: editingData.brand,
+      model: editingData.model,
+      year: editingData.year,
+      price: editingData.price,
+      mileage: editingData.mileage,
+      fuel: editingData.fuel,
+      condition: editingData.condition,
+      color: editingData.color,
+      location: editingData.location,
+      description: editingData.description,
+      features: editingData.features ? editingData.features.split(",").map((s: string) => s.trim()) : [],
+    }
+
+    try {
+      let updated: any = null
+      if (apiClient && typeof (apiClient as any).put === "function") {
+        const res = await (apiClient as any).put(`/user-cars/${editingId}`, payload)
+        updated = res?.data ?? res
+      } else {
+        const headers = { ...getAuthHeaders(), "Content-Type": "application/json" }
+        const res = await fetch(`${API}/user-cars/${editingId}`, { method: "PUT", headers, body: JSON.stringify(payload), credentials: "include" })
+        if (!res.ok) {
+          const txt = await res.text().catch(() => null)
+          console.error("update failed", res.status, txt)
+          throw new Error("Update failed")
+        }
+        updated = await res.json()
+      }
+      setAds((prev) =>
+        prev.map((a) =>
+          a.id === updated.id
+            ? {
+              ...a,
+              brand: updated.brand,
+              model: updated.model,
+              year: updated.year,
+              price: updated.price,
+              mileage: updated.mileage,
+              color: updated.color,
+              fuel: updated.fuel,
+              condition: updated.condition,
+              location: updated.location,
+              description: updated.description,
+              images: (updated.images ?? []).map((img: any) => (img.url && img.url.startsWith("http") ? img.url : `${IMAGE_BASE}${img.url}`)),
+            }
+            : a
+        )
+      )
+
+      setIsModalOpen(false)
+      setEditingId(null)
+      setEditingData(null)
+      alert(t("saved") || "Saved")
+    } catch (err) {
+      console.error(err)
+      alert(t("saveFailed") || "Save failed")
+    } finally {
+      setIsSaving(false)
+    }
+  }
 
   if (isLoading) {
     return (
@@ -417,13 +718,317 @@ export default function MyAdsPage() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredAds.map((ad, index) => (
-                  <AdCard key={ad.id} ad={ad} onEdit={handleEdit} onDelete={handleDelete} index={index} />
+                  <AdCard key={ad.id} ad={ad} onEdit={handleEdit} onDelete={handleDelete} index={index} isDeleting={deletingIds.includes(ad.id)} />
                 ))}
               </div>
             )}
           </TabsContent>
         </Tabs>
       </div>
+
+      <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingData ? `${t("editAd")}: ${editingData.brand} ${editingData.model}` : t("loading")}>
+        {editingData ? (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Car className="h-5 w-5" />
+                    {t("carInfo")}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 md:grid-cols-1 gap-4">
+                  <div>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block text-gray-700">{t("brand")}</label>
+                      <BrandSelect
+                        value={editingData.brand}
+                        onChange={(e) => handleInputChange("brand", e.target.value)}
+                        placeholder={t("all")}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block text-gray-700">{t("model")}</label>
+                    <ModelSelect
+                      value={editingData.model}
+                      brand={editingData.brand}
+                      onChange={(e) => handleInputChange("model", e.target.value)}
+                      placeholder={t("all")}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="year">{t("year")}</Label>
+                    <Select value={editingData.year} onValueChange={(v) => handleInputChange("year", Number(v))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("selectYear")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {years.map((yr) => (
+                          <SelectItem key={yr} value={String(yr)}>{yr}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="price">{t("priceWithCurrency") || t("price")}</Label>
+                    <Input id="price" type="number" required min={0} value={editingData.price} onChange={(e) => handleInputChange("price", Number(e.target.value))} />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="mileage">{t("mileage") || "Mileage (km)"}</Label>
+                    <Input id="mileage" required min={0} type="number" value={editingData.mileage} onChange={(e) => handleInputChange("mileage", Number(e.target.value))} placeholder="50000" />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="fuel">{t("fuel")}</Label>
+                    <Select value={editingData.fuel} onValueChange={(v) => handleInputChange("fuel", v)} required>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("selectFuel")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {fuels.map((f) => (
+                          <SelectItem key={f} value={f}>{t(f) ?? f}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="condition">{t("condition")}</Label>
+                    <Select value={editingData.condition} onValueChange={(v) => handleInputChange("condition", v)} required>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("selectCondition")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {conditions.map((c) => (
+                          <SelectItem key={c} value={c}>{t(c) ?? c}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="color">{t("color")}</Label>
+                    <Select value={editingData.color} onValueChange={(v) => handleInputChange("color", v)} required>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("selectColor")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {colors.map((c) => (
+                          <SelectItem key={c} value={c}>{t(c) ?? c}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="ban">{t("ban")}</Label>
+                    <Select value={editingData.ban} onValueChange={(v) => handleInputChange("ban", v)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("selectBan")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {bodyTypes.map((b) => (
+                          <SelectItem key={b} value={b}>{b}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="engine">{t("engine")}</Label>
+                    <Select value={editingData.engine} onValueChange={(v) => handleInputChange("engine", v)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("selectEngine")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {engineOptions.map((eng) => (
+                          <SelectItem key={eng} value={eng}>{eng}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="gearbox">{t("gearbox")}</Label>
+                    <Select value={editingData.gearbox} onValueChange={(v) => handleInputChange("gearbox", v)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("selectGearbox")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {gearboxOptions.map((g) => (
+                          <SelectItem key={g} value={g}>{g}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="city">{t("city")}</Label>
+                    <Select value={editingData.location} onValueChange={(v) => handleInputChange("location", v)} required>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("selectCity")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {cities.map((c) => (
+                          <SelectItem key={c} value={c}>{t(c) ?? c}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>{t("features")}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <VirtualScrollFeatures
+                    features={features}
+                    selectedFeatures={editingData.features}
+                    onFeatureChange={(value) => handleInputChange("features", value)}
+                    language={language}
+                  />
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Camera className="h-5 w-5" />
+                    {t("images")}
+                  </CardTitle>
+                  <p className="text-sm text-gray-600">{t("imagesDesc")}</p>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
+                      <Upload className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                      <p className="text-gray-600 mb-2">{t("dragDrop")}</p>
+                      <p className="text-sm text-gray-500 mb-4">{t("supportedFormats")}</p>
+                      <input required={images.length === 0} type="file" multiple accept="image/*" onChange={(e) => handleFileChange(e.target.files)} className="hidden" id="image-upload" disabled={images.length >= 10} />
+                      <Button type="button" variant="outline" className="bg-transparent" onClick={() => document.getElementById("image-upload")?.click()} disabled={images.length >= 10}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        {t("chooseImages")}
+                      </Button>
+                      {images.length >= 10 && (
+                        <p className="text-sm text-orange-600 mt-2">{t("maxImages")}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <div className="flex items-center gap-2 mb-4">
+                        <ImageIcon className="h-5 w-5 text-gray-600" />
+                        <h3 className="text-lg font-semibold text-gray-800">{t("uploadedImages")}</h3>
+                        <Badge variant="outline" className="ml-auto">{images.length}/10</Badge>
+                      </div>
+
+                      {images.length === 0 ? (
+                        <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+                          <ImageIcon className="h-12 w-12 mx-auto text-gray-400 mb-3" />
+                          <p className="text-gray-500 mb-2">{t("noImages")}</p>
+                          <p className="text-sm text-gray-400">{t("addFirstImage")}</p>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {images.map((image, index) => (
+                            <div key={image.id} className="relative group bg-white rounded-lg border shadow-sm overflow-hidden">
+                              <div className="aspect-video relative">
+                                <Image src={image.url || "/placeholder.svg"} alt={`Car image ${index + 1}`} width={300} height={200} className="w-full h-full object-cover" />
+                                <Button type="button" size="icon" variant="destructive" className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleDeleteImage(image)}>
+                                  <X className="h-4 w-4" />
+                                </Button>
+                                {index === 0 && (
+                                  <div className="absolute top-2 left-2 bg-blue-600 text-white px-2 py-1 rounded text-xs font-medium">{t("mainImage")}</div>
+                                )}
+                                <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">{index + 1}/10</div>
+                              </div>
+                              <div className="p-3">
+                                <p className="text-sm font-medium text-gray-800 truncate">{`Image ${index + 1}`}</p>
+                                <div className="flex items-center justify-between mt-2">
+                                  <p className="text-xs text-gray-500">{index === 0 ? t("mainImage") || (language === "az" ? "Əsas şəkil" : "Main image") : `${t("image") || (language === "az" ? "Şəkil" : "Image")} ${index + 1}`}</p>
+                                  <div className="flex gap-1">
+                                    {index > 0 && (
+                                      <Button type="button" size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => moveImage(index, index - 1)}>←</Button>
+                                    )}
+                                    {index < images.length - 1 && (
+                                      <Button type="button" size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => moveImage(index, index + 1)}>→</Button>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <User className="h-5 w-5" />
+                    {t("contactInfo")}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="name">{t("fullName")}</Label>
+                    <Input id="name" required value={editingData.name} onChange={(e) => handleInputChange("name", e.target.value)} placeholder={t("namePlaceholder")} />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="phone">{t("phone")}</Label>
+                    <div className="flex gap-2 items-center">
+                      <div className="max-w-[150px]">
+                        <CountrySelect value={editingData.phoneCode} onChange={(e) => handleInputChange("phoneCode", e.target.value)} />
+                      </div>
+                      <div className="flex-1 relative">
+                        <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="phone"
+                          name="phone"
+                          type="tel"
+                          placeholder={t("phonePlaceholder")}
+                          value={editingData.phone}
+                          onChange={(e) => handleInputChange("phone", e.target.value)} required
+                          className="pl-10"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="md:col-span-2">
+                    <Label htmlFor="email">{t("email")}</Label>
+                    <Input id="email" type="email" required value={editingData.email} onChange={(e) => handleInputChange("email", e.target.value)} placeholder="example@email.com" />
+                  </div>
+                </CardContent>
+              </Card>
+
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>{t("description")}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Textarea className="resize-none h-[200px]" value={editingData.description} onChange={(e) => handleInputChange("description", e.target.value)} placeholder={t("descriptionPlaceholder")} rows={4} />
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsModalOpen(false)}>{t("cancel")}</Button>
+              <Button onClick={handleSave} disabled={isSaving} className="bg-green-600">{isSaving ? t("saving") : t("save")}</Button>
+            </div>
+          </div>
+        ) : (
+          <p>{t("loading")}</p>
+        )}
+      </Modal>
     </div>
   )
 }

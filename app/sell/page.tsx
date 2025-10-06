@@ -40,7 +40,7 @@ type ImageItem = {
   file: File
 }
 
-const VirtualScrollFeatures = ({
+export const VirtualScrollFeatures = ({
   features,
   selectedFeatures,
   onFeatureChange,

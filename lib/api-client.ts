@@ -1,4 +1,5 @@
-import { authHeaders } from "@/app/profile/settings/page";
+ 
+import authHeaders from "./auth-headers";
 import { tokenManager } from "./token-manager"
 
 type GetAllCarsParams = {
@@ -193,6 +194,13 @@ class ApiClient {
 
   }
 
+
+  async deleteads(Id: string) {
+    return this.request(`/user-cars/${Id}`, {
+      method: "delete",
+    })
+
+  }
   async addAdmin(formData: FormData) {
     return this.request(`/auth/admin/signup`, {
       method: "POST",

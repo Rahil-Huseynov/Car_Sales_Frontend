@@ -410,7 +410,9 @@ export const translations = {
     "Hamı": "Hamı",
     "Axtar...": "Axtar...",
     "noBrands": "Brend yoxdur",
-    "noModels": "Model yoxdur"
+    "noModels": "Model yoxdur",
+    "placeholderAllItems": "Hamısı",
+    "searchbuttonPlaceholder": "Axtar"
   },
 
   en: {
@@ -811,7 +813,9 @@ export const translations = {
     "All": "All",
     "Search...": "Search...",
     "noBrands": "No brands",
-    "noModels": "No models"
+    "noModels": "No models",
+    "placeholderAllItems": "All",
+    "searchbuttonPlaceholder": "Search"
   }
 
 

@@ -19,10 +19,10 @@ import { getTranslation } from "@/lib/i18n"
 
 export default function RegisterPage() {
   const { language, changeLanguage } = useLanguage()
-const t = (key: string): string => {
-  const val = getTranslation(language, key)
-  return typeof val === "string" ? val : key 
-}
+  const t = (key: string): string => {
+    const val = getTranslation(language, key)
+    return typeof val === "string" ? val : key
+  }
 
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -80,7 +80,8 @@ const t = (key: string): string => {
     fixedFormData.append("password", password)
     fixedFormData.append("firstName", String(formData.get("firstName") ?? ""))
     fixedFormData.append("lastName", String(formData.get("lastName") ?? ""))
-    fixedFormData.append("phoneNumber", `${phoneCode}${phoneNumber}`)
+    fixedFormData.append("phoneNumber", phoneNumber)
+    fixedFormData.append("phoneCode", phoneCode)
     fixedFormData.append("role", "standart")
 
     try {

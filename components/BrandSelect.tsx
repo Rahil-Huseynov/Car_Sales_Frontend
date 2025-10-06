@@ -143,7 +143,7 @@ export default function BrandSelect({
   return (
     <Select value={value} onValueChange={(v) => onChange(v)}>
       <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300">
-        <SelectValue placeholder={t(placeholder)} />
+        <SelectValue placeholder={t('placeholderAllItems')} />
       </SelectTrigger>
 
       <SelectContent side="bottom" align="start" className="p-0">
@@ -152,7 +152,7 @@ export default function BrandSelect({
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder={t(searchPlaceholder)}
+            placeholder={t('searchbuttonPlaceholder')}
             className="w-full text-sm p-2 border rounded-md border-gray-200 focus:outline-none focus:ring-1 focus:ring-blue-400"
           />
         </div>
@@ -163,7 +163,7 @@ export default function BrandSelect({
           className="max-h-60 overflow-auto"
           style={{ minWidth: 220 }}
         >
-          <SelectItem value="all">{t(placeholder)}</SelectItem>
+          <SelectItem value="all">{t('placeholderAllItems')}</SelectItem>
 
           {displayedItems.map((b) => (
             <SelectItem key={b} value={b}>

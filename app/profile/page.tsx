@@ -49,6 +49,7 @@ type User = {
   lastName?: string
   email?: string
   phoneNumber?: string
+  phoneCode?: string
   role?: string
   createdAt?: string
   userCars?: UserCar[]
@@ -127,7 +128,7 @@ export default function ProfilePage() {
 
                       <div>
                         <Label htmlFor="phone">{t("label.phone")}</Label>
-                        <Input id="phone" value={profileData.phoneNumber ?? ""} disabled />
+                        <Input id="phone" value={`${profileData!.phoneCode ?? ""}${profileData!.phoneNumber ?? ""}`} disabled />
                       </div>
 
                       <div>
@@ -137,13 +138,13 @@ export default function ProfilePage() {
                           value={
                             profileData.createdAt
                               ? new Date(profileData.createdAt).toLocaleString(locale, {
-                                  day: "2-digit",
-                                  month: "2-digit",
-                                  year: "numeric",
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                  hour12: false,
-                                })
+                                day: "2-digit",
+                                month: "2-digit",
+                                year: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                hour12: false,
+                              })
                               : ""
                           }
                           disabled

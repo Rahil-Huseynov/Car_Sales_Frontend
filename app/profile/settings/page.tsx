@@ -8,13 +8,14 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Settings, User, Shield, Save, Eye, EyeOff } from "lucide-react"
+import { Settings, User, Shield, Save, Eye, EyeOff, Phone } from "lucide-react"
 import { useLanguage } from "@/hooks/use-language"
 import { getTranslation } from "@/lib/i18n"
 import apiClient from "@/lib/api-client"
 import { ToastContainer, toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import { useAuth } from "@/lib/auth-context"
+import CountryCodeSelect from "@/components/CountryCodeSelect"
 
 type User = {
   id: number
@@ -22,6 +23,7 @@ type User = {
   lastName: string
   email: string
   phoneNumber: string
+  phoneCode: string
   role: string
   createdAt: string
 }
@@ -42,6 +44,7 @@ export default function SettingsPage() {
   const [profileData, setProfileData] = useState<User | null>(null)
   const { logout } = useAuth()
   const { language } = useLanguage()
+  const [phoneCode, setPhoneCode] = useState<string>("")
   const t = (key: string): string => {
     const val = getTranslation(language, key)
     return typeof val === "string" ? val : key
@@ -69,6 +72,12 @@ export default function SettingsPage() {
     fetchUser()
   }, [logout, language])
 
+  useEffect(() => {
+    if (profileData) {
+      setPhoneCode(profileData.phoneCode ?? "")
+    }
+  }, [profileData])
+
   async function handleSaveProfile() {
     if (!userId) {
       toast.error(t("userIdNotFound"))
@@ -76,7 +85,7 @@ export default function SettingsPage() {
     }
     setLoading(true)
     try {
-      const body = { firstName, lastName, email, phoneNumber: phone }
+      const body = { firstName, lastName, email, phoneNumber: `${phoneCode}${phone}` }
       const res = await apiClient.updateUser(String(userId), body)
       setProfileData(res)
       toast.success(t("profileUpdated"))
@@ -179,10 +188,26 @@ export default function SettingsPage() {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="phone">{t("phone")}</Label>
-                      <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
+                      <div className="flex gap-2 items-center">
+                        <div className="max-w-[150px]">
+                          <CountryCodeSelect value={phoneCode} onChange={setPhoneCode} />
+                        </div>
+                        <div className="flex-1 relative">
+                          <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                          <Input
+                            id="phone"
+                            name="phone"
+                            type="tel"
+                            placeholder={t("phonePlaceholder")}
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            required
+                            className="pl-10"
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
-
                   <Button className="w-full" onClick={handleSaveProfile} disabled={loading}>
                     <Save className="h-4 w-4 mr-2" />
                     {t("saveChanges")}
