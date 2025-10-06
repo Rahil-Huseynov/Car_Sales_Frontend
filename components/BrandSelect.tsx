@@ -28,7 +28,7 @@ export default function BrandSelect({
   const { language } = useLanguage();
   const t = (key: string) => (getTranslation(language, key) as string) || key;
 
-  const LIMIT = 20;
+  const LIMIT = 10;
   const ALL_VALUE = "all";
 
   const [items, setItems] = useState<string[]>([]);
