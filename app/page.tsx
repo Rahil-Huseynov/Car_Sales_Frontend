@@ -22,13 +22,13 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { Navbar } from "@/components/navbar";
-import { useLanguage } from "@/hooks/use-language";
-import { getTranslation } from "@/lib/i18n";
+import { getTranslation, translateString } from "@/lib/i18n";
 import { apiClient } from "@/lib/api-client";
 import { useAuth } from "@/lib/auth-context";
 import { cities, colors, conditions, fuels, gearboxOptions, years } from "@/lib/car-data";
 import BrandSelect from "@/components/BrandSelect";
 import ModelSelect from "@/components/ModelSelect";
+import { useDefaultLanguage } from "@/components/useLanguage";
 
 type CarImage = { id: number; url: string };
 type UserCar = {
@@ -46,7 +46,6 @@ type UserCar = {
   gearbox?: string;
   color?: string;
   location?: string;
-  city?: string;
   description?: string;
   features?: string[];
   name?: string;
@@ -57,6 +56,39 @@ type UserCar = {
   images: CarImage[];
 };
 
+type OptionItem = {
+  key: string;
+  translations: { en: string; az: string;[k: string]: string };
+};
+
+function toOption(item: any): OptionItem {
+  if (typeof item === "string") {
+    return { key: item, translations: { en: item, az: item } };
+  }
+  const key = String(item?.key ?? item);
+  const translations = {
+    en: String(item?.translations?.en ?? item?.en ?? key),
+    az: String(item?.translations?.az ?? item?.az ?? key),
+    ...(item?.translations || {}),
+  };
+  return { key, translations };
+}
+
+function sortByLabel(list: any[] | undefined, language: string): OptionItem[] {
+  return (list ?? []).map(toOption).slice().sort((a, b) => {
+    const aa = (a.translations?.[language] ?? a.translations.en ?? a.key).toString();
+    const bb = (b.translations?.[language] ?? b.translations.en ?? b.key).toString();
+    return aa.localeCompare(bb);
+  });
+}
+
+function findTranslation(list: any[] | undefined, key: string | undefined, language: string) {
+  if (!key) return "";
+  const normalized = (list ?? []).map(toOption);
+  const found = normalized.find((o) => String(o.key) === String(key));
+  if (found) return found.translations?.[language] ?? found.translations.en ?? found.key;
+  return String(key);
+}
 function buildImageUrl(raw: string) {
   if (!raw) return "/placeholder.svg";
   if (/^https?:\/\//i.test(raw)) return raw;
@@ -67,7 +99,7 @@ function buildImageUrl(raw: string) {
   return `${base}/${path}`;
 }
 
-function CarCard({ car, t, index }: { car: UserCar; t: (k: string) => string; index: number }) {
+function CarCard({ car, t, index, language }: { car: UserCar; t: (k: string) => string; index: number; language: string }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -75,21 +107,17 @@ function CarCard({ car, t, index }: { car: UserCar; t: (k: string) => string; in
     const timer = setTimeout(() => setIsLoaded(true), index * 80);
     return () => clearTimeout(timer);
   }, [index]);
-
   const images = car.images && car.images.length > 0 ? car.images.map((i) => i.url || "/placeholder.svg") : ["/placeholder.svg"];
   const currentRaw = images[currentImageIndex] ?? "/placeholder.svg";
   const imageUrl = buildImageUrl(currentRaw);
+  const nextImage = (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); setCurrentImageIndex((p) => (p + 1) % images.length); };
+  const prevImage = (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); setCurrentImageIndex((p) => (p - 1 + images.length) % images.length); };
+  const fuelLabel = findTranslation(fuels as any[], car.fuel ?? "", language) || (car.fuel ?? "");
+  const gearboxLabel = findTranslation(gearboxOptions as any[], car.gearbox ?? "", language) || (car.gearbox ?? "");
+  const conditionLabel = findTranslation(conditions as any[], car.condition ?? "", language) || (car.condition ?? "");
+  const colorLabel = findTranslation(colors as any[], car.color ?? "", language) || (car.color ?? "");
+  const locationLabel = findTranslation(cities as any[], car.location ?? "", language) || (car.location ?? "");
 
-  const nextImage = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setCurrentImageIndex((p) => (p + 1) % images.length);
-  };
-  const prevImage = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setCurrentImageIndex((p) => (p - 1 + images.length) % images.length);
-  };
   return (
     <Card className={`overflow-hidden card-hover border-0 bg-white/90 backdrop-blur-sm transition-all duration-500 ${isLoaded ? "animate-fadeInUp opacity-100" : "opacity-0"}`} style={{ animationDelay: `${index * 0.05}s` }}>
       <div className="relative group">
@@ -130,7 +158,7 @@ function CarCard({ car, t, index }: { car: UserCar; t: (k: string) => string; in
             <h3 className="font-bold h-16 text-lg text-gray-800 break-word group-hover:text-blue-600 transition-colors duration-300">
               {car.brand} {car.model.length > 32 ? car.model.slice(0, 40) + "..." : car.model}
             </h3>
-            <p className="text-sm text-gray-600">{car.year} • {t(car.condition ?? "") || car.condition}</p>
+            <p className="text-sm text-gray-600">{car.year} • {conditionLabel}</p>
           </div>
         </div>
       </CardHeader>
@@ -138,18 +166,17 @@ function CarCard({ car, t, index }: { car: UserCar; t: (k: string) => string; in
       <CardContent className="pt-0 pb-24">
         <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-4">
           <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><Car className="h-4 w-4 text-blue-500" />{(car.mileage ?? 0).toLocaleString()} {t("km") || "km"}</div>
-          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><Fuel className="h-4 w-4 text-blue-500" />{t(car.fuel ?? "") || car.fuel}</div>
-          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><Cog className="h-4 w-4 text-blue-500" />{t(car.gearbox ?? "") || car.gearbox}</div>
-          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><MapPin className="h-4 w-4 text-blue-500" />{t(car.location ?? "") || car.location}</div>
+          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><Fuel className="h-4 w-4 text-blue-500" />{fuelLabel}</div>
+          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><Cog className="h-4 w-4 text-blue-500" />{gearboxLabel}</div>
+          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><MapPin className="h-4 w-4 text-blue-500" />{locationLabel}</div>
         </div>
         <div className="flex items-center justify-between">
-          <Badge variant="outline" className="mb-2 border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors duration-300">{t(car.color ?? "") || car.color}</Badge>
+          <Badge variant="outline" className="mb-2 border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors duration-300">{colorLabel}</Badge>
           <div className="text-right">
             <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">{(car.price ?? 0).toLocaleString()} ₼</p>
           </div>
         </div>
       </CardContent>
-
 
       <CardFooter className="absolute bottom-3 left-0 w-full gap-2 px-4">
         <Button asChild className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 btn-animate transition-all duration-300 hover:scale-105">
@@ -159,7 +186,6 @@ function CarCard({ car, t, index }: { car: UserCar; t: (k: string) => string; in
     </Card>
   );
 }
-
 export default function HomePage() {
   const { logout } = useAuth();
 
@@ -169,16 +195,13 @@ export default function HomePage() {
   const [selectedModel, setSelectedModel] = useState<string>("all");
   const [selectedYear, setSelectedYear] = useState<string>("all");
   const [selectedFuel, setSelectedFuel] = useState<string>("all");
-  const [selectedTransmission, setSelectedTransmission] = useState<string>("all");
+  const [selectedGearbox, setSelectedGearbox] = useState<string>("all");
   const [selectedCondition, setSelectedCondition] = useState<string>("all");
-  const [selectedCity, setSelectedCity] = useState<string>("all");
+  const [selectedLocation, setSelectedLocation] = useState<string>("all");
   const [selectedColor, setSelectedColor] = useState<string>("all");
   const [priceRange, setPriceRange] = useState({ min: "", max: "" });
-  const { language, changeLanguage } = useLanguage()
-  const t = (key: string): string => {
-    const val = getTranslation(language, key)
-    return typeof val === "string" ? val : key
-  }
+  const { lang, setLang } = useDefaultLanguage();
+  const t = (key: string) => translateString(lang, key);
   const [page, setPage] = useState<number>(1);
   const [limit] = useState<number>(30);
   const [totalPages, setTotalPages] = useState<number>(1);
@@ -200,10 +223,10 @@ export default function HomePage() {
         model: selectedModel !== "all" ? selectedModel : undefined,
         year: selectedYear !== "all" ? Number(selectedYear) : undefined,
         fuel: selectedFuel !== "all" ? selectedFuel : undefined,
-        transmission: selectedTransmission !== "all" ? selectedTransmission : undefined,
+        gearbox: selectedGearbox !== "all" ? selectedGearbox : undefined,
         condition: selectedCondition !== "all" ? selectedCondition : undefined,
         color: selectedColor !== "all" ? selectedColor : undefined,
-        city: selectedCity !== "all" ? selectedCity : undefined,
+        location: selectedLocation !== "all" ? selectedLocation : undefined,
         minPrice: priceRange.min ? Number(priceRange.min) : undefined,
         maxPrice: priceRange.max ? Number(priceRange.max) : undefined,
         sortBy: sortBy === "createdAt_desc" ? undefined : sortBy,
@@ -272,7 +295,7 @@ export default function HomePage() {
 
   useEffect(() => {
     fetchCarsFromApi();
-  }, [page, selectedBrand, selectedModel, selectedYear, selectedFuel, selectedTransmission, selectedCondition, selectedCity, selectedColor, priceRange.min, priceRange.max, searchTerm, sortBy]);
+  }, [page, selectedBrand, selectedModel, selectedYear, selectedFuel, selectedGearbox, selectedCondition, selectedLocation, selectedColor, priceRange.min, priceRange.max, searchTerm, sortBy]);
 
   useEffect(() => {
     fetchProfile();
@@ -282,16 +305,16 @@ export default function HomePage() {
     setSelectedModel("all");
     setPage(1);
   }, [selectedBrand]);
-  const fuelsList = fuels.slice().sort((a, b) => a.localeCompare(b));
-  const transmissionsList = gearboxOptions.slice().sort((a, b) => a.localeCompare(b));
-  const conditionsList = conditions.slice().sort((a, b) => a.localeCompare(b));
-  const colorsList = colors.slice().sort((a, b) => a.localeCompare(b));
-  const citiesList = cities.slice().sort((a, b) => a.localeCompare(b));
+  const fuelsList = sortByLabel(fuels as any[], lang);
+  const transmissionsList = sortByLabel(gearboxOptions as any[], lang);
+  const conditionsList = sortByLabel(conditions as any[], lang);
+  const colorsList = sortByLabel(colors as any[], lang);
+  const citiesList = sortByLabel(cities as any[], lang);
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="navbar-slide">
-        <Navbar currentLanguage={language} onLanguageChange={changeLanguage} />
+        <Navbar />
       </div>
       <section className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white py-12 md:py-20 relative overflow-hidden">
         <div className="container mx-auto px-4 text-center relative z-10">
@@ -323,7 +346,6 @@ export default function HomePage() {
                   />
                 </div>
 
-
                 <div>
                   <label className="text-sm font-medium mb-2 block text-gray-700">{t("model")}</label>
                   <ModelSelect
@@ -333,7 +355,6 @@ export default function HomePage() {
                     placeholder={t("all")}
                   />
                 </div>
-
 
                 <div>
                   <label className="text-sm font-medium mb-2 block text-gray-700">{t("year")}</label>
@@ -352,18 +373,26 @@ export default function HomePage() {
                     <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectFuel")} /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{t("all")}</SelectItem>
-                      {fuelsList.map((f) => <SelectItem key={f} value={f}>{t(f) ?? f}</SelectItem>)}
+                      {fuelsList.map(item => (
+                        <SelectItem key={item.key} value={item.key}>
+                          {item.translations[lang] ?? item.translations.en}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
                   <label className="text-sm font-medium mb-2 block text-gray-700">{t("transmission")}</label>
-                  <Select value={selectedTransmission} onValueChange={(v) => { setSelectedTransmission(v); setPage(1); }}>
+                  <Select value={selectedGearbox} onValueChange={(v) => { setSelectedGearbox(v); setPage(1); }}>
                     <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectTransmission")} /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{t("all")}</SelectItem>
-                      {transmissionsList.map((tr) => <SelectItem key={tr} value={tr}>{t(tr) ?? tr}</SelectItem>)}
+                      {transmissionsList.map(item => (
+                        <SelectItem key={item.key} value={item.key}>
+                          {item.translations[lang] ?? item.translations.en}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -374,18 +403,26 @@ export default function HomePage() {
                     <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectCondition")} /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{t("all")}</SelectItem>
-                      {conditionsList.map((c) => <SelectItem key={c} value={c}>{t(c) ?? c}</SelectItem>)}
+                      {conditionsList.map(item => (
+                        <SelectItem key={item.key} value={item.key}>
+                          {item.translations[lang] ?? item.translations.en}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
                   <label className="text-sm font-medium mb-2 block text-gray-700">{t("city")}</label>
-                  <Select value={selectedCity} onValueChange={(v) => { setSelectedCity(v); setPage(1); }}>
+                  <Select value={selectedLocation} onValueChange={(v) => { setSelectedLocation(v); setPage(1); }}>
                     <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectCity")} /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{t("all")}</SelectItem>
-                      {citiesList.map((c) => <SelectItem key={c} value={c}>{t(c) ?? c}</SelectItem>)}
+                      {citiesList.map(item => (
+                        <SelectItem key={item.key} value={item.key}>
+                          {item.translations[lang] ?? item.translations.en}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -396,7 +433,11 @@ export default function HomePage() {
                     <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectColor")} /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{t("all")}</SelectItem>
-                      {colorsList.map((c) => <SelectItem key={c} value={c}>{t(c) ?? c}</SelectItem>)}
+                      {colorsList.map(item => (
+                        <SelectItem key={item.key} value={item.key}>
+                          {item.translations[lang] ?? item.translations.en}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -411,7 +452,7 @@ export default function HomePage() {
 
                 <Button variant="outline" className="w-full bg-transparent border-blue-200 text-blue-600 hover:bg-blue-50 btn-animate transition-all duration-300 hover:scale-105" onClick={() => {
                   setSelectedBrand("all"); setSelectedModel("all"); setSelectedYear("all"); setSelectedFuel("all");
-                  setSelectedTransmission("all"); setSelectedCondition("all"); setSelectedCity("all"); setSelectedColor("all");
+                  setSelectedGearbox("all"); setSelectedCondition("all"); setSelectedLocation("all"); setSelectedColor("all");
                   setPriceRange({ min: "", max: "" }); setSearchTerm(""); setSortBy("createdAt_desc"); setPage(1);
                 }}>{t("clearFilters")}</Button>
               </CardContent>
@@ -443,7 +484,7 @@ export default function HomePage() {
             ) : (
               <>
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-4 md:gap-6">
-                  {cars.map((car, idx) => <CarCard key={car.id} car={car} t={t} index={idx} />)}
+                  {cars.map((car, idx) => <CarCard key={car.id} car={car} t={t} index={idx} language={lang} />)}
                 </div>
 
                 {cars.length === 0 && (

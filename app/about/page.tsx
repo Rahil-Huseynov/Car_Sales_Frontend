@@ -8,7 +8,8 @@ import { useLanguage } from "@/hooks/use-language"
 import { useEffect, useState } from "react"
 import { apiClient } from "@/lib/api-client"
 import { useAuth } from "@/lib/auth-context"
-import { getTranslation } from "@/lib/i18n"
+import { getTranslation, translateString } from "@/lib/i18n"
+import { useDefaultLanguage } from "@/components/useLanguage"
 
 type User = {
   id: number
@@ -22,10 +23,9 @@ type User = {
 
 export default function AboutPage() {
   const { language, changeLanguage } = useLanguage()
-  const t = (key: string): string => {
-    const val = getTranslation(language, key)
-    return typeof val === "string" ? val : key 
-  }
+  const { lang, setLang } = useDefaultLanguage();
+  const t = (key: string) => translateString(lang, key);
+
 
   const [profileData, setProfileData] = useState<User | null>(null)
   const { logout } = useAuth()
@@ -94,7 +94,7 @@ export default function AboutPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar currentLanguage={language} onLanguageChange={changeLanguage} />
+      <Navbar />
       <section className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white py-16">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">{t("about.title")}</h1>

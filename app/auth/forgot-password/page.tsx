@@ -12,14 +12,13 @@ import { ArrowLeft, Mail, Send, CheckCircle, AlertCircle } from "lucide-react"
 import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 import { useLanguage } from "@/hooks/use-language"
-import { getTranslation } from "@/lib/i18n"
+import { getTranslation, translateString } from "@/lib/i18n"
+import { useDefaultLanguage } from "@/components/useLanguage"
 
 export default function ForgotPasswordPage() {
-  const { language, changeLanguage } = useLanguage()
-  const t = (key: string): string => {
-    const val = getTranslation(language, key)
-    return typeof val === "string" ? val : key 
-  }
+  const { lang, setLang } = useDefaultLanguage();
+  const t = (key: string) => translateString(lang, key);
+
 
   const [email, setEmail] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -51,7 +50,7 @@ export default function ForgotPasswordPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="navbar-slide">
-        <Navbar currentLanguage={language} onLanguageChange={changeLanguage} />
+        <Navbar />
       </div>
       <section className="bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 text-white py-12 md:py-16 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-orange-400/10 to-transparent"></div>

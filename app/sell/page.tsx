@@ -10,19 +10,29 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Upload, Car, User, X, Plus, Camera, ImageIcon, Phone } from "lucide-react"
+import { Upload, Car, X, Plus, Camera, ImageIcon } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { useLanguage } from "@/hooks/use-language"
-import { getTranslation } from "@/lib/i18n"
+import { getTranslation, translateString } from "@/lib/i18n"
 import { apiClient } from "@/lib/api-client"
 import { useAuth } from "@/lib/auth-context"
-import { bodyTypes, cities, colors, conditions, engineOptions, features, fuels, gearboxOptions, years } from "@/lib/car-data"
-import CountryCodeSelect from "@/components/CountryCodeSelect"
+import {
+  bodyTypes,
+  cities,
+  colors,
+  conditions,
+  engineOptions,
+  features,
+  fuels,
+  gearboxOptions,
+  years,
+} from "@/lib/car-data"
 import { ToastContainer, toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import BrandSelect from "@/components/BrandSelect"
 import ModelSelect from "@/components/ModelSelect"
-import { useDebouncedCallback } from 'use-debounce';
+import { useDebouncedCallback } from "use-debounce"
+import { useDefaultLanguage } from "@/components/useLanguage"
 
 type UserType = {
   id: number
@@ -39,15 +49,20 @@ type ImageItem = {
   file: File
 }
 
+export type FeatureOption = {
+  key: string
+  translations: { [lang: string]: string } & { en: string }
+}
+
 export const VirtualScrollFeatures = ({
   features,
   selectedFeatures,
   onFeatureChange,
-  language
+  language,
 }: {
-  features: string[]
+  features: FeatureOption[]
   selectedFeatures: string[]
-  onFeatureChange: (feature: string, checked: boolean) => void
+  onFeatureChange: (featureKey: string, checked: boolean) => void
   language: string
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null)
@@ -60,10 +75,12 @@ export const VirtualScrollFeatures = ({
 
   const filteredFeatures = useMemo(() => {
     if (!searchTerm) return features
-    return features.filter((feature) =>
-      feature.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  }, [features, searchTerm])
+    const q = searchTerm.trim().toLowerCase()
+    return features.filter((feature) => {
+      const label = (feature.translations?.[language] ?? feature.translations.en ?? feature.key).toString().toLowerCase()
+      return label.includes(q) || feature.key.toLowerCase().includes(q)
+    })
+  }, [features, searchTerm, language])
 
   const totalRows = Math.ceil(filteredFeatures.length / columns)
 
@@ -77,10 +94,7 @@ export const VirtualScrollFeatures = ({
     const buffer = 4
 
     const newStart = Math.max(0, startRow * columns - buffer * columns)
-    const newEnd = Math.min(
-      filteredFeatures.length,
-      (startRow + visibleRows + buffer) * columns
-    )
+    const newEnd = Math.min(filteredFeatures.length, (startRow + visibleRows + buffer) * columns)
 
     setVisibleRange({ start: newStart, end: newEnd })
   }, [filteredFeatures.length])
@@ -107,26 +121,17 @@ export const VirtualScrollFeatures = ({
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
       />
-      <div
-        ref={containerRef}
-        className="border rounded-lg overflow-auto bg-gray-50"
-        style={{ height: "400px", position: "relative" }}
-      >
-        <div
-          style={{
-            height: `${totalRows * itemHeight}px`,
-            width: `${columns * itemWidth}px`,
-            position: "relative",
-          }}
-        >
+      <div ref={containerRef} className="border rounded-lg overflow-auto bg-gray-50" style={{ height: "400px", position: "relative" }}>
+        <div style={{ height: `${totalRows * itemHeight}px`, width: `${columns * itemWidth}px`, position: "relative" }}>
           {visibleFeatures.map((feature, i) => {
             const idx = visibleRange.start + i
             const row = Math.floor(idx / columns)
             const col = idx % columns
+            const label = (feature.translations?.[language] ?? feature.translations.en ?? feature.key).toString()
 
             return (
               <div
-                key={feature + "-" + idx}
+                key={feature.key + "-" + idx}
                 className="flex items-center space-x-2 p-2 hover:bg-white rounded-lg transition-colors absolute"
                 style={{
                   top: `${row * itemHeight}px`,
@@ -138,16 +143,11 @@ export const VirtualScrollFeatures = ({
               >
                 <Checkbox
                   id={`feature-${idx}`}
-                  checked={selectedFeatures.includes(feature)}
-                  onCheckedChange={(checked) =>
-                    onFeatureChange(feature, checked as boolean)
-                  }
+                  checked={selectedFeatures.includes(feature.key)}
+                  onCheckedChange={(checked) => onFeatureChange(feature.key, checked as boolean)}
                 />
-                <Label
-                  htmlFor={`feature-${idx}`}
-                  className="text-sm flex-1 cursor-pointer select-none"
-                >
-                  {feature}
+                <Label htmlFor={`feature-${idx}`} className="text-sm flex-1 cursor-pointer select-none">
+                  {label}
                 </Label>
               </div>
             )
@@ -159,14 +159,13 @@ export const VirtualScrollFeatures = ({
 }
 
 export default function SellPage() {
-
   const router = useRouter()
   const { logout } = useAuth()
-  const [page, setPage] = useState<number>(1);
+  const [page, setPage] = useState<number>(1)
   const [profileData, setProfileData] = useState<UserType | null>(null)
   const [loadingProfile, setLoadingProfile] = useState(true)
-  const [selectedBrand, setSelectedBrand] = useState<string>("all");
-  const [selectedModel, setSelectedModel] = useState<string>("all");
+  const [selectedBrand, setSelectedBrand] = useState<string>("all")
+  const [selectedModel, setSelectedModel] = useState<string>("all")
   const [formData, setFormData] = useState({
     brand: "",
     model: "",
@@ -184,18 +183,15 @@ export default function SellPage() {
     description: "",
     features: [] as string[],
     userId: profileData?.id ?? null,
-    status: ""
+    status: "",
   })
-  const [descriptionText, setDescriptionText] = useState(formData.description || "");
+  const [descriptionText, setDescriptionText] = useState(formData.description || "")
   const debounced = useDebouncedCallback((value: string) => {
-    setFormData((p) => ({ ...p, description: value }));
-  }, 1);
+    setFormData((p) => ({ ...p, description: value }))
+  }, 300)
 
-  const { language, changeLanguage } = useLanguage()
-  const t = (key: string): string => {
-    const val = getTranslation(language, key)
-    return typeof val === "string" ? val : key
-  }
+  const { lang, setLang } = useDefaultLanguage();
+  const t = (key: string) => translateString(lang, key);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -211,8 +207,6 @@ export default function SellPage() {
     fetchUser()
   }, [logout])
 
-
-
   const [images, setImages] = useState<ImageItem[]>([])
 
   useEffect(() => {
@@ -226,11 +220,11 @@ export default function SellPage() {
     }
   }, [profileData])
 
-  const handleFeatureChange = useCallback((feature: string, checked: boolean) => {
+  const handleFeatureChange = useCallback((featureKey: string, checked: boolean) => {
     setFormData((prev) => {
       const s = new Set(prev.features)
-      if (checked) s.add(feature)
-      else s.delete(feature)
+      if (checked) s.add(featureKey)
+      else s.delete(featureKey)
       return { ...prev, features: Array.from(s) }
     })
   }, [])
@@ -279,7 +273,9 @@ export default function SellPage() {
     setImages((prev) => {
       const toRemove = prev.find((p) => p.id === id)
       if (toRemove) {
-        try { URL.revokeObjectURL(toRemove.url) } catch { }
+        try {
+          URL.revokeObjectURL(toRemove.url)
+        } catch { }
       }
       return prev.filter((img) => img.id !== id)
     })
@@ -295,17 +291,17 @@ export default function SellPage() {
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
 
-    const brandVal = (formData.brand || "").toString().trim() || (selectedBrand && selectedBrand !== "all" ? selectedBrand : "");
-    const modelVal = (formData.model || "").toString().trim() || (selectedModel && selectedModel !== "all" ? selectedModel : "");
-    const yearVal = (formData.year || "").toString().trim();
-    const priceVal = (formData.price || "").toString().trim();
-    const mileageVal = (formData.mileage || "").toString().trim();
+    const brandVal = (formData.brand || "").toString().trim() || (selectedBrand && selectedBrand !== "all" ? selectedBrand : "")
+    const modelVal = (formData.model || "").toString().trim() || (selectedModel && selectedModel !== "all" ? selectedModel : "")
+    const yearVal = (formData.year || "").toString().trim()
+    const priceVal = (formData.price || "").toString().trim()
+    const mileageVal = (formData.mileage || "").toString().trim()
 
     if (!brandVal || !modelVal || !yearVal || !priceVal || !mileageVal) {
       toast.warn(t("fillRequired"), { position: "top-right", autoClose: 3000 })
-      return;
+      return
     }
     const priceNum = Number(priceVal)
     const mileageNum = Number(mileageVal)
@@ -331,10 +327,10 @@ export default function SellPage() {
         location: formData.location || null,
         engine: formData.engine || null,
         gearbox: formData.gearbox || null,
-        description: descriptionText,
+        description: descriptionText || formData.description,
         features: formData.features || [],
         userId: formData.userId,
-        status: "Standart"
+        status: "Standart",
       }
 
       const userCar = await apiClient.addcardata(payload)
@@ -357,7 +353,6 @@ export default function SellPage() {
     }
   }
 
-
   return (
     <div className="min-h-screen bg-gray-50">
       <style jsx global>{`
@@ -371,18 +366,8 @@ export default function SellPage() {
         }
       `}</style>
 
-      <Navbar currentLanguage={language} onLanguageChange={changeLanguage} />
-      <ToastContainer
-        position="top-right"
-        autoClose={4000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
+      <Navbar />
+      <ToastContainer position="top-right" autoClose={4000} />
 
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
@@ -401,42 +386,44 @@ export default function SellPage() {
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <div>
-                    <label className="text-sm font-medium mb-2 block text-gray-700">{t("brand")}</label>
-                    <BrandSelect
-                      value={selectedBrand}
-                      onChange={(v) => {
-                        setSelectedBrand(v);
-                        setSelectedModel("all");
-                        setFormData((p) => ({ ...p, brand: v === "all" ? "" : v, model: "" }));
-                        setPage(1);
-                      }}
-                      placeholder={t("all")}
-                    />
-                  </div>
+                  <label className="text-sm font-medium mb-2 block text-gray-700">{t("brand")}</label>
+                  <BrandSelect
+                    value={selectedBrand}
+                    onChange={(v) => {
+                      setSelectedBrand(v)
+                      setSelectedModel("all")
+                      setFormData((p) => ({ ...p, brand: v === "all" ? "" : v, model: "" }))
+                      setPage(1)
+                    }}
+                    placeholder={t("all")}
+                  />
                 </div>
+
                 <div>
                   <label className="text-sm font-medium mb-2 block text-gray-700">{t("model")}</label>
                   <ModelSelect
                     value={selectedModel}
                     brand={selectedBrand}
                     onChange={(v) => {
-                      setSelectedModel(v);
-                      setFormData((p) => ({ ...p, model: v === "all" ? "" : v }));
-                      setPage(1);
+                      setSelectedModel(v)
+                      setFormData((p) => ({ ...p, model: v === "all" ? "" : v }))
+                      setPage(1)
                     }}
                     placeholder={t("all")}
                   />
                 </div>
+
                 <div>
                   <Label htmlFor="year">{t("year")}</Label>
-                  <Select value={formData.year} onValueChange={(v) => setFormData((p) => ({ ...p, year: v }))} required>
+                  <Select value={String(formData.year ?? "")} onValueChange={(v) => setFormData((p) => ({ ...p, year: v }))} required>
                     <SelectTrigger>
                       <SelectValue placeholder={t("selectYear")} />
                     </SelectTrigger>
                     <SelectContent>
                       {years.map((yr) => (
-                        <SelectItem key={yr} value={String(yr)}>{yr}</SelectItem>
+                        <SelectItem key={yr} value={String(yr)}>
+                          {yr}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -454,14 +441,14 @@ export default function SellPage() {
 
                 <div>
                   <Label htmlFor="fuel">{t("fuel")}</Label>
-                  <Select value={formData.fuel} onValueChange={(v) => setFormData((p) => ({ ...p, fuel: v }))} required>
+                  <Select value={formData.fuel ?? ""} onValueChange={(v) => setFormData((p) => ({ ...p, fuel: v }))} required>
                     <SelectTrigger>
                       <SelectValue placeholder={t("selectFuel")} />
                     </SelectTrigger>
                     <SelectContent>
-                      {fuels.map(fuel => (
+                      {fuels.map((fuel) => (
                         <SelectItem key={fuel.key} value={fuel.key}>
-                          {fuel.translations[language]}
+                          {fuel.translations[lang] ?? fuel.translations.en}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -470,14 +457,14 @@ export default function SellPage() {
 
                 <div>
                   <Label htmlFor="condition">{t("condition")}</Label>
-                  <Select value={formData.condition} onValueChange={(v) => setFormData((p) => ({ ...p, condition: v }))} required>
+                  <Select value={formData.condition ?? ""} onValueChange={(v) => setFormData((p) => ({ ...p, condition: v }))} required>
                     <SelectTrigger>
                       <SelectValue placeholder={t("selectCondition")} />
                     </SelectTrigger>
                     <SelectContent>
-                      {conditions.map(conditions => (
-                        <SelectItem key={conditions.key} value={conditions.key}>
-                          {conditions.translations[language]}
+                      {conditions.map((c) => (
+                        <SelectItem key={c.key} value={c.key}>
+                          {c.translations[lang] ?? c.translations.en}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -486,14 +473,14 @@ export default function SellPage() {
 
                 <div>
                   <Label htmlFor="color">{t("color")}</Label>
-                  <Select value={formData.color} onValueChange={(v) => setFormData((p) => ({ ...p, color: v }))} required>
+                  <Select value={formData.color ?? ""} onValueChange={(v) => setFormData((p) => ({ ...p, color: v }))} required>
                     <SelectTrigger>
                       <SelectValue placeholder={t("selectColor")} />
                     </SelectTrigger>
                     <SelectContent>
-                      {colors.map(colors => (
-                        <SelectItem key={colors.key} value={colors.key}>
-                          {colors.translations[language]}
+                      {colors.map((c) => (
+                        <SelectItem key={c.key} value={c.key}>
+                          {c.translations[lang] ?? c.translations.en}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -502,14 +489,14 @@ export default function SellPage() {
 
                 <div>
                   <Label htmlFor="ban">{t("ban")}</Label>
-                  <Select value={formData.ban} onValueChange={(v) => setFormData((p) => ({ ...p, ban: v }))}>
+                  <Select value={formData.ban ?? ""} onValueChange={(v) => setFormData((p) => ({ ...p, ban: v }))}>
                     <SelectTrigger>
                       <SelectValue placeholder={t("selectBan")} />
                     </SelectTrigger>
                     <SelectContent>
-                      {bodyTypes.map(bodyTypes => (
-                        <SelectItem key={bodyTypes.key} value={bodyTypes.key}>
-                          {bodyTypes.translations[language]}
+                      {bodyTypes.map((b) => (
+                        <SelectItem key={b.key} value={b.key}>
+                          {b.translations[lang] ?? b.translations.en}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -518,14 +505,14 @@ export default function SellPage() {
 
                 <div>
                   <Label htmlFor="engine">{t("engine")}</Label>
-                  <Select value={formData.engine} onValueChange={(v) => setFormData((p) => ({ ...p, engine: v }))}>
+                  <Select value={formData.engine ?? ""} onValueChange={(v) => setFormData((p) => ({ ...p, engine: v }))}>
                     <SelectTrigger>
                       <SelectValue placeholder={t("selectEngine")} />
                     </SelectTrigger>
                     <SelectContent>
-                      {engineOptions.map(engineOptions => (
-                        <SelectItem key={engineOptions.key} value={engineOptions.key}>
-                          {engineOptions.translations[language]}
+                      {engineOptions.map((eng) => (
+                        <SelectItem key={eng.key} value={eng.key}>
+                          {eng.translations[lang] ?? eng.translations.en}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -534,14 +521,14 @@ export default function SellPage() {
 
                 <div>
                   <Label htmlFor="gearbox">{t("gearbox")}</Label>
-                  <Select value={formData.gearbox} onValueChange={(v) => setFormData((p) => ({ ...p, gearbox: v }))}>
+                  <Select value={formData.gearbox ?? ""} onValueChange={(v) => setFormData((p) => ({ ...p, gearbox: v }))}>
                     <SelectTrigger>
                       <SelectValue placeholder={t("selectGearbox")} />
                     </SelectTrigger>
                     <SelectContent>
-                      {gearboxOptions.map(gearboxOptions => (
-                        <SelectItem key={gearboxOptions.key} value={gearboxOptions.key}>
-                          {gearboxOptions.translations[language]}
+                      {gearboxOptions.map((g) => (
+                        <SelectItem key={g.key} value={g.key}>
+                          {g.translations[lang] ?? g.translations.en}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -550,18 +537,19 @@ export default function SellPage() {
 
                 <div>
                   <Label htmlFor="city">{t("city")}</Label>
-                  <Select value={formData.location} onValueChange={(v) => setFormData((p) => ({ ...p, location: v }))} required>
+                  <Select value={formData.location ?? ""} onValueChange={(v) => setFormData((p) => ({ ...p, location: v }))} required>
                     <SelectTrigger>
                       <SelectValue placeholder={t("selectCity")} />
                     </SelectTrigger>
                     <SelectContent>
                       {cities.map((c) => (
-                        <SelectItem key={c} value={c}>{t(c) ?? c}</SelectItem>
+                        <SelectItem key={c.key} value={c.key}>
+                          {c.translations[lang] ?? c.translations.en}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-
               </CardContent>
             </Card>
 
@@ -570,12 +558,7 @@ export default function SellPage() {
                 <CardTitle>{t("features")}</CardTitle>
               </CardHeader>
               <CardContent>
-                <VirtualScrollFeatures
-                  features={features.map(f => f.translations[language])}
-                  selectedFeatures={formData.features}
-                  onFeatureChange={handleFeatureChange}
-                  language={language}
-                />
+                <VirtualScrollFeatures features={features as FeatureOption[]} selectedFeatures={formData.features} onFeatureChange={handleFeatureChange} language={lang} />
               </CardContent>
             </Card>
 
@@ -598,16 +581,16 @@ export default function SellPage() {
                       <Plus className="h-4 w-4 mr-2" />
                       {t("chooseImages")}
                     </Button>
-                    {images.length >= 10 && (
-                      <p className="text-sm text-orange-600 mt-2">{t("maxImages")}</p>
-                    )}
+                    {images.length >= 10 && <p className="text-sm text-orange-600 mt-2">{t("maxImages")}</p>}
                   </div>
 
                   <div>
                     <div className="flex items-center gap-2 mb-4">
                       <ImageIcon className="h-5 w-5 text-gray-600" />
                       <h3 className="text-lg font-semibold text-gray-800">{t("uploadedImages")}</h3>
-                      <Badge variant="outline" className="ml-auto">{images.length}/10</Badge>
+                      <Badge variant="outline" className="ml-auto">
+                        {images.length}/10
+                      </Badge>
                     </div>
 
                     {images.length === 0 ? (
@@ -625,21 +608,23 @@ export default function SellPage() {
                               <Button type="button" size="icon" variant="destructive" className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => removeImage(image.id)}>
                                 <X className="h-4 w-4" />
                               </Button>
-                              {index === 0 && (
-                                <div className="absolute top-2 left-2 bg-blue-600 text-white px-2 py-1 rounded text-xs font-medium">{t("mainImage")}</div>
-                              )}
+                              {index === 0 && <div className="absolute top-2 left-2 bg-blue-600 text-white px-2 py-1 rounded text-xs font-medium">{t("mainImage")}</div>}
                               <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">{index + 1}/10</div>
                             </div>
                             <div className="p-3">
                               <p className="text-sm font-medium text-gray-800 truncate">{image.name}</p>
                               <div className="flex items-center justify-between mt-2">
-                                <p className="text-xs text-gray-500">{index === 0 ? t("mainImage") || (language === "az" ? "Əsas şəkil" : "Main image") : `${t("image") || (language === "az" ? "Şəkil" : "Image")} ${index + 1}`}</p>
+                                <p className="text-xs text-gray-500">{index === 0 ? t("mainImage") : `${t("image")} ${index + 1}`}</p>
                                 <div className="flex gap-1">
                                   {index > 0 && (
-                                    <Button type="button" size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => moveImage(index, index - 1)}>←</Button>
+                                    <Button type="button" size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => moveImage(index, index - 1)}>
+                                      ←
+                                    </Button>
                                   )}
                                   {index < images.length - 1 && (
-                                    <Button type="button" size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => moveImage(index, index + 1)}>→</Button>
+                                    <Button type="button" size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => moveImage(index, index + 1)}>
+                                      →
+                                    </Button>
                                   )}
                                 </div>
                               </div>
@@ -658,20 +643,18 @@ export default function SellPage() {
                 <CardTitle>{t("description")}</CardTitle>
               </CardHeader>
               <CardContent>
-                <Textarea
-                  className="resize-none h-[200px]"
-                  value={formData.description}
-                  onChange={(e) => debounced(e.target.value)}
-                  placeholder="Description..."
-                  rows={4}
-                />
+                <Textarea className="resize-none h-[200px]" value={formData.description} onChange={(e) => {
+                  setFormData((p) => ({ ...p, description: e.target.value }))
+                  debounced(e.target.value)
+                }} placeholder="Description..." rows={4} />
               </CardContent>
             </Card>
 
             <div className="text-center">
-              <Button type="submit" size="lg" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 px-8">{t("postAds")}</Button>
+              <Button type="submit" size="lg" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 px-8">
+                {t("postAds")}
+              </Button>
             </div>
-
           </form>
         </div>
       </div>

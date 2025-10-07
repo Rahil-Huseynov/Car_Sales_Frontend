@@ -10,8 +10,9 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { apiClient } from "@/lib/api-client"
 import { useAuth } from "@/lib/auth-context"
-import { getTranslation } from "@/lib/i18n"
+import { getTranslation, translateString } from "@/lib/i18n"
 import { useLanguage } from "@/hooks/use-language"
+import { useDefaultLanguage } from "@/components/useLanguage"
 
 type CarImage = {
   id: number
@@ -61,10 +62,9 @@ export default function ProfilePage() {
   const [favoriteCars, setFavoriteCars] = useState<UserCar[]>([])
   const { logout } = useAuth()
   const { language } = useLanguage()
-  const t = (key: string): string => {
-    const val = getTranslation(language, key)
-    return typeof val === "string" ? val : key
-  }
+  const { lang, setLang } = useDefaultLanguage();
+  const t = (key: string) => translateString(lang, key);
+
   const locale = language || "en-US"
 
   useEffect(() => {

@@ -10,12 +10,13 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Settings, User, Shield, Save, Eye, EyeOff, Phone } from "lucide-react"
 import { useLanguage } from "@/hooks/use-language"
-import { getTranslation } from "@/lib/i18n"
+import { getTranslation, translateString } from "@/lib/i18n"
 import apiClient from "@/lib/api-client"
 import { ToastContainer, toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import { useAuth } from "@/lib/auth-context"
 import CountryCodeSelect from "@/components/CountryCodeSelect"
+import { useDefaultLanguage } from "@/components/useLanguage"
 
 type User = {
   id: number
@@ -43,13 +44,11 @@ export default function SettingsPage() {
   const [confirmPassword, setConfirmPassword] = useState("")
   const [profileData, setProfileData] = useState<User | null>(null)
   const { logout } = useAuth()
-  const { language } = useLanguage()
   const [phoneCode, setPhoneCode] = useState<string>("")
-  const t = (key: string): string => {
-    const val = getTranslation(language, key)
-    return typeof val === "string" ? val : key
-  }
-  const locale = language || "en-US"
+  const { lang, setLang } = useDefaultLanguage();
+  const t = (key: string) => translateString(lang, key);
+
+  const locale = lang || "en-US"
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -70,7 +69,7 @@ export default function SettingsPage() {
       }
     }
     fetchUser()
-  }, [logout, language])
+  }, [logout, lang])
 
   useEffect(() => {
     if (profileData) {

@@ -8,6 +8,7 @@ import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 import { useLanguage } from "@/hooks/use-language"
 import { translateString,translations } from "@/lib/i18n"
+import { useDefaultLanguage } from "@/components/useLanguage"
 
 interface TermsSection {
   title: string
@@ -20,8 +21,8 @@ interface TermsData {
 }
 
 export default function TermsPage() {
-  const { language, changeLanguage } = useLanguage()
-  const t = (key: string) => translateString(language, key)
+ const { lang, setLang } = useDefaultLanguage();
+  const t = (key: string) => translateString(lang, key);
 
   const [isLoading, setIsLoading] = useState(true)
 
@@ -30,8 +31,8 @@ export default function TermsPage() {
     return () => clearTimeout(timer)
   }, [])
 
-  const termsDataRaw = translateString(language, "termsitem")
-  const termsData = translations[language]["termsitem"] as
+  const termsDataRaw = translateString(lang, "termsitem")
+  const termsData = translations[lang]["termsitem"] as
     | { lastUpdated?: string; sections?: { title: string; content: string }[] }
     | undefined
 
@@ -41,7 +42,7 @@ export default function TermsPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navbar currentLanguage={language} onLanguageChange={changeLanguage} />
+        <Navbar />
         <div className="container mx-auto px-4 py-8">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-300 rounded w-1/3 mb-6"></div>
@@ -66,7 +67,7 @@ export default function TermsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="navbar-slide">
-        <Navbar currentLanguage={language} onLanguageChange={changeLanguage} />
+        <Navbar />
       </div>
       <section className="bg-gradient-to-br from-indigo-500 via-indigo-600 to-indigo-700 text-white py-12 md:py-16 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-400/10 to-transparent"></div>

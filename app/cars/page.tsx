@@ -36,8 +36,9 @@ import {
 } from "@/lib/car-data"
 import BrandSelect from "@/components/BrandSelect"
 import ModelSelect from "@/components/ModelSelect"
-import { getTranslation } from "@/lib/i18n"
+import { getTranslation, translateString } from "@/lib/i18n"
 import { useLanguage } from "@/hooks/use-language"
+import { useDefaultLanguage } from "@/components/useLanguage"
 
 type CarImage = { id: number; url: string } | string
 type UserCar = {
@@ -48,7 +49,7 @@ type UserCar = {
   price?: number
   mileage?: number
   fuel?: string
-  transmission?: string
+  gearbox?: string
   condition?: string
   color?: string
   location?: string
@@ -56,6 +57,11 @@ type UserCar = {
   images?: CarImage[]
   featured?: boolean
   [k: string]: any
+}
+
+type OptionItem = {
+  key: string
+  translations: { en: string; az: string;[k: string]: string }
 }
 
 const itemsPerPage = 30
@@ -69,7 +75,54 @@ function buildQuery(params: Record<string, any>) {
   return q.toString()
 }
 
-function CarCard({ car, t }: { car: UserCar; t: (k: string) => string }) {
+function toOption(item: any): OptionItem {
+  if (typeof item === "string") {
+    return { key: item, translations: { en: item, az: item } }
+  }
+  const key = String(item?.key ?? item)
+  const translations = {
+    en: String(item?.translations?.en ?? item?.en ?? key),
+    az: String(item?.translations?.az ?? item?.az ?? key),
+    ...(item?.translations || {}),
+  }
+  return { key, translations }
+}
+
+function sortByLabel(list: any[] | undefined, language: string): OptionItem[] {
+  return (list ?? []).map(toOption).slice().sort((a, b) => {
+    const aa = (a.translations?.[language] ?? a.translations.en ?? a.key).toString()
+    const bb = (b.translations?.[language] ?? b.translations.en ?? b.key).toString()
+    return aa.localeCompare(bb)
+  })
+}
+
+function findTranslation(list: any[] | undefined, key: string | undefined | null, language: string) {
+  if (!key) return ""
+  const normalized = (list ?? []).map(toOption)
+  const found = normalized.find((o) => String(o.key) === String(key))
+  if (found) return found.translations?.[language] ?? found.translations.en ?? found.key
+  return String(key)
+}
+
+function CarCard({
+  car,
+  t,
+  language,
+  fuelsList,
+  transmissionsList,
+  conditionsList,
+  colorsList,
+  citiesList,
+}: {
+  car: UserCar
+  t: (k: string) => string
+  language: string
+  fuelsList: OptionItem[]
+  transmissionsList: OptionItem[]
+  conditionsList: OptionItem[]
+  colorsList: OptionItem[]
+  citiesList: OptionItem[]
+}) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const { logout } = useAuth()
   const imageUrls = (car.images ?? []).map((img) => (typeof img === "string" ? img : img?.url ?? "/placeholder.svg"))
@@ -83,6 +136,12 @@ function CarCard({ car, t }: { car: UserCar; t: (k: string) => string }) {
     e.stopPropagation()
     setCurrentImageIndex((prev) => (prev - 1 + Math.max(1, imageUrls.length)) % Math.max(1, imageUrls.length))
   }
+
+  const fuelLabel = findTranslation(fuelsList, car.fuel ?? "", language) || (car.fuel ?? "")
+  const gearboxLabel = findTranslation(transmissionsList, car.gearbox ?? "", language) || (car.gearbox ?? "")
+  const conditionLabel = findTranslation(conditionsList, car.condition ?? "", language) || (car.condition ?? "")
+  const colorLabel = findTranslation(colorsList, car.color ?? "", language) || (car.color ?? "")
+  const locationLabel = findTranslation(citiesList, car.location ?? car.city ?? "", language) || (car.location ?? car.city ?? "")
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow">
@@ -125,12 +184,11 @@ function CarCard({ car, t }: { car: UserCar; t: (k: string) => string }) {
           {imageUrls.map((_, index) => (
             <button
               key={index}
-              className={`w-2 h-2 rounded-full transition-all ${index === currentImageIndex ? "bg-white" : "bg-white/50"
-                }`}
+              className={`w-2 h-2 rounded-full transition-all ${index === currentImageIndex ? "bg-white" : "bg-white/50"}`}
               onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setCurrentImageIndex(index);
+                e.preventDefault()
+                e.stopPropagation()
+                setCurrentImageIndex(index)
               }}
             />
           ))}
@@ -146,8 +204,8 @@ function CarCard({ car, t }: { car: UserCar; t: (k: string) => string }) {
           variant="ghost"
           className="absolute top-2 right-2 bg-white/80 hover:bg-white z-10"
           onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
+            e.preventDefault()
+            e.stopPropagation()
           }}
         >
           <Heart className="h-4 w-4" />
@@ -159,12 +217,10 @@ function CarCard({ car, t }: { car: UserCar; t: (k: string) => string }) {
           <div>
             <h3 className="font-bold h-16 text-lg text-gray-800 break-word group-hover:text-blue-600 transition-colors duration-300">
               {car.brand}{" "}
-              {car.model?.length && car.model.length > 32
-                ? car.model.slice(0, 40) + "..."
-                : car.model ?? ""}
+              {car.model?.length && car.model.length > 32 ? car.model.slice(0, 40) + "..." : car.model ?? ""}
             </h3>
             <p className="text-sm text-gray-600">
-              {car.year} • {t(car.condition ?? "") || car.condition}
+              {car.year} • {conditionLabel}
             </p>
           </div>
         </div>
@@ -178,15 +234,15 @@ function CarCard({ car, t }: { car: UserCar; t: (k: string) => string }) {
           </div>
           <div className="flex items-center gap-1">
             <Fuel className="h-4 w-4" />
-            {t(car.fuel ?? "") || car.fuel}
+            {fuelLabel}
           </div>
           <div className="flex items-center gap-1">
             <Cog className="h-4 w-4" />
-            {t(car.gearbox ?? "") || car.gearbox}
+            {gearboxLabel}
           </div>
           <div className="flex items-center gap-1">
             <MapPin className="h-4 w-4" />
-            {t(car.location ?? "") || car.location}
+            {locationLabel}
           </div>
         </div>
 
@@ -195,7 +251,7 @@ function CarCard({ car, t }: { car: UserCar; t: (k: string) => string }) {
             variant="outline"
             className="mb-2 border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors duration-300"
           >
-            {t(car.color ?? "") || car.color}
+            {colorLabel}
           </Badge>
           <div className="text-right">
             <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
@@ -216,48 +272,46 @@ function CarCard({ car, t }: { car: UserCar; t: (k: string) => string }) {
           </Link>
         </Button>
       </CardFooter>
-
     </Card>
-
   )
 }
+
 export default function CarsPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedBrand, setSelectedBrand] = useState("all")
   const [selectedYear, setSelectedYear] = useState("all")
   const [selectedFuel, setSelectedFuel] = useState("all")
-  const [selectedTransmission, setSelectedTransmission] = useState("all")
+  const [selectedGearbox, setSelectedGearbox] = useState("all")
   const [selectedCondition, setSelectedCondition] = useState("all")
   const [priceRange, setPriceRange] = useState({ min: "", max: "" })
   const [selectedModel, setSelectedModel] = useState("all")
-  const [selectedCity, setSelectedCity] = useState("all")
+  const [selectedLocation, setSelectedLocation] = useState("all")
   const [selectedColor, setSelectedColor] = useState("all")
   const [sortBy, setSortBy] = useState("newest")
   const [currentPage, setCurrentPage] = useState(1)
   const [showFilters, setShowFilters] = useState(false)
-  const [page, setPage] = useState<number>(1);
   const [cars, setCars] = useState<UserCar[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [totalCount, setTotalCount] = useState<number | null>(null)
   const [totalPagesFromServer, setTotalPagesFromServer] = useState<number | null>(null)
   const [isServerPagination, setIsServerPagination] = useState(false)
+  const { lang, setLang } = useDefaultLanguage();
+  const t = (key: string) => translateString(lang, key);
+
+
   const years = useMemo(() => (Array.isArray(yearsStatic) ? yearsStatic.slice() : []), [])
-  const fuels = useMemo(() => (Array.isArray(fuelsStatic) ? fuelsStatic.slice() : []), [])
-  const transmissions = useMemo(() => (Array.isArray(gearboxStatic) ? gearboxStatic.slice() : []), [])
-  const conditions = useMemo(() => (Array.isArray(conditionsStatic) ? conditionsStatic.slice() : []), [])
-  const colors = useMemo(() => (Array.isArray(colorsStatic) ? colorsStatic.slice() : []), [])
-  const cities = useMemo(() => (Array.isArray(citiesStatic) ? citiesStatic.slice() : []), [])
-  const { language, changeLanguage } = useLanguage()
-  const t = (key: string): string => {
-    const val = getTranslation(language, key)
-    return typeof val === "string" ? val : key
-  }
+  const fuelsList = useMemo(() => sortByLabel(fuelsStatic as any[], lang), [lang])
+  const transmissionsList = useMemo(() => sortByLabel(gearboxStatic as any[], lang), [lang])
+  const conditionsList = useMemo(() => sortByLabel(conditionsStatic as any[], lang), [lang])
+  const colorsList = useMemo(() => sortByLabel(colorsStatic as any[], lang), [lang])
+  const citiesList = useMemo(() => sortByLabel(citiesStatic as any[], lang), [lang])
 
   useEffect(() => {
     setSelectedModel("all")
     setCurrentPage(1)
   }, [selectedBrand])
+
   const fetchCars = async () => {
     setLoading(true)
     setError(null)
@@ -271,13 +325,14 @@ export default function CarsPage() {
       if (selectedModel !== "all") params.model = selectedModel
       if (selectedYear !== "all") params.year = Number(selectedYear)
       if (selectedFuel !== "all") params.fuel = selectedFuel
-      if (selectedTransmission !== "all") params.transmission = selectedTransmission
+      if (selectedGearbox !== "all") params.gearbox = selectedGearbox
       if (selectedCondition !== "all") params.status = selectedCondition
-      if (selectedCity !== "all") params.city = selectedCity
+      if (selectedLocation !== "all") params.location = selectedLocation
       if (selectedColor !== "all") params.color = selectedColor
       if (priceRange.min) params.minPrice = Number(priceRange.min)
       if (priceRange.max) params.maxPrice = Number(priceRange.max)
       if (sortBy) params.sortBy = sortBy
+
       let resp: any = null
       if (apiClient?.getAllCars) {
         resp = await apiClient.getAllCars(params)
@@ -286,6 +341,7 @@ export default function CarsPage() {
         const r = await fetch(`/car/all?${qs}`)
         resp = await r.json()
       }
+
       const normalizeCars = (raw: any) => {
         if (!raw) return { cars: [], total: null, totalPages: null, page: null }
         if (Array.isArray(raw)) return { cars: raw, total: raw.length, totalPages: null, page: null }
@@ -295,18 +351,18 @@ export default function CarsPage() {
         return { cars: [], total: null, totalPages: null, page: null }
       }
       const { cars: fetchedCars, total, totalPages: serverTP, page: serverPage } = normalizeCars(resp)
-      const IMAGE_BASE = process.env.NEXT_PUBLIC_API_URL_FOR_IMAGE?.replace(/\/+$/, "") ?? "";
+      const IMAGE_BASE = process.env.NEXT_PUBLIC_API_URL_FOR_IMAGE?.replace(/\/+$/, "") ?? ""
       const mapped = (fetchedCars ?? []).map((c: any) => {
         const imgs = (c.images ?? []).map((img: any) => {
-          if (!img) return "/placeholder.svg";
-          const rawUrl = typeof img === "string" ? img : img.url ?? "";
-          if (!rawUrl) return "/placeholder.svg";
-          if (/^https?:\/\//i.test(rawUrl)) return rawUrl;
-          const cleanedUrl = rawUrl.replace(/^\/?uploads\/?/, "");
-          return IMAGE_BASE ? `${IMAGE_BASE}/${cleanedUrl}` : `/${cleanedUrl}`;
-        });
-        return { ...c, images: imgs };
-      });
+          if (!img) return "/placeholder.svg"
+          const rawUrl = typeof img === "string" ? img : img.url ?? ""
+          if (!rawUrl) return "/placeholder.svg"
+          if (/^https?:\/\//i.test(rawUrl)) return rawUrl
+          const cleanedUrl = rawUrl.replace(/^\/?uploads\/?/, "")
+          return IMAGE_BASE ? `${IMAGE_BASE}/${cleanedUrl}` : `/${cleanedUrl}`
+        })
+        return { ...c, images: imgs }
+      })
       setCars(mapped)
       if (typeof total === "number") {
         setIsServerPagination(true)
@@ -324,15 +380,18 @@ export default function CarsPage() {
       setLoading(false)
     }
   }
+
   useEffect(() => {
     fetchCars()
-  }, [currentPage, searchTerm, selectedBrand, selectedModel, selectedYear, selectedFuel, selectedTransmission, selectedCondition, selectedCity, selectedColor, priceRange.min, priceRange.max, sortBy])
+  }, [currentPage, searchTerm, selectedBrand, selectedModel, selectedYear, selectedFuel, selectedGearbox, selectedCondition, selectedLocation, selectedColor, priceRange.min, priceRange.max, sortBy])
+
   const totalPages = isServerPagination
     ? Math.max(1, Math.ceil((totalCount ?? 0) / itemsPerPage))
     : Math.ceil((cars.length) / itemsPerPage) || 1
 
   const startIndex = (currentPage - 1) * itemsPerPage
   const paginatedCars = isServerPagination ? cars : cars.slice(startIndex, startIndex + itemsPerPage)
+
   const renderPageButtons = () => {
     const visible = Math.min(5, totalPages)
     const half = Math.floor(visible / 2)
@@ -349,11 +408,12 @@ export default function CarsPage() {
       </Button>
     ))
   }
+
   const resultsCountText = (t("resultsCount") || "{count} nəticə").replace("{count}", String(totalCount ?? cars.length))
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar currentLanguage={language} onLanguageChange={changeLanguage} />
+      <Navbar />
       <section className="bg-white border-b py-8">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -397,18 +457,17 @@ export default function CarsPage() {
                   <label className="text-sm font-medium mb-2 block text-gray-700">{t("brand")}</label>
                   <BrandSelect
                     value={selectedBrand}
-                    onChange={(v) => { setSelectedBrand(v); setSelectedModel("all"); setPage(1); }}
+                    onChange={(v) => { setSelectedBrand(v); setSelectedModel("all"); setCurrentPage(1); }}
                     placeholder={t("all")}
                   />
                 </div>
-
 
                 <div>
                   <label className="text-sm font-medium mb-2 block text-gray-700">{t("model")}</label>
                   <ModelSelect
                     value={selectedModel}
                     brand={selectedBrand}
-                    onChange={(v) => { setSelectedModel(v); setPage(1); }}
+                    onChange={(v) => { setSelectedModel(v); setCurrentPage(1); }}
                     placeholder={t("all")}
                   />
                 </div>
@@ -423,23 +482,34 @@ export default function CarsPage() {
                     </SelectContent>
                   </Select>
                 </div>
+
                 <div>
                   <label className="text-sm font-medium mb-2 block">{t("fuel")}</label>
                   <Select value={selectedFuel} onValueChange={(v: any) => { setSelectedFuel(v); setCurrentPage(1) }}>
                     <SelectTrigger><SelectValue placeholder={t("selectFuel")} /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{t("all")}</SelectItem>
-                      {fuels.map((f) => (<SelectItem key={f} value={f}>{t(f) ?? f}</SelectItem>))}
+                      {fuelsList.map((f) => (
+                        <SelectItem key={f.key} value={f.key}>
+                          {f.translations[lang] ?? f.translations.en}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
+
                 <div>
                   <label className="text-sm font-medium mb-2 block">{t("transmission")}</label>
-                  <Select value={selectedTransmission} onValueChange={(v: any) => { setSelectedTransmission(v); setCurrentPage(1) }}>
+                  <Select value={selectedGearbox} onValueChange={(v: any) => { setSelectedGearbox(v); setCurrentPage(1) }}>
                     <SelectTrigger><SelectValue placeholder={t("selectTransmission")} /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{t("all")}</SelectItem>
-                      {transmissions.map((tr) => (<SelectItem key={tr} value={tr}>{t(tr) ?? tr}</SelectItem>))}
+                      {transmissionsList.map((tr) => (
+                        <SelectItem key={tr.key} value={tr.key}>
+                          {tr.translations[lang] ?? tr.translations.en}
+                        </SelectItem>
+                      ))}
+
                     </SelectContent>
                   </Select>
                 </div>
@@ -449,17 +519,25 @@ export default function CarsPage() {
                     <SelectTrigger><SelectValue placeholder={t("selectCondition")} /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{t("all")}</SelectItem>
-                      {conditions.map((c) => (<SelectItem key={c} value={c}>{t(c) ?? c}</SelectItem>))}
+                      {conditionsList.map((c) => (
+                        <SelectItem key={c.key} value={c.key}>
+                          {c.translations[lang] ?? c.translations.en}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
                   <label className="text-sm font-medium mb-2 block">{t("city")}</label>
-                  <Select value={selectedCity} onValueChange={(v: any) => { setSelectedCity(v); setCurrentPage(1) }}>
+                  <Select value={selectedLocation} onValueChange={(v: any) => { setSelectedLocation(v); setCurrentPage(1) }}>
                     <SelectTrigger><SelectValue placeholder={t("selectCity")} /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{t("all")}</SelectItem>
-                      {cities.map((c) => (<SelectItem key={c} value={c}>{t(c) ?? c}</SelectItem>))}
+                      {citiesList.map((citiesList) => (
+                        <SelectItem key={citiesList.key} value={citiesList.key}>
+                          {citiesList.translations[lang] ?? citiesList.translations.en}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -469,7 +547,11 @@ export default function CarsPage() {
                     <SelectTrigger><SelectValue placeholder={t("selectColor")} /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{t("all")}</SelectItem>
-                      {colors.map((col) => (<SelectItem key={col} value={col}>{t(col) ?? col}</SelectItem>))}
+                      {colorsList.map((c) => (
+                        <SelectItem key={c.key} value={c.key}>
+                          {c.translations[lang] ?? c.translations.en}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -485,9 +567,9 @@ export default function CarsPage() {
                   setSelectedModel("all")
                   setSelectedYear("all")
                   setSelectedFuel("all")
-                  setSelectedTransmission("all")
+                  setSelectedGearbox("all")
                   setSelectedCondition("all")
-                  setSelectedCity("all")
+                  setSelectedLocation("all")
                   setSelectedColor("all")
                   setPriceRange({ min: "", max: "" })
                   setSearchTerm("")
@@ -521,7 +603,19 @@ export default function CarsPage() {
             ) : (
               <>
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
-                  {paginatedCars.map((car) => (<CarCard key={car.id} car={car} t={t} />))}
+                  {paginatedCars.map((car) => (
+                    <CarCard
+                      key={car.id}
+                      car={car}
+                      t={t}
+                      language={lang}
+                      fuelsList={fuelsList}
+                      transmissionsList={transmissionsList}
+                      conditionsList={conditionsList}
+                      colorsList={colorsList}
+                      citiesList={citiesList}
+                    />
+                  ))}
                 </div>
                 {paginatedCars.length === 0 && (
                   <div className="text-center py-12">

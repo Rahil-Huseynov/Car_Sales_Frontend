@@ -8,7 +8,8 @@ import { Home, RefreshCw, AlertTriangle, Bug, Mail } from "lucide-react"
 import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 import { useLanguage } from "@/hooks/use-language"
-import { getTranslation } from "@/lib/i18n"
+import { getTranslation, translateString } from "@/lib/i18n"
+import { useDefaultLanguage } from "@/components/useLanguage"
 
 interface ErrorProps {
   error: Error & { digest?: string }
@@ -16,11 +17,9 @@ interface ErrorProps {
 }
 
 export default function Error({ error, reset }: ErrorProps) {
-  const { language, changeLanguage } = useLanguage()
-  const t = (key: string): string => {
-    const val = getTranslation(language, key)
-    return typeof val === "string" ? val : key
-  }
+  const { lang, setLang } = useDefaultLanguage();
+  const t = (key: string) => translateString(lang, key);
+
 
   const [isLoaded, setIsLoaded] = useState(false)
   const [errorDetails, setErrorDetails] = useState<string>("")
@@ -34,7 +33,7 @@ export default function Error({ error, reset }: ErrorProps) {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="navbar-slide">
-        <Navbar currentLanguage={language} onLanguageChange={changeLanguage} />
+        <Navbar />
       </div>
 
       <div className="container mx-auto px-4 py-16">

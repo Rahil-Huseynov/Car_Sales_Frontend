@@ -10,7 +10,8 @@ import {
 } from "@/components/ui/select";
 import { apiClient } from "@/lib/api-client";
 import { useLanguage } from "@/hooks/use-language";
-import { getTranslation } from "@/lib/i18n";
+import { getTranslation, translateString } from "@/lib/i18n";
+import { useDefaultLanguage } from "./useLanguage";
 
 type Props = {
   value: string;
@@ -27,8 +28,8 @@ export default function ModelSelect({
   placeholder = "All",
   searchPlaceholder = "Search...",
 }: Props) {
-  const { language } = useLanguage();
-  const t = (key: string) => (getTranslation(language, key) as string) || key;
+  const { lang, setLang } = useDefaultLanguage();
+  const t = (key: string) => translateString(lang, key);
 
   const LIMIT = 10;
   const ALL_VALUE = "all";
@@ -51,7 +52,7 @@ export default function ModelSelect({
       try {
         const vals = Object.values(res).flat();
         if (Array.isArray(vals)) return vals.map((v: any) => (typeof v === "string" ? v : (v.name ?? v.key ?? String(v))));
-      } catch {}
+      } catch { }
     }
     return [];
   };

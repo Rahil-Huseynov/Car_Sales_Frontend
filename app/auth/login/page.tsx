@@ -20,14 +20,13 @@ import { Navbar } from "@/components/navbar"
 import { ToastContainer, toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import { useLanguage } from "@/hooks/use-language"
-import { getTranslation } from "@/lib/i18n"
+import { getTranslation, translateString } from "@/lib/i18n"
+import { useDefaultLanguage } from "@/components/useLanguage"
 
 export default function LoginPage() {
-  const { language, changeLanguage } = useLanguage()
-  const t = (key: string): string => {
-    const val = getTranslation(language, key)
-    return typeof val === "string" ? val : key
-  }
+  const { lang, setLang } = useDefaultLanguage();
+  const t = (key: string) => translateString(lang, key);
+
   const [showPassword, setShowPassword] = useState(false)
   const [isPending, setIsPending] = useState(false)
   const router = useRouter()
@@ -89,7 +88,7 @@ export default function LoginPage() {
 
   return (
     <>
-      <Navbar currentLanguage={language} onLanguageChange={changeLanguage} />
+      <Navbar />
       <ToastContainer
         position="top-right"
         autoClose={4000}

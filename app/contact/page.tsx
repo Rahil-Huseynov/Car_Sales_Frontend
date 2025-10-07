@@ -11,9 +11,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { MapPin, Phone, Mail, Clock, Send } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { useLanguage } from "@/hooks/use-language"
-import { getTranslation } from "@/lib/i18n"
+import { getTranslation, translateString } from "@/lib/i18n"
 import { apiClient } from "@/lib/api-client"
 import { useAuth } from "@/lib/auth-context"
+import { useDefaultLanguage } from "@/components/useLanguage"
 
 type User = {
   id: number
@@ -27,10 +28,9 @@ type User = {
 
 export default function ContactPage() {
   const { language, changeLanguage } = useLanguage()
-  const t = (key: string): string => {
-    const val = getTranslation(language, key)
-    return typeof val === "string" ? val : key
-  }
+  const { lang, setLang } = useDefaultLanguage();
+  const t = (key: string) => translateString(lang, key);
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -70,7 +70,7 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar currentLanguage={language} onLanguageChange={changeLanguage} />
+      <Navbar />
 
       <section className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white py-16">
         <div className="container mx-auto px-4 text-center">

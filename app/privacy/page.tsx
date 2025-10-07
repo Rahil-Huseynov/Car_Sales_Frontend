@@ -8,11 +8,12 @@ import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 import { useLanguage } from "@/hooks/use-language"
 import { getTranslation, translateString } from "@/lib/i18n"
+import { useDefaultLanguage } from "@/components/useLanguage"
 
 export default function PrivacyPage() {
   const [isLoading, setIsLoading] = useState(true)
-  const { language, changeLanguage } = useLanguage()
-  const t = (key: string) => translateString(language, key)
+  const { lang, setLang } = useDefaultLanguage();
+  const t = (key: string) => translateString(lang, key);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 1000)
@@ -73,7 +74,7 @@ export default function PrivacyPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navbar currentLanguage={language} onLanguageChange={changeLanguage} />
+        <Navbar />
         <div className="container mx-auto px-4 py-8">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-300 rounded w-1/3 mb-6"></div>
@@ -98,7 +99,7 @@ export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="navbar-slide">
-        <Navbar currentLanguage={language} onLanguageChange={changeLanguage} />
+        <Navbar />
       </div>
 
       <section className="bg-gradient-to-br from-teal-500 via-teal-600 to-teal-700 text-white py-12 md:py-16 relative overflow-hidden">

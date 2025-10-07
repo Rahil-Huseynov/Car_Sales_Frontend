@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useRef, useState } from "react"
+import React, { useEffect, useRef, useState, useMemo } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -31,10 +31,27 @@ import {
 } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { useLanguage } from "@/hooks/use-language"
-import { getTranslation } from "@/lib/i18n"
+import { getTranslation, translateString } from "@/lib/i18n"
 import { apiClient } from "@/lib/api-client"
 import { toast, ToastContainer } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
+import {
+  fuels as fuelsStatic,
+  gearboxOptions as gearboxStatic,
+  conditions as conditionsStatic,
+  colors as colorsStatic,
+  cities as citiesStatic,
+  bodyTypes as bodyTypesStatic,
+  engineOptions as engineOptionsStatic,
+  features as featuresStatic,
+} from "@/lib/car-data"
+import { useDefaultLanguage } from "@/components/useLanguage"
+
+
+type OptionItem = {
+  key: string;
+  translations: { [lang: string]: string } & { en: string };
+};
 
 type ImageItem = string | { id?: number; url?: string }
 
@@ -59,6 +76,7 @@ type CarType = {
   transmission?: string
   color?: string
   location?: string
+  bodyType?: string
   condition?: string
   engine?: string
   power?: string
@@ -93,6 +111,36 @@ function safeImageUrl(i?: ImageItem) {
   const cleaned = raw.replace(/^\/+/, "").replace(/^uploads\/+?/i, "")
   return API_UPLOADS_BASE ? `${API_UPLOADS_BASE}/${cleaned}` : `/${cleaned}`
 }
+
+function toOption(item: any): OptionItem {
+  if (!item && item !== "") {
+    return { key: "", translations: { en: "", az: "" } }
+  }
+  if (typeof item === "string") {
+    return { key: item, translations: { en: item, az: item } }
+  }
+  const key = String(item?.key ?? item)
+  const translations = {
+    en: String(item?.translations?.en ?? item?.en ?? key),
+    az: String(item?.translations?.az ?? item?.az ?? key),
+    ...(item?.translations || {}),
+  }
+  return { key, translations }
+}
+function normalizeList(list: any[] | undefined) {
+  return (list ?? []).map(toOption)
+}
+function findTranslationFromList(list: any[] | undefined, rawKey: string | undefined | null, language: string) {
+  if (!rawKey && rawKey !== "") return ""
+  const keyStr = String(rawKey ?? "")
+  const normalized = normalizeList(list)
+  const found = normalized.find((o) => String(o.key) === keyStr)
+  if (found) {
+    return found.translations?.[language] ?? found.translations.en ?? found.key
+  }
+  return keyStr
+}
+
 
 type ShareModalProps = {
   isOpen: boolean
@@ -549,11 +597,19 @@ export default function CarDetailPage() {
   const descRef = useRef<HTMLDivElement | null>(null)
   const animDuration = 300
   const transitionProperty = `max-height ${animDuration}ms ease, opacity ${Math.round(animDuration * 0.7)}ms ease, transform ${animDuration}ms cubic-bezier(.2,.8,.2,1)`
-  const { language, changeLanguage } = useLanguage()
-  const t = (key: string): string => {
-    const val = getTranslation(language, key)
-    return typeof val === "string" ? val : key
-  }
+  const { lang, setLang } = useDefaultLanguage();
+  const t = (key: string) => translateString(lang, key);
+
+
+  const fuelsList = useMemo(() => normalizeList(fuelsStatic), [])
+  const transmissionsList = useMemo(() => normalizeList(gearboxStatic), [])
+  const conditionsList = useMemo(() => normalizeList(conditionsStatic), [])
+  const colorsList = useMemo(() => normalizeList(colorsStatic), [])
+  const citiesList = useMemo(() => normalizeList(citiesStatic), [])
+  const bodyTypesList = useMemo(() => normalizeList(bodyTypesStatic), [])
+  const engineOptionsList = useMemo(() => normalizeList(engineOptionsStatic), [])
+  const featuresList = useMemo(() => normalizeList(featuresStatic), [])
+
   useEffect(() => {
     const el = descRef.current
     if (!el) return
@@ -640,6 +696,7 @@ export default function CarDetailPage() {
       setDescExpanded(false)
     }
   }
+
   useEffect(() => {
     if (!id || Number.isNaN(id)) {
       const msg = t("invalidId") || t("fetchError")
@@ -679,7 +736,7 @@ export default function CarDetailPage() {
 
     fetchCar()
     return () => controller.abort()
-  }, [id, language])
+  }, [id, lang])
 
   useEffect(() => {
     if (!car) return
@@ -700,7 +757,7 @@ export default function CarDetailPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navbar currentLanguage={language} onLanguageChange={changeLanguage} />
+        <Navbar />
         <div className="container mx-auto px-4 py-10">{t("loading")}</div>
         <ToastContainer position="top-right" autoClose={3000} />
       </div>
@@ -710,7 +767,7 @@ export default function CarDetailPage() {
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navbar currentLanguage={language} onLanguageChange={changeLanguage} />
+        <Navbar />
         <div className="container mx-auto px-4 py-6">
           <Card>
             <CardContent>
@@ -727,7 +784,7 @@ export default function CarDetailPage() {
   if (!car) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navbar currentLanguage={language} onLanguageChange={changeLanguage} />
+        <Navbar />
         <div className="container mx-auto px-4 py-6">
           <Card>
             <CardContent>
@@ -744,16 +801,22 @@ export default function CarDetailPage() {
   const images = car.images && car.images.length ? car.images.map(safeImageUrl) : ["/placeholder.svg"]
   const sellerName = car.user ? `${car.user.firstName ?? ""} ${car.user.lastName ?? ""}`.trim() : car.name
   const sellerEmail = car.email ?? car.user?.email
-  const phoneCode = car.seller?.phoneCode ?? car.user?.phoneCode ?? "";
-  const phone = car.seller?.phoneNumber ?? car.user?.phoneNumber ?? "";
-  const sellerPhone = `${phoneCode}${phone}`;
-  console.log(phone)
-  console.log(phoneCode)
+  const phoneCode = car.seller?.phoneCode ?? car.user?.phoneCode ?? ""
+  const phone = car.seller?.phoneNumber ?? car.user?.phoneNumber ?? ""
+  const sellerPhone = `${phoneCode}${phone}`
   const descriptionText = String(car.description ?? "")
   const isLongDesc = descriptionText.length > 200
+  const fuelLabel = findTranslationFromList(fuelsStatic, car.fuel ?? "", lang) || t(car.fuel ?? "")
+  const gearboxLabel = findTranslationFromList(gearboxStatic, car.gearbox ?? car.transmission ?? "", lang) || (car.gearbox ?? car.transmission ?? t("-"))
+  const conditionLabel = findTranslationFromList(conditionsStatic, car.condition ?? "", lang) || t(car.condition ?? "")
+  const colorLabel = findTranslationFromList(colorsStatic, car.color ?? "", lang) || t(car.color ?? "")
+  const locationLabel = findTranslationFromList(citiesStatic, car.location ?? car.location ?? "", lang) || t(car.location ?? car.location ?? "")
+  const bodyTypeLabel = findTranslationFromList(bodyTypesStatic, car.ban ?? car.bodyType ?? "", lang) || (car.ban ?? car.bodyType ?? "")
+  const engineLabel = findTranslationFromList(engineOptionsStatic, car.engine ?? "", lang) || (car.engine ?? "")
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar currentLanguage={language} onLanguageChange={changeLanguage} />
+      <Navbar />
 
       <div className="container mx-auto px-4 py-6 md:py-8">
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 md:gap-8">
@@ -837,7 +900,7 @@ export default function CarDetailPage() {
                       {car.brand} {car.model}
                     </CardTitle>
                     <p className="text-gray-600 text-lg">
-                      {car.year} • {t(car.condition ?? "")}
+                      {car.year} • {conditionLabel}
                     </p>
                   </div>
                   <div className="text-right">
@@ -863,21 +926,21 @@ export default function CarDetailPage() {
                     <Fuel className="h-5 w-5 text-gray-500" />
                     <div>
                       <p className="text-sm text-gray-500">{t("fuel")}</p>
-                      <p className="font-semibold">{t(car.fuel ?? "")}</p>
+                      <p className="font-semibold">{fuelLabel}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Cog className="h-5 w-5 text-gray-500" />
                     <div>
                       <p className="text-sm text-gray-500">{t("gearbox")}</p>
-                      <p className="font-semibold">{car.gearbox ?? car.transmission ?? t("-")}</p>
+                      <p className="font-semibold">{gearboxLabel}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Palette className="h-5 w-5 text-gray-500" />
                     <div>
                       <p className="text-sm text-gray-500">{t("color")}</p>
-                      <p className="font-semibold">{t(car.color ?? "")}</p>
+                      <p className="font-semibold">{colorLabel}</p>
                     </div>
                   </div>
                 </div>
@@ -889,14 +952,14 @@ export default function CarDetailPage() {
                     <CarFront className="h-5 w-5 text-gray-500" />
                     <div>
                       <p className="text-sm text-gray-500">{t("engine")}</p>
-                      <p className="font-semibold">{car.engine}</p>
+                      <p className="font-semibold">{engineLabel}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Car className="h-5 w-5 text-gray-500" />
                     <div>
                       <p className="text-sm text-gray-500">{t("bodyType")}</p>
-                      <p className="font-semibold">{car.ban}</p>
+                      <p className="font-semibold">{bodyTypeLabel}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -958,12 +1021,15 @@ export default function CarDetailPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-3">
-                  {(car.features ?? []).map((feature, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <Shield className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">{feature}</span>
-                    </div>
-                  ))}
+                  {(car.features ?? []).map((feature, index) => {
+                    const label = findTranslationFromList(featuresStatic, String(feature ?? ""), lang) || String(feature ?? "")
+                    return (
+                      <div key={index} className="flex items-center gap-2">
+                        <Shield className="h-4 w-4 text-green-500" />
+                        <span className="text-sm">{label}</span>
+                      </div>
+                    )
+                  })}
                 </div>
               </CardContent>
             </Card>
@@ -979,7 +1045,7 @@ export default function CarDetailPage() {
                   <p className="font-semibold">{sellerName}</p>
                   <div className="flex items-center gap-1 text-sm text-gray-600">
                     <MapPin className="h-4 w-4" />
-                    {car.location}
+                    {locationLabel}
                   </div>
                 </div>
 
@@ -1021,11 +1087,11 @@ export default function CarDetailPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">{t("condition")}:</span>
-                  <Badge variant="outline">{t(car.condition ?? "")}</Badge>
+                  <Badge variant="outline">{conditionLabel}</Badge>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">{t("location")}:</span>
-                  <span className="font-semibold">{t(car.location ?? "")}</span>
+                  <span className="font-semibold">{locationLabel}</span>
                 </div>
                 {car.createdAt ? (
                   <div className="flex justify-between">

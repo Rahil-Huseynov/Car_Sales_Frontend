@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState, useRef } from "react"
+import React, { useEffect, useState, useRef, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -34,7 +34,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useLanguage } from "@/hooks/use-language"
-import { getTranslation } from "@/lib/i18n"
+import { getTranslation, translateString } from "@/lib/i18n"
 import { apiClient } from "@/lib/api-client"
 import BrandSelect from "@/components/BrandSelect"
 import ModelSelect from "@/components/ModelSelect"
@@ -42,12 +42,13 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { bodyTypes, cities, colors, conditions, engineOptions, features, fuels, gearboxOptions, years } from "@/lib/car-data"
 import { Input } from "@/components/ui/input"
-import { VirtualScrollFeatures } from "@/app/sell/page"
+import { FeatureOption, VirtualScrollFeatures } from "@/app/sell/page"
 import CountrySelect from "@/components/CountryCodeSelect"
 import { Textarea } from "@/components/ui/textarea"
 import { ToastContainer, toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import { useAuth } from "@/lib/auth-context"
+import { useDefaultLanguage } from "@/components/useLanguage"
 
 const API = process.env.NEXT_PUBLIC_API_URL || ""
 const IMAGE_BASE = process.env.NEXT_PUBLIC_API_URL_FOR_IMAGE || ""
@@ -390,98 +391,6 @@ function AdCard({
   )
 }
 
-function FeaturesMultiSelect({
-  features,
-  value,
-  onChange,
-  language,
-}: {
-  features: string[]
-  value: string[] | string | undefined
-  onChange: (v: string[]) => void
-  language?: string
-}) {
-  const [query, setQuery] = useState("")
-  const parseInitial = (val: any) => {
-    if (!val) return [] as string[]
-    if (Array.isArray(val)) return val
-    if (typeof val === "string") return val.split(",").map((s) => s.trim()).filter(Boolean)
-    return [] as string[]
-  }
-
-  const [selected, setSelected] = useState<Set<string>>(new Set(parseInitial(value)))
-
-  useEffect(() => {
-    setSelected(new Set(parseInitial(value)))
-  }, [value])
-
-  const toggle = (feat: string) => {
-    setSelected((prev) => {
-      const s = new Set(prev)
-      if (s.has(feat)) s.delete(feat)
-      else s.add(feat)
-      const arr = Array.from(s)
-      onChange(arr)
-      return s
-    })
-  }
-
-  const selectAll = () => {
-    const s = new Set(features)
-    setSelected(s)
-    onChange(Array.from(s))
-  }
-
-  const clearAll = () => {
-    setSelected(new Set())
-    onChange([])
-  }
-
-  const filtered = features.filter((f) => {
-    if (!query) return true
-    const lower = query.toLowerCase()
-    return f.toLowerCase().includes(lower) || (typeof (window as any) !== "undefined" && (f || "").toLowerCase().includes(lower))
-  })
-
-  return (
-    <div>
-      <div className="flex gap-2 items-center mb-3">
-        <input
-          className="flex-1 border rounded px-3 py-2 text-sm"
-          placeholder={language === "az" ? "Axtar..." : "Search..."}
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-        <button type="button" className="px-3 py-2 rounded border text-sm" onClick={selectAll}>
-          {language === "az" ? "Hamısını seç" : "Select all"}
-        </button>
-        <button type="button" className="px-3 py-2 rounded border text-sm" onClick={clearAll}>
-          {language === "az" ? "Təmizlə" : "Clear"}
-        </button>
-        <div className="ml-2 text-sm text-gray-600">{Array.from(selected).length}/{features.length}</div>
-      </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-64 overflow-auto pr-2">
-        {filtered.map((f) => (
-          <label
-            key={f}
-            className={`flex items-center gap-2 p-2 rounded border cursor-pointer select-none ${selected.has(f) ? "bg-blue-50 border-blue-200" : "bg-white border-gray-200"
-              }`}
-          >
-            <input
-              type="checkbox"
-              checked={selected.has(f)}
-              onChange={() => toggle(f)}
-              className="w-4 h-4"
-            />
-            <span className="text-sm truncate">{f}</span>
-          </label>
-        ))}
-        {filtered.length === 0 && <div className="col-span-full text-sm text-gray-500 p-4">{language === "az" ? "Nəticə tapılmadı" : "No results"}</div>}
-      </div>
-    </div>
-  )
-}
-
 function Modal({ open, onClose, title, children }: any) {
   if (!open) return null
   return (
@@ -509,11 +418,9 @@ export default function MyAdsPage() {
   const [images, setImages] = useState<Array<{ id?: number; url: string }>>([])
   const [isSaving, setIsSaving] = useState(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const { language } = useLanguage()
-  const t = (key: string): string => {
-    const val = getTranslation(language, key)
-    return typeof val === "string" ? val : key
-  }
+  const { lang, setLang } = useDefaultLanguage();
+  const t = (key: string) => translateString(lang, key);
+
   const { logout } = useAuth()
   const [profileData, setProfileData] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
@@ -623,7 +530,7 @@ export default function MyAdsPage() {
         color: car.color ?? "",
         location: car.location ?? "",
         description: car.description ?? "",
-        features: (car.features || []).join(", "),
+        features: car.features || [],
         ban: car.ban ?? "",
         engine: car.engine ?? "",
         gearbox: car.gearbox ?? "",
@@ -816,11 +723,6 @@ export default function MyAdsPage() {
       ban: editingData.ban,
       engine: editingData.engine,
       gearbox: editingData.gearbox,
-      name: editingData.name,
-      email: editingData.email,
-      status: editingData.status,
-      phoneCode: editingData.phoneCode,
-      phone: editingData.phone,
     };
 
     if (imagesUrls.length > 0) {
@@ -888,7 +790,14 @@ export default function MyAdsPage() {
       setIsSaving(false);
     }
   };
-
+  const handleFeatureChange = useCallback((featureKey: string, checked: boolean) => {
+    setEditingData((prev: any) => {
+      const s = new Set(prev.features)
+      if (checked) s.add(featureKey)
+      else s.delete(featureKey)
+      return { ...prev, features: Array.from(s) }
+    })
+  }, [])
 
   if (isLoading) {
     return (
@@ -1029,8 +938,10 @@ export default function MyAdsPage() {
                         <SelectValue placeholder={t("selectFuel")} />
                       </SelectTrigger>
                       <SelectContent>
-                        {fuels.map((f) => (
-                          <SelectItem key={f} value={f}>{t(f) ?? f}</SelectItem>
+                        {fuels.map(fuels => (
+                          <SelectItem key={fuels.key} value={fuels.key}>
+                            {fuels.translations[lang] ?? fuels.translations.en}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -1043,8 +954,10 @@ export default function MyAdsPage() {
                         <SelectValue placeholder={t("selectCondition")} />
                       </SelectTrigger>
                       <SelectContent>
-                        {conditions.map((c) => (
-                          <SelectItem key={c} value={c}>{t(c) ?? c}</SelectItem>
+                        {conditions.map(conditions => (
+                          <SelectItem key={conditions.key} value={conditions.key}>
+                            {conditions.translations[lang] ?? conditions.translations.en}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -1057,8 +970,10 @@ export default function MyAdsPage() {
                         <SelectValue placeholder={t("selectColor")} />
                       </SelectTrigger>
                       <SelectContent>
-                        {colors.map((c) => (
-                          <SelectItem key={c} value={c}>{t(c) ?? c}</SelectItem>
+                        {colors.map(colors => (
+                          <SelectItem key={colors.key} value={colors.key}>
+                            {colors.translations[lang] ?? colors.translations.en}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -1071,8 +986,10 @@ export default function MyAdsPage() {
                         <SelectValue placeholder={t("selectBan")} />
                       </SelectTrigger>
                       <SelectContent>
-                        {bodyTypes.map((b) => (
-                          <SelectItem key={b} value={b}>{b}</SelectItem>
+                        {bodyTypes.map(bodyTypes => (
+                          <SelectItem key={bodyTypes.key} value={bodyTypes.key}>
+                            {bodyTypes.translations[lang] ?? bodyTypes.translations.en}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -1085,8 +1002,10 @@ export default function MyAdsPage() {
                         <SelectValue placeholder={t("selectEngine")} />
                       </SelectTrigger>
                       <SelectContent>
-                        {engineOptions.map((eng) => (
-                          <SelectItem key={eng} value={eng}>{eng}</SelectItem>
+                        {engineOptions.map(engineOptions => (
+                          <SelectItem key={engineOptions.key} value={engineOptions.key}>
+                            {engineOptions.translations[lang] ?? engineOptions.translations.en}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -1099,8 +1018,10 @@ export default function MyAdsPage() {
                         <SelectValue placeholder={t("selectGearbox")} />
                       </SelectTrigger>
                       <SelectContent>
-                        {gearboxOptions.map((g) => (
-                          <SelectItem key={g} value={g}>{g}</SelectItem>
+                        {gearboxOptions.map(gearboxOptions => (
+                          <SelectItem key={gearboxOptions.key} value={gearboxOptions.key}>
+                            {gearboxOptions.translations[lang] ?? gearboxOptions.translations.en}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -1113,8 +1034,10 @@ export default function MyAdsPage() {
                         <SelectValue placeholder={t("selectCity")} />
                       </SelectTrigger>
                       <SelectContent>
-                        {cities.map((c) => (
-                          <SelectItem key={c} value={c}>{t(c) ?? c}</SelectItem>
+                        {cities.map(cities => (
+                          <SelectItem key={cities.key} value={cities.key}>
+                            {cities.translations[lang] ?? cities.translations.en}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -1127,14 +1050,10 @@ export default function MyAdsPage() {
                   <CardTitle>{t("features")}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <FeaturesMultiSelect
-                    features={features}
-                    value={editingData.features}
-                    onChange={(arr) => handleInputChange("features", arr)}
-                    language={language}
-                  />
+                  <VirtualScrollFeatures features={features} selectedFeatures={editingData.features} onFeatureChange={handleFeatureChange} language={lang} />
                 </CardContent>
               </Card>
+
 
               <Card>
                 <CardHeader>
@@ -1219,47 +1138,6 @@ export default function MyAdsPage() {
                   </div>
                 </CardContent>
               </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <User className="h-5 w-5" />
-                    {t("contactInfo")}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="name">{t("fullName")}</Label>
-                    <Input id="name" required value={editingData.name} onChange={(e) => handleInputChange("name", e.target.value)} placeholder={t("namePlaceholder")} />
-                  </div>
-
-                  <div className="space-y-1">
-                    <Label htmlFor="phone">{t("phone")}</Label>
-                    <div className="flex gap-2 items-center">
-                      <div className="max-w-[150px]">
-                        <CountrySelect value={editingData.phoneCode} onChange={(v) => handleInputChange("phoneCode", v)} />
-                      </div>
-                      <div className="flex-1 relative">
-                        <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                        <Input
-                          id="phone"
-                          name="phone"
-                          type="tel"
-                          placeholder={t("phonePlaceholder")}
-                          value={editingData.phone}
-                          onChange={(e) => handleInputChange("phone", e.target.value)} required
-                          className="pl-10"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="md:col-span-2">
-                    <Label htmlFor="email">{t("email")}</Label>
-                    <Input id="email" type="email" required value={editingData.email} onChange={(e) => handleInputChange("email", e.target.value)} placeholder="example@email.com" />
-                  </div>
-                </CardContent>
-              </Card>
-
               <Card>
                 <CardHeader>
                   <CardTitle>{t("description")}</CardTitle>
