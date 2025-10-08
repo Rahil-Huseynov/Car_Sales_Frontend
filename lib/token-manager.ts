@@ -1,56 +1,61 @@
-interface DecodedJWT {
-  exp?: number
-  [key: string]: any
-}
+
+import { DecodedJWT } from "./auth-headers";
 
 export class TokenManager {
   private readonly ACCESS_TOKEN_KEY = "access_token"
   private readonly REFRESH_TOKEN_KEY = "refresh_token"
   private readonly EXPIRES_AT_KEY = "expires_at"
 
-  setTokens(accessToken: string, refreshToken: string) {
+  setAccessToken(accessToken: string, remember: boolean) {
     if (typeof window === "undefined") return
+    const targetStorage = remember ? localStorage : sessionStorage;
+    const otherStorage = remember ? sessionStorage : localStorage;
+
+    otherStorage.removeItem(this.ACCESS_TOKEN_KEY)
+    otherStorage.removeItem(this.EXPIRES_AT_KEY)
+
     try {
       const payload = this.decodeJWT(accessToken)
       const expiresAt = (payload.exp || 0) * 1000
-      localStorage.setItem(this.ACCESS_TOKEN_KEY, accessToken)
-      localStorage.setItem(this.REFRESH_TOKEN_KEY, refreshToken)
-      localStorage.setItem(this.EXPIRES_AT_KEY, String(expiresAt))
-    } catch (err) {
-      localStorage.setItem(this.ACCESS_TOKEN_KEY, accessToken)
-      localStorage.setItem(this.REFRESH_TOKEN_KEY, refreshToken)
-      localStorage.removeItem(this.EXPIRES_AT_KEY)
+      targetStorage.setItem(this.ACCESS_TOKEN_KEY, accessToken)
+      targetStorage.setItem(this.EXPIRES_AT_KEY, String(expiresAt))
+    } catch {
+      targetStorage.setItem(this.ACCESS_TOKEN_KEY, accessToken)
+      targetStorage.removeItem(this.EXPIRES_AT_KEY)
     }
   }
 
-  setAccessToken(accessToken: string) {
+  setRefreshToken(refreshToken: string, remember: boolean) {
     if (typeof window === "undefined") return
-    try {
-      const payload = this.decodeJWT(accessToken)
-      const expiresAt = (payload.exp || 0) * 1000
-      localStorage.setItem(this.ACCESS_TOKEN_KEY, accessToken)
-      localStorage.setItem(this.EXPIRES_AT_KEY, String(expiresAt))
-    } catch {
-      localStorage.setItem(this.ACCESS_TOKEN_KEY, accessToken)
-      localStorage.removeItem(this.EXPIRES_AT_KEY)
-    }
+    const targetStorage = remember ? localStorage : sessionStorage;
+    const otherStorage = remember ? sessionStorage : localStorage;
+
+    otherStorage.removeItem(this.REFRESH_TOKEN_KEY)
+
+    targetStorage.setItem(this.REFRESH_TOKEN_KEY, refreshToken)
   }
 
   getAccessToken(): string | null {
     if (typeof window === "undefined") return null
+    let token = sessionStorage.getItem(this.ACCESS_TOKEN_KEY)
+    if (token) return token
     return localStorage.getItem(this.ACCESS_TOKEN_KEY)
   }
 
   getRefreshToken(): string | null {
     if (typeof window === "undefined") return null
+    let refresh = sessionStorage.getItem(this.REFRESH_TOKEN_KEY)
+    if (refresh) return refresh
     return localStorage.getItem(this.REFRESH_TOKEN_KEY)
   }
 
   clearTokens() {
     if (typeof window === "undefined") return
-    localStorage.removeItem(this.ACCESS_TOKEN_KEY)
-    localStorage.removeItem(this.REFRESH_TOKEN_KEY)
-    localStorage.removeItem(this.EXPIRES_AT_KEY)
+    [localStorage, sessionStorage].forEach(storage => {
+      storage.removeItem(this.ACCESS_TOKEN_KEY)
+      storage.removeItem(this.REFRESH_TOKEN_KEY)
+      storage.removeItem(this.EXPIRES_AT_KEY)
+    })
   }
 
   isTokenExpired(token: string): boolean {
@@ -65,7 +70,9 @@ export class TokenManager {
 
   getTokenExpirationTime(): number | null {
     if (typeof window === "undefined") return null
-    const v = localStorage.getItem(this.EXPIRES_AT_KEY)
+    let v = sessionStorage.getItem(this.EXPIRES_AT_KEY)
+    if (v) return Number.parseInt(v, 10)
+    v = localStorage.getItem(this.EXPIRES_AT_KEY)
     return v ? Number.parseInt(v, 10) : null
   }
 

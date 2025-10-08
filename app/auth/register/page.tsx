@@ -90,6 +90,7 @@ export default function RegisterPage() {
         if (response.accessToken) {
           try {
             localStorage.setItem("accessToken", response.accessToken)
+            sessionStorage.setItem("accessToken", response.accessToken);
           } catch { }
         }
         const msg = response.message || t("registrationSuccess")

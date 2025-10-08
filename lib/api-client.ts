@@ -1,4 +1,3 @@
- 
 import authHeaders from "./auth-headers";
 import { tokenManager } from "./token-manager"
 
@@ -72,6 +71,8 @@ class ApiClient {
             Authorization: `Bearer ${newToken}`,
           }
           response = await fetch(url, config)
+        } else {
+          tokenManager.clearTokens()
         }
       }
 
@@ -107,7 +108,7 @@ class ApiClient {
 
       if (response.ok) {
         const data = await response.json()
-        tokenManager.setAccessToken(data.accessToken)
+        tokenManager.setAccessToken(data.accessToken, false)
         return true
       }
 
@@ -242,7 +243,7 @@ class ApiClient {
 
 
   async getCurrentUser() {
-    const token = localStorage.getItem("accessToken")
+    const token = tokenManager.getAccessToken()
     return this.request(`/auth/me`, {
       method: "GET",
       headers: { Authorization: `Bearer ${token}` },
@@ -314,21 +315,23 @@ class ApiClient {
 
 
   async addcardata(formData: any) {
+    const token = tokenManager.getAccessToken()
     return this.request('/user-cars', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(formData),
     });
   }
 
   async addcarimagedata(formData: FormData) {
+    const token = tokenManager.getAccessToken()
     return this.request('/car-images/upload', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+        Authorization: `Bearer ${token}`,
       },
       body: formData,
     });

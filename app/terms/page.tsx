@@ -36,7 +36,7 @@ export default function TermsPage() {
     | { lastUpdated?: string; sections?: { title: string; content: string }[] }
     | undefined
 
-  const pageLastUpdated = termsData?.lastUpdated ?? t("termsLastUpdatedFallback")
+  const pageLastUpdated = termsData?.lastUpdated ?? "October 08, 2025"
   const sections = termsData?.sections ?? []
 
   if (isLoading) {

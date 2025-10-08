@@ -285,7 +285,7 @@ export default function HomePage() {
 
   const fetchProfile = async () => {
     try {
-      const token = localStorage.getItem("accessToken");
+      const token = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken") ;
       if (!token) return;
       const user = await apiClient.getCurrentUser();
       setProfileData(user);
@@ -312,7 +312,6 @@ export default function HomePage() {
   const colorsList = sortByLabel(colors as any[], lang);
   const citiesList = sortByLabel(cities as any[], lang);
 
-  // Reusable Filters panel to avoid duplication
   const FiltersPanel = ({ onClose }: { onClose?: () => void }) => (
     <Card className="shadow-sm border-0 bg-white/80 backdrop-blur-sm hover-lift">
       <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-t-lg">

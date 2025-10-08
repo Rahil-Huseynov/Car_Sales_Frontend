@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import {
@@ -19,17 +19,28 @@ import apiClient, { ApiError } from "@/lib/api-client"
 import { Navbar } from "@/components/navbar"
 import { ToastContainer, toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
-import { useLanguage } from "@/hooks/use-language"
 import { getTranslation, translateString } from "@/lib/i18n"
 import { useDefaultLanguage } from "@/components/useLanguage"
 
+import { useAuth } from "@/lib/auth-context" 
+import { tokenManager } from "@/lib/token-manager"
+
 export default function LoginPage() {
-  const { lang, setLang } = useDefaultLanguage();
-  const t = (key: string) => translateString(lang, key);
+  const { lang } = useDefaultLanguage()
+  const t = (key: string) => translateString(lang, key)
 
   const [showPassword, setShowPassword] = useState(false)
   const [isPending, setIsPending] = useState(false)
   const router = useRouter()
+  const { login } = useAuth()
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const token = tokenManager.getAccessToken()
+    if (token) {
+      router.replace("/profile")
+    }
+  }, [router])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -38,49 +49,24 @@ export default function LoginPage() {
     const formData = new FormData(e.currentTarget)
     const email = String(formData.get("email") ?? "")
     const password = String(formData.get("password") ?? "")
+    const remember = !!formData.get("remember")
 
     try {
-      const result = await apiClient.login(email, password)
+      const result = await login(email, password, remember)
 
-      if (result?.accessToken) {
-        try {
-          localStorage.setItem("accessToken", result.accessToken)
-        } catch (err) {
-          console.warn("localStorage write failed:", err)
-        }
-
-        toast.success(t("loginSuccess"), { position: "top-right", autoClose: 2500 })
-        router.push("/profile")
-        return
-      }
-      if (result?.message) {
-        toast.error(String(result.message), { position: "top-right", autoClose: 4000 })
+      if (result.success) {
+        toast.success(t("loginSuccess"), { position: "top-right", autoClose: 2000 })
+        router.replace("/profile")
         return
       }
 
-      toast.error(t("loginFailed"), { position: "top-right", autoClose: 4000 })
+      toast.error(result.error || t("loginFailed"), { position: "top-right", autoClose: 4000 })
     } catch (err: any) {
-      if (err instanceof ApiError) {
-        console.error("API error:", { status: err.status, data: err.data, message: err.message })
-        if (err.status === 401) {
-          toast.error(err.message || t("incorrectPassword"), { position: "top-right", autoClose: 4000 })
-        } else if (err.status === 403) {
-          toast.error(err.message || t("forbidden"), { position: "top-right", autoClose: 4000 })
-        } else if (err.status === 404) {
-          toast.error(err.message || t("userNotFound"), { position: "top-right", autoClose: 4000 })
-        } else {
-          toast.error(err.message || t("serverError"), {
-            position: "top-right",
-            autoClose: 5000,
-          })
-        }
-      } else {
-        console.error("Login error (non-api):", err)
-        toast.error(t("networkError"), {
-          position: "top-right",
-          autoClose: 5000,
-        })
-      }
+      console.error("Login error:", err)
+      toast.error(t("networkError"), {
+        position: "top-right",
+        autoClose: 5000,
+      })
     } finally {
       setIsPending(false)
     }
@@ -156,7 +142,12 @@ export default function LoginPage() {
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <input id="remember" type="checkbox" className="rounded border-gray-300" />
+                  <input
+                    id="remember"
+                    name="remember"
+                    type="checkbox"
+                    className="rounded border-gray-300"
+                  />
                   <Label htmlFor="remember" className="text-sm">
                     {t("rememberMe")}
                   </Label>

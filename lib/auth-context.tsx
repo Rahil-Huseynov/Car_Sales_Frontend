@@ -16,7 +16,7 @@ interface User {
 interface AuthContextType {
   user: User | null
   isLoading: boolean
-  login: (email: string, password: string) => Promise<{ success: boolean; user?: User; error?: string }>
+  login: (email: string, password: string, remember?: boolean) => Promise<{ success: boolean; user?: User; error?: string }>
   logout: () => void
   reloadUser: () => Promise<User | null>
 }
@@ -32,7 +32,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     tokenManager.clearTokens()
     setUser(null)
     if (typeof window !== "undefined") {
-      localStorage.removeItem("accessToken")
       router.push("/auth/login")
     }
   }, [router])
@@ -45,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(data)
       return data
     } catch {
-      if (typeof window !== "undefined") localStorage.removeItem("accessToken")
+      tokenManager.clearTokens()
       setUser(null)
       router.push("/auth/login")
       return null
@@ -66,16 +65,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(interval)
   }, [reloadUser])
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, remember = false) => {
     try {
-      const formData = new FormData()
-      formData.append("email", email)
-      formData.append("password", password)
+      const response = await apiClient.login(email, password)
 
-      const response = await apiClient.login(formData)
-
-      if (response.accessToken && response.refreshToken && response.user?.role) {
-        tokenManager.setTokens(response.accessToken, response.refreshToken)
+      if (response.accessToken && response.user?.role) {
+        tokenManager.setAccessToken(response.accessToken, remember)
+        if (response.refreshToken) {
+          tokenManager.setRefreshToken(response.refreshToken, remember)
+        }
         setUser(response.user)
         return { success: true, user: response.user }
       }

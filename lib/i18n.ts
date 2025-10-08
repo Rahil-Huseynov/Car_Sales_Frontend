@@ -19,8 +19,11 @@ export type TranslationValue = string | {
   sections: { title: string; content: string }[];
 };
 export const translations: Record<Language, Record<string, TranslationValue>> = {
-
   az: {
+    "profile": "Profil",
+    "favorites": "Seçilmişlər",
+    "myAds": "Mənim elanlarım",
+    "settings": "Tənzimləmələr",
     "setNewPassword": "Yeni Şifrə Təyin Et",
     "passwordRequirements": "Şifrə ən azı 8 simvoldan ibarət olmalı, bir böyük hərf, bir kiçik hərf və bir rəqəm daxil etməlidir.",
     "newPasswordPlaceholder": "Yeni şifrəni daxil et",
@@ -32,13 +35,8 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     'contact': "Əlaqə",
     'login': "Giriş",
     'register': "Qeydiyyat",
-    'profile': "Profil",
-    'favorites': "Seçilmişlər",
-    'myAds': "Mənim elanlarım",
-    'settings': "Tənzimləmələr",
     'logout': "Çıxış",
     'postAd': "Elan yerləşdir",
-
     "heroTitle": "Növbəti avtomobilinizi tapın",
     "heroSubtitle": "Etibarlı satıcılardan sürətli və rahat elanlar",
     "searchPlaceholder": "Marka, model, il və ya şəhər üzrə axtarış",
@@ -449,8 +447,11 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "Sold": "Satıldı",
 
   },
-
   en: {
+    "profile": "Profile",
+    "favorites": "Favorites",
+    "myAds": "My Ads",
+    "settings": "Settings",
     "newPasswordPlaceholder": "Enter new password",
     "apply": "Apply",
     "checking": "Checking token...",
@@ -478,10 +479,6 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     'contact': "Contact",
     'login': "Login",
     'register': "Register",
-    'profile': "Profile",
-    'favorites': "Favorites",
-    'myAds': "My Ads",
-    'settings': "Settings",
     'logout': "Logout",
     'postAd': "Post Ad",
     "heroTitle": "Find your next car",
@@ -883,8 +880,11 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "Sold": "Sold"
 
   },
-
   de: {
+    "profile": "Profil",
+    "favorites": "Favoriten",
+    "myAds": "Meine Anzeigen",
+    "settings": "Einstellungen",
     "apply": "Anwenden",
     "home": "Startseite",
     "cars": "Autos",
@@ -893,10 +893,6 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "contact": "Kontakt",
     "login": "Anmelden",
     "register": "Registrieren",
-    "profile": "Profil",
-    "favorites": "Favoriten",
-    "myAds": "Meine Anzeigen",
-    "settings": "Einstellungen",
     "logout": "Abmelden",
     "postAd": "Anzeige aufgeben",
     "heroTitle": "Finden Sie Ihr nächstes Auto",
@@ -1317,8 +1313,11 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "invalidPassword": "Das Passwort muss mindestens 8 Zeichen lang sein und Groß-/Kleinbuchstaben, Ziffern und Sonderzeichen enthalten."
 
   },
-
   es: {
+    "profile": "Perfil",
+    "favorites": "Favoritos",
+    "myAds": "Mis Anuncios",
+    "settings": "Configuraciones",
     "apply": "Aplicar",
     "home": "Inicio",
     "cars": "Coches",
@@ -1327,10 +1326,6 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "contact": "Contacto",
     "login": "Iniciar sesión",
     "register": "Registrarse",
-    "profile": "Perfil",
-    "favorites": "Favoritos",
-    "myAds": "Mis anuncios",
-    "settings": "Ajustes",
     "logout": "Cerrar sesión",
     "postAd": "Publicar anuncio",
     "heroTitle": "Encuentra tu próximo coche",
@@ -1750,8 +1745,11 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "changePassword": "Cambiar contraseña",
     "invalidPassword": "La contraseña debe tener al menos 8 caracteres e incluir mayúsculas, minúsculas, números y un carácter especial."
   },
-
   tr: {
+    "profile": "Profil",
+    "favorites": "Favoriler",
+    "myAds": "İlanlarım",
+    "settings": "Ayarlar",
     "apply": "Uygula",
     "home": "Ana Sayfa",
     "cars": "Arabalar",
@@ -1760,10 +1758,6 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "contact": "İletişim",
     "login": "Giriş",
     "register": "Kayıt Ol",
-    "profile": "Profil",
-    "favorites": "Favoriler",
-    "myAds": "İlanlarım",
-    "settings": "Ayarlar",
     "logout": "Çıkış Yap",
     "postAd": "İlan Ver",
     "heroTitle": "Bir sonraki arabanızı bulun",
@@ -2184,8 +2178,11 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "invalidPassword": "Şifre en az 8 karakter olmalı; büyük/küçük harf, rakam ve özel karakter içermelidir."
 
   },
-
   pt: {
+    "profile": "Perfil",
+    "favorites": "Favoritos",
+    "myAds": "Meus Anúncios",
+    "settings": "Configurações",
     "apply": "Aplicar",
     "home": "Início",
     "cars": "Carros",
@@ -2194,10 +2191,6 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "contact": "Contato",
     "login": "Entrar",
     "register": "Registar",
-    "profile": "Perfil",
-    "favorites": "Favoritos",
-    "myAds": "Meus anúncios",
-    "settings": "Definições",
     "logout": "Sair",
     "postAd": "Publicar anúncio",
     "heroTitle": "Encontre o seu próximo carro",
@@ -2618,8 +2611,11 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "invalidPassword": "A senha deve ter pelo menos 8 caracteres e incluir maiúsculas, minúsculas, número e caractere especial."
 
   },
-
   pl: {
+    "profile": "Profil",
+    "favorites": "Ulubione",
+    "myAds": "Moje ogłoszenia",
+    "settings": "Ustawienia",
     "apply": "Zastosuj",
     "home": "Strona główna",
     "cars": "Samochody",
@@ -2628,10 +2624,6 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "contact": "Kontakt",
     "login": "Zaloguj się",
     "register": "Zarejestruj się",
-    "profile": "Profil",
-    "favorites": "Ulubione",
-    "myAds": "Moje ogłoszenia",
-    "settings": "Ustawienia",
     "logout": "Wyloguj się",
     "postAd": "Dodaj ogłoszenie",
     "heroTitle": "Znajdź swój następny samochód",
@@ -3053,6 +3045,10 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
 
   },
   uk: {
+    "profile": "Профіль",
+    "favorites": "Обране",
+    "myAds": "Мої оголошення",
+    "settings": "Налаштування",
     "apply": "Застосувати",
     'home': "Головна",
     'cars': "Автомобілі",
@@ -3061,10 +3057,6 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     'contact': "Контакти",
     'login': "Увійти",
     'register': "Реєстрація",
-    'profile': "Профіль",
-    'favorites': "Улюблені",
-    'myAds': "Мої оголошення",
-    'settings': "Налаштування",
     'logout': "Вийти",
     'postAd': "Додати оголошення",
     "heroTitle": "Знайдіть свій наступний автомобіль",

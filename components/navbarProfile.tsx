@@ -3,21 +3,17 @@
 import React, { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { getTranslation } from "@/lib/i18n"
+import { getTranslation, translateString } from "@/lib/i18n"
 import { useLanguage } from "@/hooks/use-language"
+import { useDefaultLanguage } from "./useLanguage"
 
 export default function NavbarProfile() {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
-  const { language } = useLanguage()
-  const t = (key: string): string => {
-    const val = getTranslation(language, key)
-    return typeof val === "string" ? val : key
-  }
-  const locale = language || "en-US"
-
+  const { lang, setLang } = useDefaultLanguage();
+  const t = (key: string) => translateString(lang, key);
   const navLinks = [
-    { href: "/profile", label: t("profileInfo") },
+    { href: "/profile", label: t("profile") },
     { href: "/profile/my-ads", label: t("myAds") },
     { href: "/profile/favorites", label: t("favorites") },
     { href: "/profile/settings", label: t("settings") },

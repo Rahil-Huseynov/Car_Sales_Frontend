@@ -58,7 +58,7 @@ function getAuthHeaders() {
   const headers: Record<string, string> = { Accept: "application/json" }
   try {
     if (typeof window !== "undefined") {
-      const token = localStorage.getItem("token")
+      const token = localStorage.getItem("token") || sessionStorage.getItem("token") ;
       if (token) {
         headers["Authorization"] = `Bearer ${token}`
       }

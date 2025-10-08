@@ -20,6 +20,7 @@ import { logout } from "@/actions/auth";
 import { useToast } from "@/hooks/use-toast";
 import type { Language } from "@/lib/i18n";
 import { useLanguage } from "./LanguageProvider";
+import { tokenManager } from "@/lib/token-manager";
 
 export function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -29,14 +30,14 @@ export function Navbar() {
   const t = (key: string) => translateString(lang, key);
 
   useEffect(() => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+    const token = tokenManager.getAccessToken();
     setIsLoggedIn(!!token);
   }, []);
 
   const handleLogout = async () => {
     const result = await logout();
     if (result.success) {
-      if (typeof window !== "undefined") localStorage.removeItem("accessToken");
+      tokenManager.clearTokens();
       setIsLoggedIn(false);
       toast({
         title: "Uğurlu",
@@ -207,6 +208,18 @@ export function Navbar() {
                           <Link href="/favorites">
                             <Heart className="h-4 w-4 mr-2" />
                             {t("favorites")}
+                          </Link>
+                        </Button>
+                        <Button variant="outline" className="w-full justify-start bg-transparent" asChild>
+                          <Link href="/my-ads">
+                            <Plus className="h-4 w-4 mr-2" />
+                            {t("myAds")}
+                          </Link>
+                        </Button>
+                        <Button variant="outline" className="w-full justify-start bg-transparent" asChild>
+                          <Link href="/settings">
+                            <Settings className="h-4 w-4 mr-2" />
+                            {t("settings")}
                           </Link>
                         </Button>
                         <Button

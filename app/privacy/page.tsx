@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Shield, ArrowLeft, Calendar, Lock, Eye, Database, Cookie } from "lucide-react"
@@ -21,7 +21,7 @@ export default function PrivacyPage() {
   }, [])
 
   const pageContent = {
-    lastUpdated: t("privacy.lastUpdated"),
+    lastUpdated: "October 08, 2025",
     sections: [
       {
         title: t("privacy.sections.collection.title"),

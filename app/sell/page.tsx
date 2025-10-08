@@ -33,6 +33,7 @@ import BrandSelect from "@/components/BrandSelect"
 import ModelSelect from "@/components/ModelSelect"
 import { useDebouncedCallback } from "use-debounce"
 import { useDefaultLanguage } from "@/components/useLanguage"
+import { tokenManager } from "@/lib/token-manager"
 
 type UserType = {
   id: number
@@ -210,8 +211,8 @@ export default function SellPage() {
   const [images, setImages] = useState<ImageItem[]>([])
 
   useEffect(() => {
-    const accessToken = localStorage.getItem("accessToken")
-    if (!accessToken) router.push("/auth/login")
+    const accessToken = tokenManager.getAccessToken();
+    if (!accessToken) router.push("/auth/login?redirect=/sell")
   }, [router])
 
   useEffect(() => {
@@ -660,4 +661,4 @@ export default function SellPage() {
       </div>
     </div>
   )
-}
+}1

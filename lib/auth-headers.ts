@@ -9,10 +9,6 @@ export function authHeaders(includeContentType = false): Record<string, string> 
     token = null;
   }
 
-  if (!token && typeof window !== 'undefined') {
-    token = localStorage.getItem('accessToken');
-  }
-
   const headers: Record<string, string> = {};
 
   if (token) {
@@ -27,3 +23,7 @@ export function authHeaders(includeContentType = false): Record<string, string> 
 }
 
 export default authHeaders;
+export interface DecodedJWT {
+  exp?: number
+  [key: string]: any
+}
