@@ -9,8 +9,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { apiClient } from "@/lib/api-client";
-import { useLanguage } from "@/hooks/use-language";
-import { getTranslation, translateString } from "@/lib/i18n";
+import { translateString } from "@/lib/i18n";
 import { useDefaultLanguage } from "./useLanguage";
 
 type Props = {
@@ -28,7 +27,7 @@ export default function ModelSelect({
   placeholder = "All",
   searchPlaceholder = "Search...",
 }: Props) {
-  const { lang, setLang } = useDefaultLanguage();
+  const { lang } = useDefaultLanguage();
   const t = (key: string) => translateString(lang, key);
 
   const LIMIT = 10;
@@ -39,49 +38,72 @@ export default function ModelSelect({
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [search, setSearch] = useState("");
+  const [open, setOpen] = useState(false);
+
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const debounceRef = useRef<number | null>(null);
   const requestIdRef = useRef(0);
 
-  const normalizeResponse = (res: any): string[] => {
-    if (!res) return [];
-    if (Array.isArray(res)) return res.map((x) => (typeof x === "string" ? x : (x.name ?? x.key ?? String(x))));
-    if (res.items && Array.isArray(res.items)) return res.items.map((x: any) => (typeof x === "string" ? x : (x.name ?? x.key ?? String(x))));
-    if (res.data && Array.isArray(res.data)) return res.data.map((x: any) => (typeof x === "string" ? x : (x.name ?? x.key ?? String(x))));
+  const normalizeResponse = (res: any): { items: string[]; meta?: any } => {
+    if (!res) return { items: [], meta: undefined };
+    if (res.items && Array.isArray(res.items)) return { items: res.items.map((x: any) => (typeof x === "string" ? x : x?.name ?? x?.key ?? String(x))), meta: res.meta ?? res.pagination ?? undefined };
+    if (res.data && Array.isArray(res.data)) return { items: res.data.map((x: any) => (typeof x === "string" ? x : x?.name ?? x?.key ?? String(x))), meta: res.meta ?? res.pagination ?? undefined };
+    if (Array.isArray(res)) return { items: res.map((x: any) => (typeof x === "string" ? x : x?.name ?? x?.key ?? String(x))) };
     if (typeof res === "object") {
       try {
-        const vals = Object.values(res).flat();
-        if (Array.isArray(vals)) return vals.map((v: any) => (typeof v === "string" ? v : (v.name ?? v.key ?? String(v))));
-      } catch { }
+        const vals = Object.values(res).flat?.();
+        if (Array.isArray(vals)) return { items: vals.map((v: any) => (typeof v === "string" ? v : v?.name ?? v?.key ?? String(v))) };
+      } catch {}
     }
-    return [];
+    return { items: [], meta: undefined };
+  };
+  const callApi = async (pageParam: number, limitParam: number, brandArg?: string, searchQ?: string) => {
+    if (brandArg && typeof (apiClient as any).carsSpesificData === "function") {
+      return await (apiClient as any).carsSpesificData(pageParam, limitParam, brandArg, searchQ);
+    }
+    if (typeof (apiClient as any).carsModelSearch === "function" && searchQ) {
+      return await (apiClient as any).carsModelSearch(searchQ, undefined);
+    }
+
+    return await (apiClient as any).carsModel(pageParam, limitParam);
   };
 
-  const loadPage = async (p: number, brd?: string) => {
+  const loadPage = async (p: number, brd?: string, searchQ?: string) => {
+    const isSearch = Boolean(searchQ && searchQ.trim().length > 0);
     if (loading) return;
-    if (!hasMore && p !== 1) return;
+    if (!hasMore && p !== 1 && !isSearch) return;
+
     setLoading(true);
     const thisRequestId = ++requestIdRef.current;
 
     try {
-      let res;
-      if (brd && brd !== ALL_VALUE) {
-        if (typeof (apiClient as any).carsSpesificData !== "function") throw new Error("apiClient.carsSpesificData not available");
-        res = await (apiClient as any).carsSpesificData(p, LIMIT, brd);
-      } else {
-        if (typeof (apiClient as any).carsModel !== "function") throw new Error("apiClient.carsModel not available");
-        res = await (apiClient as any).carsModel(p, LIMIT);
-      }
-
+      const res = await callApi(p, LIMIT, brd && brd !== "" ? brd : undefined, searchQ);
       if (thisRequestId !== requestIdRef.current) return;
 
-      const arr = normalizeResponse(res);
-      const unique = Array.from(new Set(arr));
+      const { items: arr, meta } = normalizeResponse(res);
+      const arrLength = Array.isArray(arr) ? arr.length : 0;
+      console.log(`[ModelSelect] apiReturned page=${p} count=${arrLength} brand=${brd ?? "none"} search="${searchQ ?? ""}"`);
 
-      setItems((prev) => (p === 1 ? unique : Array.from(new Set([...prev, ...unique]))));
-
-      setHasMore(unique.length >= LIMIT);
-      setPage(p);
+      if (p === 1) {
+        const unique = Array.from(new Set(arr));
+        setItems(unique);
+        setHasMore(arrLength >= LIMIT);
+        setPage(1);
+      } else {
+        setItems((prev) => {
+          const prevSet = new Set(prev);
+          const newItems = arr.filter((it: string) => !prevSet.has(it));
+          if (newItems.length === 0) {
+            setHasMore(false);
+            return prev;
+          }
+          const merged = Array.from(new Set([...prev, ...newItems]));
+          setHasMore(arrLength >= LIMIT);
+          setPage(p);
+          return merged;
+        });
+      }
     } catch (err) {
       console.error("Model load failed:", err);
     } finally {
@@ -90,17 +112,42 @@ export default function ModelSelect({
   };
 
   useEffect(() => {
-    loadPage(1, brand);
+    setSearch("");
+    setItems([]);
+    setPage(1);
+    setHasMore(true);
+    requestIdRef.current++;
+    loadPage(1, brand && brand !== "" ? brand : undefined);
   }, [brand]);
 
-  const performSearch = (q: string) => {
+  const performSearch = async (q: string) => {
     const trimmed = q.trim();
     if (trimmed === "") {
       setItems([]);
       setPage(1);
       setHasMore(true);
-      loadPage(1, brand);
+      requestIdRef.current++;
+      loadPage(1, brand && brand !== "" ? brand : undefined);
       return;
+    }
+
+    setLoading(true);
+    const thisRequestId = ++requestIdRef.current;
+
+    try {
+      const res = await callApi(1, LIMIT, brand && brand !== "" ? brand : undefined, trimmed);
+      if (thisRequestId !== requestIdRef.current) return;
+
+      const { items: arr } = normalizeResponse(res);
+      const unique = Array.from(new Set(arr));
+      setItems(unique);
+      setHasMore(unique.length >= LIMIT);
+      setPage(1);
+      console.log(`[ModelSelect] search="${trimmed}" returned ${unique.length} items (brand=${brand})`);
+    } catch (err) {
+      console.error("Model search failed:", err);
+    } finally {
+      if (thisRequestId === requestIdRef.current) setLoading(false);
     }
   };
 
@@ -114,17 +161,33 @@ export default function ModelSelect({
 
   const onScroll: React.UIEventHandler<HTMLDivElement> = (e) => {
     const el = e.currentTarget;
-    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 40) {
-      if (!loading && hasMore) loadPage(page + 1, brand);
+    const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 60;
+    if (nearBottom && !loading && hasMore && search.trim() === "") {
+      loadPage(page + 1, brand && brand !== "" ? brand : undefined);
     }
   };
 
   const handleValueChange = (v: string) => {
     onChange(v === ALL_VALUE ? "" : v);
+    setOpen(false);
+  };
+
+  const stopEvent = (e: React.SyntheticEvent) => e.stopPropagation();
+  const handleInputFocus = () => setOpen(true);
+  const handleInputBlur = () => {
+    setTimeout(() => {
+      const active = document.activeElement;
+      if (!scrollRef.current || !scrollRef.current.contains(active)) setOpen(false);
+    }, 100);
   };
 
   return (
-    <Select value={value === "" ? ALL_VALUE : value} onValueChange={handleValueChange}>
+    <Select
+      value={value === "" ? ALL_VALUE : value}
+      onValueChange={handleValueChange}
+      open={open}
+      onOpenChange={(o: boolean) => setOpen(Boolean(o))}
+    >
       <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300">
         <SelectValue placeholder={t("placeholderAllItems") || placeholder} />
       </SelectTrigger>
@@ -132,23 +195,21 @@ export default function ModelSelect({
       <SelectContent side="bottom" align="start" className="p-0">
         <div className="px-3 py-2 border-b border-gray-100 bg-white">
           <input
+            ref={inputRef}
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            onFocus={() => {
-              if (items.length === 0 && !loading) loadPage(1, brand);
-            }}
+            onFocus={handleInputFocus}
+            onBlur={handleInputBlur}
+            onMouseDown={stopEvent}
+            onPointerDown={stopEvent}
+            onKeyDown={(e) => e.stopPropagation()}
             placeholder={t("searchbuttonPlaceholder") || searchPlaceholder}
             className="w-full text-sm p-2 border rounded-md border-gray-200 focus:outline-none focus:ring-1 focus:ring-blue-400"
           />
         </div>
 
-        <div
-          ref={scrollRef}
-          onScroll={onScroll}
-          className="max-h-60 overflow-auto"
-          style={{ minWidth: 220 }}
-        >
+        <div ref={scrollRef} onScroll={onScroll} className="max-h-60 overflow-auto" style={{ minWidth: 220 }}>
           <SelectItem value={ALL_VALUE}>{t("placeholderAllItems") || "ALL"}</SelectItem>
 
           {items.map((m) => (
@@ -157,12 +218,10 @@ export default function ModelSelect({
             </SelectItem>
           ))}
 
-          {loading && (
-            <div className="p-2 text-center text-sm text-gray-500">{t("loading")}...</div>
-          )}
+          {loading && <div className="p-2 text-center text-sm text-gray-500">{t("loading") || "Loading"}...</div>}
 
           {!hasMore && !loading && items.length === 0 && (
-            <div className="p-2 text-center text-sm text-gray-500">{t("noModels")}</div>
+            <div className="p-2 text-center text-sm text-gray-500">{t("noModels") || "No models found"}</div>
           )}
         </div>
       </SelectContent>

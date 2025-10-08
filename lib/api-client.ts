@@ -159,10 +159,20 @@ class ApiClient {
     return this.request(`/carsdata/values?${qs.toString()}`, { method: 'GET' });
   }
 
-  async carsSpesificData(page = 1, limit = 10, name: string) {
-    const qs = new URLSearchParams({ page: String(page), limit: String(limit) });
-    return this.request(`/carsdata/brand/${encodeURIComponent(name)}?${qs.toString()}`, { method: 'GET' });
+  async carsSpesificData(page = 1, limit = 10, name: string, search?: string) {
+    const params = new URLSearchParams({
+      page: String(page),
+      limit: String(limit),
+    });
+
+    if (search && search.trim().length > 0) {
+      params.set("search", search.trim());
+    }
+
+    const url = `/carsdata/brand/${encodeURIComponent(name)}?${params.toString()}`;
+    return this.request(url, { method: "GET" });
   }
+
 
   async updateUser(userId: string, body: any) {
     return this.request(`/auth/users/${userId}`, {
