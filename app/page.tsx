@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,11 +18,12 @@ import {
   ChevronLeft,
   ChevronRight,
   Cog,
+  X,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Navbar } from "@/components/navbar";
-import { getTranslation, translateString } from "@/lib/i18n";
+import { translateString } from "@/lib/i18n";
 import { apiClient } from "@/lib/api-client";
 import { useAuth } from "@/lib/auth-context";
 import { cities, colors, conditions, fuels, gearboxOptions, years } from "@/lib/car-data";
@@ -94,7 +95,7 @@ function buildImageUrl(raw: string) {
   if (/^https?:\/\//i.test(raw)) return raw;
   const base = (process.env.NEXT_PUBLIC_API_URL_FOR_IMAGE ?? "").replace(/\/+$/, "");
   let path = raw.replace(/^\/+/, "");
-  path = path.replace(/^(uploads\/)+/i, "");
+  path = path.replace(/^(uploads\/)*/i, "");
   if (!base) return `/${path}`;
   return `${base}/${path}`;
 }
@@ -200,16 +201,16 @@ export default function HomePage() {
   const [selectedLocation, setSelectedLocation] = useState<string>("all");
   const [selectedColor, setSelectedColor] = useState<string>("all");
   const [priceRange, setPriceRange] = useState({ min: "", max: "" });
-  const { lang, setLang } = useDefaultLanguage();
+  const { lang } = useDefaultLanguage();
   const t = (key: string) => translateString(lang, key);
   const [page, setPage] = useState<number>(1);
   const [limit] = useState<number>(30);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [sortBy, setSortBy] = useState<string>("createdAt_desc");
-
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [profileData, setProfileData] = useState<any | null>(null);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   const fetchCarsFromApi = async () => {
     setIsLoading(true);
@@ -311,6 +312,136 @@ export default function HomePage() {
   const colorsList = sortByLabel(colors as any[], lang);
   const citiesList = sortByLabel(cities as any[], lang);
 
+  // Reusable Filters panel to avoid duplication
+  const FiltersPanel = ({ onClose }: { onClose?: () => void }) => (
+    <Card className="shadow-sm border-0 bg-white/80 backdrop-blur-sm hover-lift">
+      <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-t-lg">
+        <div className="flex items-center gap-2"><Filter className="h-5 w-5 text-blue-600" /><h3 className="text-lg font-semibold text-blue-800">{t("filters")}</h3></div>
+      </CardHeader>
+      <CardContent className="space-y-4 p-6">
+        <div>
+          <label className="text-sm font-medium mb-2 block text-gray-700">{t("brand")}</label>
+          <BrandSelect
+            value={selectedBrand}
+            onChange={(v) => { setSelectedBrand(v); setSelectedModel("all"); setPage(1); onClose?.(); }}
+            placeholder={t("all")}
+          />
+        </div>
+
+        <div>
+          <label className="text-sm font-medium mb-2 block text-gray-700">{t("model")}</label>
+          <ModelSelect
+            value={selectedModel}
+            brand={selectedBrand}
+            onChange={(v) => { setSelectedModel(v); setPage(1); onClose?.(); }}
+            placeholder={t("all")}
+          />
+        </div>
+
+        <div>
+          <label className="text-sm font-medium mb-2 block text-gray-700">{t("year")}</label>
+          <Select value={selectedYear} onValueChange={(v) => { setSelectedYear(v); setPage(1); onClose?.(); }}>
+            <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectYear")} /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t("all")}</SelectItem>
+              {years.map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <label className="text-sm font-medium mb-2 block text-gray-700">{t("fuel")}</label>
+          <Select value={selectedFuel} onValueChange={(v) => { setSelectedFuel(v); setPage(1); onClose?.(); }}>
+            <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectFuel")} /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t("all")}</SelectItem>
+              {fuelsList.map(item => (
+                <SelectItem key={item.key} value={item.key}>
+                  {item.translations[lang] ?? item.translations.en}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <label className="text-sm font-medium mb-2 block text-gray-700">{t("transmission")}</label>
+          <Select value={selectedGearbox} onValueChange={(v) => { setSelectedGearbox(v); setPage(1); onClose?.(); }}>
+            <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectTransmission")} /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t("all")}</SelectItem>
+              {transmissionsList.map(item => (
+                <SelectItem key={item.key} value={item.key}>
+                  {item.translations[lang] ?? item.translations.en}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <label className="text-sm font-medium mb-2 block text-gray-700">{t("condition")}</label>
+          <Select value={selectedCondition} onValueChange={(v) => { setSelectedCondition(v); setPage(1); onClose?.(); }}>
+            <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectCondition")} /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t("all")}</SelectItem>
+              {conditionsList.map(item => (
+                <SelectItem key={item.key} value={item.key}>
+                  {item.translations[lang] ?? item.translations.en}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <label className="text-sm font-medium mb-2 block text-gray-700">{t("city")}</label>
+          <Select value={selectedLocation} onValueChange={(v) => { setSelectedLocation(v); setPage(1); onClose?.(); }}>
+            <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectCity")} /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t("all")}</SelectItem>
+              {citiesList.map(item => (
+                <SelectItem key={item.key} value={item.key}>
+                  {item.translations[lang] ?? item.translations.en}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <label className="text-sm font-medium mb-2 block text-gray-700">{t("color")}</label>
+          <Select value={selectedColor} onValueChange={(v) => { setSelectedColor(v); setPage(1); onClose?.(); }}>
+            <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectColor")} /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t("all")}</SelectItem>
+              {colorsList.map(item => (
+                <SelectItem key={item.key} value={item.key}>
+                  {item.translations[lang] ?? item.translations.en}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <label className="text-sm font-medium mb-2 block text-gray-700">{t("priceRange")}</label>
+          <div className="flex gap-2">
+            <Input placeholder={t("min")} value={priceRange.min} onChange={(e) => { setPriceRange(prev => ({ ...prev, min: e.target.value })); setPage(1); }} className="border-gray-200 focus:border-blue-400 transition-colors duration-300" />
+            <Input placeholder={t("max")} value={priceRange.max} onChange={(e) => { setPriceRange(prev => ({ ...prev, max: e.target.value })); setPage(1); }} className="border-gray-200 focus:border-blue-400 transition-colors duration-300" />
+          </div>
+        </div>
+
+        <Button variant="outline" className="w-full bg-transparent border-blue-200 text-blue-600 hover:bg-blue-50 btn-animate transition-all duration-300 hover:scale-105" onClick={() => {
+          setSelectedBrand("all"); setSelectedModel("all"); setSelectedYear("all"); setSelectedFuel("all");
+          setSelectedGearbox("all"); setSelectedCondition("all"); setSelectedLocation("all"); setSelectedColor("all");
+          setPriceRange({ min: "", max: "" }); setSearchTerm(""); setSortBy("createdAt_desc"); setPage(1);
+          onClose?.();
+        }}>{t("clearFilters")}</Button>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="navbar-slide">
@@ -334,128 +465,271 @@ export default function HomePage() {
           <div className="xl:w-1/4 filter-slide">
             <Card className="xl:sticky xl:top-4 shadow-sm border-0 bg-white/80 backdrop-blur-sm hover-lift">
               <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-t-lg">
-                <div className="flex items-center gap-2"><Filter className="h-5 w-5 text-blue-600" /><h3 className="text-lg font-semibold text-blue-800">{t("filters")}</h3></div>
-              </CardHeader>
-              <CardContent className="space-y-4 p-6">
-                <div>
-                  <label className="text-sm font-medium mb-2 block text-gray-700">{t("brand")}</label>
-                  <BrandSelect
-                    value={selectedBrand}
-                    onChange={(v) => { setSelectedBrand(v); setSelectedModel("all"); setPage(1); }}
-                    placeholder={t("all")}
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium mb-2 block text-gray-700">{t("model")}</label>
-                  <ModelSelect
-                    value={selectedModel}
-                    brand={selectedBrand}
-                    onChange={(v) => { setSelectedModel(v); setPage(1); }}
-                    placeholder={t("all")}
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium mb-2 block text-gray-700">{t("year")}</label>
-                  <Select value={selectedYear} onValueChange={(v) => { setSelectedYear(v); setPage(1); }}>
-                    <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectYear")} /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{t("all")}</SelectItem>
-                      {years.map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium mb-2 block text-gray-700">{t("fuel")}</label>
-                  <Select value={selectedFuel} onValueChange={(v) => { setSelectedFuel(v); setPage(1); }}>
-                    <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectFuel")} /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{t("all")}</SelectItem>
-                      {fuelsList.map(item => (
-                        <SelectItem key={item.key} value={item.key}>
-                          {item.translations[lang] ?? item.translations.en}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium mb-2 block text-gray-700">{t("transmission")}</label>
-                  <Select value={selectedGearbox} onValueChange={(v) => { setSelectedGearbox(v); setPage(1); }}>
-                    <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectTransmission")} /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{t("all")}</SelectItem>
-                      {transmissionsList.map(item => (
-                        <SelectItem key={item.key} value={item.key}>
-                          {item.translations[lang] ?? item.translations.en}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium mb-2 block text-gray-700">{t("condition")}</label>
-                  <Select value={selectedCondition} onValueChange={(v) => { setSelectedCondition(v); setPage(1); }}>
-                    <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectCondition")} /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{t("all")}</SelectItem>
-                      {conditionsList.map(item => (
-                        <SelectItem key={item.key} value={item.key}>
-                          {item.translations[lang] ?? item.translations.en}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium mb-2 block text-gray-700">{t("city")}</label>
-                  <Select value={selectedLocation} onValueChange={(v) => { setSelectedLocation(v); setPage(1); }}>
-                    <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectCity")} /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{t("all")}</SelectItem>
-                      {citiesList.map(item => (
-                        <SelectItem key={item.key} value={item.key}>
-                          {item.translations[lang] ?? item.translations.en}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium mb-2 block text-gray-700">{t("color")}</label>
-                  <Select value={selectedColor} onValueChange={(v) => { setSelectedColor(v); setPage(1); }}>
-                    <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectColor")} /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{t("all")}</SelectItem>
-                      {colorsList.map(item => (
-                        <SelectItem key={item.key} value={item.key}>
-                          {item.translations[lang] ?? item.translations.en}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium mb-2 block text-gray-700">{t("priceRange")}</label>
-                  <div className="flex gap-2">
-                    <Input placeholder={t("min")} value={priceRange.min} onChange={(e) => { setPriceRange(prev => ({ ...prev, min: e.target.value })); setPage(1); }} className="border-gray-200 focus:border-blue-400 transition-colors duration-300" />
-                    <Input placeholder={t("max")} value={priceRange.max} onChange={(e) => { setPriceRange(prev => ({ ...prev, max: e.target.value })); setPage(1); }} className="border-gray-200 focus:border-blue-400 transition-colors duration-300" />
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-2">
+                    <Filter className="h-5 w-5 text-blue-600" />
+                    <h3 className="text-lg font-semibold text-blue-800">{t("filters")}</h3>
+                  </div>
+                  <div className="xl:hidden">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="flex items-center gap-2 px-2 py-1"
+                      onClick={() => setMobileFiltersOpen((s) => !s)}
+                      aria-expanded={mobileFiltersOpen}
+                    >
+                      <span className="text-sm text-blue-800">{mobileFiltersOpen ? (t("close") ?? "Close") : t("open")}</span>
+                      <ChevronRight className={`h-4 w-4 transition-transform ${mobileFiltersOpen ? "rotate-90" : "-rotate-90"}`} />
+                    </Button>
                   </div>
                 </div>
+              </CardHeader>
 
-                <Button variant="outline" className="w-full bg-transparent border-blue-200 text-blue-600 hover:bg-blue-50 btn-animate transition-all duration-300 hover:scale-105" onClick={() => {
-                  setSelectedBrand("all"); setSelectedModel("all"); setSelectedYear("all"); setSelectedFuel("all");
-                  setSelectedGearbox("all"); setSelectedCondition("all"); setSelectedLocation("all"); setSelectedColor("all");
-                  setPriceRange({ min: "", max: "" }); setSearchTerm(""); setSortBy("createdAt_desc"); setPage(1);
-                }}>{t("clearFilters")}</Button>
-              </CardContent>
+              <div className="hidden xl:block">
+                <CardContent className="space-y-4 p-6">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block text-gray-700">{t("brand")}</label>
+                    <BrandSelect
+                      value={selectedBrand}
+                      onChange={(v) => { setSelectedBrand(v); setSelectedModel("all"); setPage(1); }}
+                      placeholder={t("all")}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block text-gray-700">{t("model")}</label>
+                    <ModelSelect
+                      value={selectedModel}
+                      brand={selectedBrand}
+                      onChange={(v) => { setSelectedModel(v); setPage(1); }}
+                      placeholder={t("all")}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block text-gray-700">{t("year")}</label>
+                    <Select value={selectedYear} onValueChange={(v) => { setSelectedYear(v); setPage(1); }}>
+                      <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectYear")} /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t("all")}</SelectItem>
+                        {years.map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block text-gray-700">{t("fuel")}</label>
+                    <Select value={selectedFuel} onValueChange={(v) => { setSelectedFuel(v); setPage(1); }}>
+                      <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectFuel")} /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t("all")}</SelectItem>
+                        {sortByLabel(fuels as any[], lang).map(item => (
+                          <SelectItem key={item.key} value={item.key}>
+                            {item.translations[lang] ?? item.translations.en}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block text-gray-700">{t("transmission")}</label>
+                    <Select value={selectedGearbox} onValueChange={(v) => { setSelectedGearbox(v); setPage(1); }}>
+                      <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectTransmission")} /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t("all")}</SelectItem>
+                        {sortByLabel(gearboxOptions as any[], lang).map(item => (
+                          <SelectItem key={item.key} value={item.key}>
+                            {item.translations[lang] ?? item.translations.en}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block text-gray-700">{t("condition")}</label>
+                    <Select value={selectedCondition} onValueChange={(v) => { setSelectedCondition(v); setPage(1); }}>
+                      <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectCondition")} /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t("all")}</SelectItem>
+                        {sortByLabel(conditions as any[], lang).map(item => (
+                          <SelectItem key={item.key} value={item.key}>
+                            {item.translations[lang] ?? item.translations.en}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block text-gray-700">{t("city")}</label>
+                    <Select value={selectedLocation} onValueChange={(v) => { setSelectedLocation(v); setPage(1); }}>
+                      <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectCity")} /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t("all")}</SelectItem>
+                        {sortByLabel(cities as any[], lang).map(item => (
+                          <SelectItem key={item.key} value={item.key}>
+                            {item.translations[lang] ?? item.translations.en}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block text-gray-700">{t("color")}</label>
+                    <Select value={selectedColor} onValueChange={(v) => { setSelectedColor(v); setPage(1); }}>
+                      <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectColor")} /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t("all")}</SelectItem>
+                        {sortByLabel(colors as any[], lang).map(item => (
+                          <SelectItem key={item.key} value={item.key}>
+                            {item.translations[lang] ?? item.translations.en}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block text-gray-700">{t("priceRange")}</label>
+                    <div className="flex gap-2">
+                      <Input placeholder={t("min")} value={priceRange.min} onChange={(e) => { setPriceRange(prev => ({ ...prev, min: e.target.value })); setPage(1); }} className="border-gray-200 focus:border-blue-400 transition-colors duration-300" />
+                      <Input placeholder={t("max")} value={priceRange.max} onChange={(e) => { setPriceRange(prev => ({ ...prev, max: e.target.value })); setPage(1); }} className="border-gray-200 focus:border-blue-400 transition-colors duration-300" />
+                    </div>
+                  </div>
+
+                  <Button variant="outline" className="w-full bg-transparent border-blue-200 text-blue-600 hover:bg-blue-50 btn-animate transition-all duration-300 hover:scale-105" onClick={() => {
+                    setSelectedBrand("all"); setSelectedModel("all"); setSelectedYear("all"); setSelectedFuel("all");
+                    setSelectedGearbox("all"); setSelectedCondition("all"); setSelectedLocation("all"); setSelectedColor("all");
+                    setPriceRange({ min: "", max: "" }); setSearchTerm(""); setSortBy("createdAt_desc"); setPage(1);
+                  }}>{t("clearFilters")}</Button>
+                </CardContent>
+              </div>
+
+              <div className={`xl:hidden transition-all duration-300 overflow-hidden ${mobileFiltersOpen ? "max-h-[2000px] py-4" : "max-h-0"}`}>
+                <CardContent className="space-y-4 p-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block text-gray-700">{t("brand")}</label>
+                    <BrandSelect
+                      value={selectedBrand}
+                      onChange={(v) => { setSelectedBrand(v); setSelectedModel("all"); setPage(1); setMobileFiltersOpen(false); }}
+                      placeholder={t("all")}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block text-gray-700">{t("model")}</label>
+                    <ModelSelect
+                      value={selectedModel}
+                      brand={selectedBrand}
+                      onChange={(v) => { setSelectedModel(v); setPage(1); setMobileFiltersOpen(false); }}
+                      placeholder={t("all")}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block text-gray-700">{t("year")}</label>
+                    <Select value={selectedYear} onValueChange={(v) => { setSelectedYear(v); setPage(1); }}>
+                      <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectYear")} /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t("all")}</SelectItem>
+                        {years.map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block text-gray-700">{t("fuel")}</label>
+                    <Select value={selectedFuel} onValueChange={(v) => { setSelectedFuel(v); setPage(1); }}>
+                      <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectFuel")} /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t("all")}</SelectItem>
+                        {sortByLabel(fuels as any[], lang).map(item => (
+                          <SelectItem key={item.key} value={item.key}>
+                            {item.translations[lang] ?? item.translations.en}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block text-gray-700">{t("transmission")}</label>
+                    <Select value={selectedGearbox} onValueChange={(v) => { setSelectedGearbox(v); setPage(1); }}>
+                      <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectTransmission")} /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t("all")}</SelectItem>
+                        {sortByLabel(gearboxOptions as any[], lang).map(item => (
+                          <SelectItem key={item.key} value={item.key}>
+                            {item.translations[lang] ?? item.translations.en}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block text-gray-700">{t("condition")}</label>
+                    <Select value={selectedCondition} onValueChange={(v) => { setSelectedCondition(v); setPage(1); }}>
+                      <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectCondition")} /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t("all")}</SelectItem>
+                        {sortByLabel(conditions as any[], lang).map(item => (
+                          <SelectItem key={item.key} value={item.key}>
+                            {item.translations[lang] ?? item.translations.en}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block text-gray-700">{t("city")}</label>
+                    <Select value={selectedLocation} onValueChange={(v) => { setSelectedLocation(v); setPage(1); }}>
+                      <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectCity")} /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t("all")}</SelectItem>
+                        {sortByLabel(cities as any[], lang).map(item => (
+                          <SelectItem key={item.key} value={item.key}>
+                            {item.translations[lang] ?? item.translations.en}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block text-gray-700">{t("color")}</label>
+                    <Select value={selectedColor} onValueChange={(v) => { setSelectedColor(v); setPage(1); }}>
+                      <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectColor")} /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t("all")}</SelectItem>
+                        {sortByLabel(colors as any[], lang).map(item => (
+                          <SelectItem key={item.key} value={item.key}>
+                            {item.translations[lang] ?? item.translations.en}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block text-gray-700">{t("priceRange")}</label>
+                    <div className="flex gap-2">
+                      <Input placeholder={t("min")} value={priceRange.min} onChange={(e) => { setPriceRange(prev => ({ ...prev, min: e.target.value })); setPage(1); }} className="border-gray-200 focus:border-blue-400 transition-colors duration-300" />
+                      <Input placeholder={t("max")} value={priceRange.max} onChange={(e) => { setPriceRange(prev => ({ ...prev, max: e.target.value })); setPage(1); }} className="border-gray-200 focus:border-blue-400 transition-colors duration-300" />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button className="flex-1" onClick={() => setMobileFiltersOpen(false)}>{t("apply") ?? "Apply"}</Button>
+                    <Button variant="outline" className="flex-1" onClick={() => {
+                      setSelectedBrand("all"); setSelectedModel("all"); setSelectedYear("all"); setSelectedFuel("all");
+                      setSelectedGearbox("all"); setSelectedCondition("all"); setSelectedLocation("all"); setSelectedColor("all");
+                      setPriceRange({ min: "", max: "" }); setSearchTerm(""); setSortBy("createdAt_desc"); setPage(1);
+                      setMobileFiltersOpen(false);
+                    }}>{t("clearFilters")}</Button>
+                  </div>
+                </CardContent>
+              </div>
             </Card>
           </div>
 

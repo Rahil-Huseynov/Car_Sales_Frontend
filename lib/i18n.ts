@@ -21,6 +21,10 @@ export type TranslationValue = string | {
 export const translations: Record<Language, Record<string, TranslationValue>> = {
 
   az: {
+    "setNewPassword": "Yeni Şifrə Təyin Et",
+    "passwordRequirements": "Şifrə ən azı 8 simvoldan ibarət olmalı, bir böyük hərf, bir kiçik hərf və bir rəqəm daxil etməlidir.",
+    "newPasswordPlaceholder": "Yeni şifrəni daxil et",
+    "apply": "Tətbiq et",
     'home': "Ana səhifə",
     'cars': "Avtomobillər",
     'sell': "Sat",
@@ -447,6 +451,26 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
   },
 
   en: {
+    "newPasswordPlaceholder": "Enter new password",
+    "apply": "Apply",
+    "checking": "Checking token...",
+    "setNewPassword": "Set a new password",
+    "passwordRequirements": "Use at least 8 characters, including uppercase, lowercase, a number and a special character.",
+    "backToLogin": "Back to sign in",
+    "logo_title": "EuroCar",
+    "logo_description": "Car listings — buy and sell easily",
+    "passwordChangedInfo": "Your password has been changed. You can now sign in with the new password.",
+    "successMessage": "Password changed successfully.",
+    "errorMessage": "Something went wrong. Please try again.",
+    "newPassword": "New password",
+    "changePassword": "Change password",
+    "loading": "Processing...",
+    "rememberPassword": "Remembered your password?",
+    "signIn": "Sign in",
+    "needHelp": "Need help?",
+    "contactSupport": "Contact our support team if you need assistance.",
+    "contactUs": "Contact us",
+    "invalidPassword": "Password must be at least 8 characters and include uppercase, lowercase, a number and a special character.",
     'home': "Home",
     'cars': "Cars",
     'sell': "Sell",
@@ -488,7 +512,6 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "priceHigh": "Price: High to Low",
     "yearNew": "Year: New to Old",
     "yearOld": "Year: Old to New",
-    "loading": "Loading...",
     "noResults": "No results found",
     "noResultsDesc": "No listings match your selected filters.",
     "prev": "Prev",
@@ -639,7 +662,6 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "registrationSuccess": "Registration completed successfully.",
     "registrationFailed": "An error occurred during registration.",
     "forgotPasswordSubtitle": "Enter your email — we'll send a reset link.",
-    "backToLogin": "Back to login",
     "resetPassword": "Reset password",
     "resetPasswordDesc": "Enter the email linked to your account and we'll send a reset link.",
     "checkEmail": "Check your email",
@@ -652,11 +674,6 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "enterEmail": "Enter your email",
     "resetInstructions": "We will send a password reset link to your email address.",
     "sendResetLink": "Send reset link",
-    "rememberPassword": "Remembered your password?",
-    "signIn": "Sign in",
-    "needHelp": "Need help?",
-    "contactSupport": "Our support team is ready to help.",
-    "contactUs": "Contact us",
     "invalidEmail": "Please enter a valid email address.",
     "resetError": "An error occurred while resetting password.",
     "openInNewTab": "Open in new tab",
@@ -823,7 +840,6 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "saveChanges": "Save Changes",
     "securitySettings": "Security Settings",
     "currentPassword": "Current Password",
-    "newPassword": "New Password",
     "enterCurrentPassword": "Enter your current password",
     "enterNewPassword": "Enter your new password",
     "updatePassword": "Update Password",
@@ -868,8 +884,8 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
 
   },
 
-
   de: {
+    "apply": "Anwenden",
     "home": "Startseite",
     "cars": "Autos",
     "sell": "Verkaufen",
@@ -1287,10 +1303,23 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "saveFailed": "Speichern fehlgeschlagen",
     "saved": "Gespeichert",
     "confirmDelete": "Sind Sie sicher, dass Sie löschen möchten?",
-    "Sold": "Verkauft"
+    "Sold": "Verkauft",
+    "checking": "Token wird geprüft...",
+    "setNewPassword": "Neues Passwort festlegen",
+    "passwordRequirements": "Mindestens 8 Zeichen, Groß- und Kleinbuchstaben, Zahl und Sonderzeichen.",
+    "logo_title": "EuroCar",
+    "logo_description": "Autoanzeigen — einfach kaufen und verkaufen",
+    "passwordChangedInfo": "Ihr Passwort wurde geändert. Sie können sich nun mit dem neuen Passwort anmelden.",
+    "successMessage": "Passwort erfolgreich geändert.",
+    "errorMessage": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
+    "newPasswordPlaceholder": "Geben Sie Ihr neues Passwort ein",
+    "changePassword": "Passwort ändern",
+    "invalidPassword": "Das Passwort muss mindestens 8 Zeichen lang sein und Groß-/Kleinbuchstaben, Ziffern und Sonderzeichen enthalten."
+
   },
 
   es: {
+    "apply": "Aplicar",
     "home": "Inicio",
     "cars": "Coches",
     "sell": "Vender",
@@ -1708,10 +1737,22 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "saveFailed": "Error al guardar",
     "saved": "Guardado",
     "confirmDelete": "¿Está seguro de que desea eliminar?",
-    "Sold": "Vendido"
+    "Sold": "Vendido",
+    "checking": "Comprobando el token...",
+    "setNewPassword": "Establecer nueva contraseña",
+    "passwordRequirements": "Usa al menos 8 caracteres, incluyendo mayúsculas, minúsculas, número y carácter especial.",
+    "logo_title": "EuroCar",
+    "logo_description": "Anuncios de coches — vende y compra fácilmente",
+    "passwordChangedInfo": "Tu contraseña ha sido cambiada. Ya puedes iniciar sesión con la nueva contraseña.",
+    "successMessage": "Contraseña cambiada con éxito.",
+    "errorMessage": "Algo salió mal. Por favor inténtalo de nuevo.",
+    "newPasswordPlaceholder": "Introduce tu nueva contraseña",
+    "changePassword": "Cambiar contraseña",
+    "invalidPassword": "La contraseña debe tener al menos 8 caracteres e incluir mayúsculas, minúsculas, números y un carácter especial."
   },
 
   tr: {
+    "apply": "Uygula",
     "home": "Ana Sayfa",
     "cars": "Arabalar",
     "sell": "Sat",
@@ -2129,10 +2170,23 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "saveFailed": "Kaydetme başarısız",
     "saved": "Kaydedildi",
     "confirmDelete": "Gerçekten silmek istiyor musunuz?",
-    "Sold": "Satıldı"
+    "Sold": "Satıldı",
+    "checking": "Token kontrol ediliyor...",
+    "setNewPassword": "Yeni şifre belirle",
+    "passwordRequirements": "En az 8 karakter; büyük, küçük harf, rakam ve özel karakter içermelidir.",
+    "logo_title": "EuroCar",
+    "logo_description": "Oto ilanları — kolayca sat ve al",
+    "passwordChangedInfo": "Şifreniz değiştirildi. Yeni şifrenizle giriş yapabilirsiniz.",
+    "successMessage": "Şifre başarıyla değiştirildi.",
+    "errorMessage": "Bir hata oluştu. Lütfen tekrar deneyin.",
+    "newPasswordPlaceholder": "Yeni şifrenizi girin",
+    "changePassword": "Şifreyi değiştir",
+    "invalidPassword": "Şifre en az 8 karakter olmalı; büyük/küçük harf, rakam ve özel karakter içermelidir."
+
   },
 
   pt: {
+    "apply": "Aplicar",
     "home": "Início",
     "cars": "Carros",
     "sell": "Vender",
@@ -2550,10 +2604,23 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "saveFailed": "Falha ao guardar",
     "saved": "Guardado",
     "confirmDelete": "Tem a certeza de que deseja eliminar?",
-    "Sold": "Vendido"
+    "Sold": "Vendido",
+    "checking": "Verificando token...",
+    "setNewPassword": "Definir nova senha",
+    "passwordRequirements": "Use pelo menos 8 caracteres, incluindo maiúsculas, minúsculas, número e caractere especial.",
+    "logo_title": "EuroCar",
+    "logo_description": "Anúncios de carros — venda e compre facilmente",
+    "passwordChangedInfo": "Sua senha foi alterada. Agora você pode entrar com a nova senha.",
+    "successMessage": "Senha alterada com sucesso.",
+    "errorMessage": "Algo deu errado. Por favor, tente novamente.",
+    "newPasswordPlaceholder": "Digite sua nova senha",
+    "changePassword": "Alterar senha",
+    "invalidPassword": "A senha deve ter pelo menos 8 caracteres e incluir maiúsculas, minúsculas, número e caractere especial."
+
   },
 
   pl: {
+    "apply": "Zastosuj",
     "home": "Strona główna",
     "cars": "Samochody",
     "sell": "Sprzedaj",
@@ -2971,9 +3038,22 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "saveFailed": "Zapis nie powiódł się",
     "saved": "Zapisano",
     "confirmDelete": "Czy na pewno chcesz usunąć?",
-    "Sold": "Sprzedane"
+    "Sold": "Sprzedane",
+    "checking": "Sprawdzanie tokenu...",
+    "setNewPassword": "Ustaw nowe hasło",
+    "passwordRequirements": "Użyj co najmniej 8 znaków, w tym wielkie i małe litery, cyfrę oraz znak specjalny.",
+    "logo_title": "EuroCar",
+    "logo_description": "Ogłoszenia samochodowe — sprzedawaj i kupuj łatwo",
+    "passwordChangedInfo": "Twoje hasło zostało zmienione. Możesz teraz zalogować się nowym hasłem.",
+    "successMessage": "Hasło zostało pomyślnie zmienione.",
+    "errorMessage": "Coś poszło nie tak. Spróbuj ponownie.",
+    "newPasswordPlaceholder": "Wprowadź nowe hasło",
+    "changePassword": "Zmień hasło",
+    "invalidPassword": "Hasło musi mieć co najmniej 8 znaków i zawierać wielkie/małe litery, cyfrę i znak specjalny."
+
   },
   uk: {
+    "apply": "Застосувати",
     'home': "Головна",
     'cars': "Автомобілі",
     'sell': "Продати",
@@ -3283,7 +3363,19 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "imageRemoved": "Зображення видалено",
     "imageDeleted": "Зображення видалено",
     "saveFailed": "Не вдалося зберегти",
-    "saved": "Збережено"
+    "saved": "Збережено",
+    "checking": "Перевірка токена...",
+    "setNewPassword": "Встановити новий пароль",
+    "passwordRequirements": "Мінімум 8 символів, великі й малі літери, цифра та спеціальний символ.",
+    "logo_title": "EuroCar",
+    "logo_description": "Оголошення про авто — продавайте та купуйте просто",
+    "passwordChangedInfo": "Ваш пароль було змінено. Тепер ви можете увійти з новим паролем.",
+    "successMessage": "Пароль успішно змінено.",
+    "errorMessage": "Сталася помилка. Будь ласка, спробуйте ще раз.",
+    "newPassword": "Новий пароль",
+    "newPasswordPlaceholder": "Введіть ваш новий пароль",
+    "changePassword": "Змінити пароль",
+    "invalidPassword": "Пароль має містити щонайменше 8 символів, великі/малі літери, цифру та спеціальний символ."
   }
 } as const;
 

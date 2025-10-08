@@ -180,15 +180,6 @@ export default function LoginPage() {
                   <span className="bg-white px-2 text-gray-500">{t("or")}</span>
                 </div>
               </div>
-
-              <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <Button variant="outline" className="w-full bg-transparent">
-                  {t("google")}
-                </Button>
-                <Button variant="outline" className="w-full bg-transparent">
-                  {t("facebook")}
-                </Button>
-              </div>
             </div>
 
             <div className="mt-6 text-center text-sm">

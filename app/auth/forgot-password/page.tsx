@@ -11,9 +11,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ArrowLeft, Mail, Send, CheckCircle, AlertCircle } from "lucide-react"
 import Link from "next/link"
 import { Navbar } from "@/components/navbar"
-import { useLanguage } from "@/hooks/use-language"
 import { getTranslation, translateString } from "@/lib/i18n"
 import { useDefaultLanguage } from "@/components/useLanguage"
+import apiClient from "@/lib/api-client"
 
 export default function ForgotPasswordPage() {
   const { lang, setLang } = useDefaultLanguage();
@@ -37,8 +37,8 @@ export default function ForgotPasswordPage() {
     }
 
     try {
+      await apiClient.forgotPassword(email);
       await new Promise((resolve) => setTimeout(resolve, 2000))
-
       setIsSuccess(true)
     } catch (err) {
       setError(t("resetError"))
