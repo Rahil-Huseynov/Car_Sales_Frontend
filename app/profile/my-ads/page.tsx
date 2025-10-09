@@ -54,7 +54,7 @@ const API = process.env.NEXT_PUBLIC_API_URL || ""
 const IMAGE_BASE = process.env.NEXT_PUBLIC_API_URL_FOR_IMAGE || ""
 const PUBLIC_API_KEY = process.env.NEXT_PUBLIC_API_KEY || ""
 
-function getAuthHeaders() {
+export function getAuthHeaders() {
   const headers: Record<string, string> = { Accept: "application/json" }
   try {
     if (typeof window !== "undefined") {

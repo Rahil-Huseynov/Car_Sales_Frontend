@@ -41,7 +41,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!token) return null
     try {
       const data = await apiClient.getCurrentUser()
-      // Normalize the response
       const normalizedUser = data.user || data.admin || data
       setUser(normalizedUser)
       return normalizedUser

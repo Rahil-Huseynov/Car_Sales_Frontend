@@ -218,7 +218,10 @@ class ApiClient {
 
   }
 
-
+  async AllUserCars() {
+    return this.request(`/user-cars`, { method: 'GET' });
+  }
+  
   async deleteads(Id: string) {
     return this.request(`/user-cars/${Id}`, {
       method: "delete",

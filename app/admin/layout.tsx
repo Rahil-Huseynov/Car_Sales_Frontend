@@ -9,7 +9,8 @@ import { useState } from "react"
 import { useAuth } from "@/lib/auth-context"
 import { ProtectedRoute } from "@/components/protected-route"
 import { useDefaultLanguage } from "@/components/useLanguage"
-import { translateString } from "@/lib/i18n"
+import { Language, translateString } from "@/lib/i18n"
+import { LanguageSwitcher } from "@/components/language-switcher"
 
 export default function AdminLayout({
   children,
@@ -20,12 +21,14 @@ export default function AdminLayout({
   const { user, logout } = useAuth()
   const pathname = usePathname()
   const router = useRouter()
-  const { lang, setLang } = useDefaultLanguage();
-  const t = (key: string) => translateString(lang, key);
+  const { lang, setLang } = useDefaultLanguage()
+  const t = (key: string) => translateString(lang, key)
 
   const navigation = [
     { name: t("dashboard"), href: `/admin/dashboard`, icon: BarChart3 },
     { name: t("users"), href: `/admin/users`, icon: Users },
+    { name: t("UserCars"), href: `/admin/users-cars`, icon: Users },
+
     ...(user?.role === "superadmin"
       ? [
         { name: t("admins"), href: `/admin/admins`, icon: ShieldAlert },
@@ -36,7 +39,16 @@ export default function AdminLayout({
 
   const handleLogout = () => {
     logout()
-    router.push(`/auth/login`);
+    router.push(`/auth/login`)
+  }
+  const handleLanguageChange = (newLang: Language) => {
+    setLang(newLang)
+    if (typeof window !== "undefined") {
+      localStorage.setItem("language", newLang)
+    }
+    setTimeout(() => {
+      if (typeof window !== "undefined") window.location.reload()
+    }, 50)
   }
 
   return (
@@ -48,7 +60,7 @@ export default function AdminLayout({
             <div className="flex h-16 items-center justify-between px-4">
               <div className="flex items-center">
                 <BookOpen className="h-8 w-8 text-blue-600" />
-                <span className="ml-2 text-xl font-bold">Admin Panel</span>
+                <span className="ml-2 text-xl font-bold">{t("adminPanel")}</span>
               </div>
               <Button variant="ghost" size="sm" onClick={() => setSidebarOpen(false)}>
                 <X className="h-6 w-6" />
@@ -74,12 +86,11 @@ export default function AdminLayout({
           </div>
         </div>
 
-        {/* Desktop sidebar */}
         <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
           <div className="flex flex-col flex-grow bg-white border-r border-gray-200">
             <div className="flex items-center h-16 px-4">
               <BookOpen className="h-8 w-8 text-blue-600" />
-              <span className="ml-2 text-xl font-bold">Admin Panel</span>
+              <span className="ml-2 text-xl font-bold">{t("adminPanel")}</span>
             </div>
             <nav className="flex-1 space-y-1 px-2 py-8">
               {navigation.map((item) => {
@@ -96,13 +107,12 @@ export default function AdminLayout({
                   </Link>
                 )
               })}
+              <LanguageSwitcher onLanguageChange={handleLanguageChange} />
             </nav>
           </div>
         </div>
 
-        {/* Main content */}
         <div className="lg:pl-64">
-          {/* Top bar */}
           <div className="sticky top-0 z-40 bg-white shadow-sm border-b border-gray-200">
             <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
               <Button variant="ghost" size="sm" className="lg:hidden" onClick={() => setSidebarOpen(true)}>
@@ -111,20 +121,19 @@ export default function AdminLayout({
 
               <div className="flex items-center space-x-4">
                 <div className="text-sm">
-                  <span className="text-gray-500">Xoş gəlmisiniz, </span>
+                  <span className="text-gray-500">{t("welcome")}, </span>
                   <span className="font-medium">
                     {user?.firstName} {user?.lastName}
                   </span>
                 </div>
                 <Button variant="outline" size="sm" onClick={handleLogout}>
                   <LogOut className="h-4 w-4 mr-2" />
-                  Çıxış
+                  {t("logout")}
                 </Button>
               </div>
             </div>
           </div>
 
-          {/* Page content */}
           <main className="py-6">
             <div className="w-full px-4 sm:px-6 lg:px-8">{children}</div>
           </main>

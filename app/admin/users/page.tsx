@@ -47,14 +47,6 @@ interface User {
   createdAt: string
   phoneCode?: string
   phoneNumber?: string
-  fatherName?: string
-  address?: string
-  idSerial?: string
-  fin?: string
-  passportId?: string
-  isForeignCitizen?: boolean
-  isActive?: boolean
-  position?: string
   userCars?: UserCar[]
 }
 
@@ -144,6 +136,7 @@ export default function UsersPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="text-center">{t("ID")}</TableHead>
                     <TableHead className="text-center">{t("FullName")}</TableHead>
                     <TableHead className="text-center">{t("Email")}</TableHead>
                     <TableHead className="text-center">{t("Role")}</TableHead>
@@ -155,6 +148,7 @@ export default function UsersPage() {
                 <TableBody>
                   {filteredUsers.map((user) => (
                     <TableRow key={user.id}>
+                      <TableCell className="text-center">{user.id}</TableCell>
                       <TableCell className="text-center">{user.firstName} {user.lastName}</TableCell>
                       <TableCell className="text-center">{user.email}</TableCell>
                       <TableCell className="text-center">{user.role}</TableCell>

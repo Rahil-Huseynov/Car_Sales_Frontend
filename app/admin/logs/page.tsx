@@ -34,7 +34,7 @@ export default function LogsPage() {
 
   return (
     <section className="p-6">
-      <h1 className="text-2xl font-bold mb-4">{t("Title")}</h1>
+      <h1 className="text-2xl font-bold mb-4">{t("Logs")}</h1>
 
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm">

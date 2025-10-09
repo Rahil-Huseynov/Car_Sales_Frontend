@@ -1,6 +1,7 @@
+// app/admins/page.tsx  (və ya components/AdminsPage.tsx)
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -46,18 +47,18 @@ import { useDefaultLanguage } from "@/components/useLanguage";
 import { translateString } from "@/lib/i18n";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
-interface Admin {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: string;
-  password?: string;
+export interface AdminType {
+  id: string
+  firstName: string
+  lastName: string
+  email: string
+  role: "admin" | "superadmin" | string
+  password?: string
 }
 
+
 export default function AdminsPage() {
-  const [users, setUsers] = useState<Admin[]>([]);
+  const [users, setUsers] = useState<AdminType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -70,12 +71,13 @@ export default function AdminsPage() {
   const router = useRouter();
   const { lang } = useDefaultLanguage();
   const t = (key: string) => translateString(lang, key);
+  const searchTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (user && user.role !== "superadmin") {
       router.push(`/admin/dashboard`);
     }
-  }, [user, router]);
+  }, [user]);
 
   const [newAdmin, setNewAdmin] = useState({
     firstName: "",
@@ -85,35 +87,61 @@ export default function AdminsPage() {
     role: "admin",
   });
 
-  const [editAdmin, setEditAdmin] = useState<Admin | null>(null);
+  const [editAdmin, setEditAdmin] = useState<AdminType | null>(null);
 
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      loadUsers();
-    }, 500);
-    return () => clearTimeout(timeout);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchTerm, currentPage]);
-
-  const loadUsers = async () => {
+  const loadUsers = async (page = currentPage, search = searchTerm) => {
     try {
       setIsLoading(true);
       const { users: fetchedUsers, totalPages: tp } = await apiClient.getAdmins(currentPage, searchTerm);
-      setUsers(fetchedUsers || []);
-      setTotalPages(tp || 1);
-    } catch (error) {
+      setUsers(fetchedUsers);
+      setTotalPages(tp);
+    } catch (error: any) {
       console.error(t("FailedToLoadUsers"), error);
+      toast.error(t("FailedToLoadUsers"));
     } finally {
       setIsLoading(false);
     }
   };
+
+  // debounce when typing
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      window.clearTimeout(searchTimeoutRef.current);
+    }
+    searchTimeoutRef.current = window.setTimeout(() => {
+      setCurrentPage(1);
+      loadUsers(1, searchTerm);
+    }, 500);
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        window.clearTimeout(searchTimeoutRef.current);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm]);
+
+  // load when page changes
+  useEffect(() => {
+    loadUsers(currentPage, searchTerm);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage]);
+
+  // initial load
+  useEffect(() => {
+    loadUsers(1, "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleDeleteUser = async (userId: string) => {
     if (confirm(t("ConfirmDeleteAdmin"))) {
       try {
         await apiClient.deleteAdmin(userId);
         toast.success(t("AdminDeletedSuccessfully"));
-        await loadUsers();
+        // if current page becomes empty after deletion, ensure page doesn't exceed totalPages
+        const newTotalPages = Math.max(1, totalPages);
+        if (currentPage > newTotalPages) setCurrentPage(newTotalPages);
+        await loadUsers(currentPage, searchTerm);
       } catch (error) {
         toast.error(t("FailedToDeleteAdmin"));
         console.error(t("FailedToDeleteAdmin"), error);
@@ -121,7 +149,7 @@ export default function AdminsPage() {
     }
   };
 
-  const openEditModal = (admin: Admin) => {
+  const openEditModal = (admin: AdminType) => {
     setEditAdmin(admin);
     setIsEditModalOpen(true);
   };
@@ -138,7 +166,7 @@ export default function AdminsPage() {
   ) => {
     const { name, value } = e.target;
     if (editAdmin) {
-      setEditAdmin({ ...editAdmin, [name]: value });
+      setEditAdmin({ ...editAdmin, [name]: value } as AdminType);
     }
   };
 
@@ -157,9 +185,10 @@ export default function AdminsPage() {
       toast.success(t("AdminAddedSuccessfully"));
       setNewAdmin({ firstName: "", lastName: "", email: "", password: "", role: "admin" });
       setIsAddModalOpen(false);
-      loadUsers();
+      loadUsers(1, searchTerm);
     } catch (error: any) {
       toast.error(t("ErrorOccurred") + ": " + (error.message || error.toString()));
+      console.error(error);
     } finally {
       setLoadingSubmit(false);
     }
@@ -171,14 +200,25 @@ export default function AdminsPage() {
     setLoadingEditSubmit(true);
 
     try {
-      await apiClient.updateAdmin(editAdmin);
+      // send only allowed fields
+      const payload: any = {
+        id: editAdmin.id,
+        firstName: editAdmin.firstName,
+        lastName: editAdmin.lastName,
+        email: editAdmin.email,
+        role: editAdmin.role,
+      };
+      if (editAdmin.password) payload.password = editAdmin.password;
+
+      await apiClient.updateAdmin(payload);
 
       toast.success(t("AdminUpdatedSuccessfully"));
       setIsEditModalOpen(false);
       setEditAdmin(null);
-      loadUsers();
+      loadUsers(currentPage, searchTerm);
     } catch (error: any) {
-      toast.error(t("ErrorOccurred") + ": " + error.message);
+      toast.error(t("ErrorOccurred") + ": " + (error.message || error.toString()));
+      console.error(error);
     } finally {
       setLoadingEditSubmit(false);
     }
@@ -303,8 +343,16 @@ export default function AdminsPage() {
                 placeholder={t("SearchUser")}
                 value={searchTerm}
                 onChange={(e) => {
-                  setCurrentPage(1);
                   setSearchTerm(e.target.value);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    if (searchTimeoutRef.current) {
+                      window.clearTimeout(searchTimeoutRef.current);
+                    }
+                    setCurrentPage(1);
+                    loadUsers(1, (e.target as HTMLInputElement).value);
+                  }
                 }}
                 className="pl-10 border-indigo-200 focus:border-indigo-500"
               />

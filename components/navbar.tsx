@@ -21,17 +21,31 @@ import { useToast } from "@/hooks/use-toast";
 import type { Language } from "@/lib/i18n";
 import { useLanguage } from "./LanguageProvider";
 import { tokenManager } from "@/lib/token-manager";
+import apiClient from "@/lib/api-client";
 
 export function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [profileData, setProfileData] = useState<any | null>(null);
   const router = useRouter();
   const { toast } = useToast();
   const { lang, setLang } = useLanguage();
   const t = (key: string) => translateString(lang, key);
 
+  const fetchProfile = async () => {
+    try {
+      const token = tokenManager.getAccessToken();
+      if (!token) return;
+      const user = await apiClient.getCurrentUser();
+      setProfileData(user);
+    } catch (err) {
+      logout();
+    }
+  };
+
   useEffect(() => {
     const token = tokenManager.getAccessToken();
     setIsLoggedIn(!!token);
+    fetchProfile();
   }, []);
 
   const handleLogout = async () => {
@@ -39,20 +53,22 @@ export function Navbar() {
     if (result.success) {
       tokenManager.clearTokens();
       setIsLoggedIn(false);
+      setProfileData(null);
       toast({
-        title: "Uğurlu",
+        title: t("success"),
         description: result.message,
         variant: "default",
       });
       router.push("/auth/login");
     } else {
       toast({
-        title: "Xəta",
+        title: t("error"),
         description: result.message,
         variant: "destructive",
       });
     }
   };
+
   const handleLanguageChange = (newLang: Language) => {
     setLang(newLang);
     if (typeof window !== "undefined") {
@@ -64,6 +80,7 @@ export function Navbar() {
   };
 
   const postAdPath = isLoggedIn ? "/sell" : "/auth/login";
+  const isAdmin = profileData?.role === "superadmin" || profileData?.role === "admin";
 
   return (
     <header className="border-b bg-white sticky top-0 z-50 shadow-sm">
@@ -74,39 +91,26 @@ export function Navbar() {
           </Link>
 
           <nav className="hidden mobile:flex items-center gap-6">
-            <Link href="/" className="text-gray-700 text-sm lg:text-base hover:text-blue-600 transition-colors font-medium">
-              {t("home")}
-            </Link>
-            <Link href="/cars" className="text-gray-700 text-sm lg:text-base hover:text-blue-600 transition-colors font-medium">
-              {t("cars")}
-            </Link>
-            <Link href="/sell" className="text-gray-700 text-sm lg:text-base hover:text-blue-600 transition-colors font-medium">
-              {t("sell")}
-            </Link>
-            <Link href="/about" className="text-gray-700 text-sm lg:text-base hover:text-blue-600 transition-colors font-medium">
-              {t("about")}
-            </Link>
-            <Link href="/contact" className="text-gray-700 text-sm lg:text-base hover:text-blue-600 transition-colors font-medium">
-              {t("contact")}
-            </Link>
+            <Link href="/" className="text-gray-700 text-sm lg:text-base hover:text-blue-600 transition-colors font-medium">{t("home")}</Link>
+            <Link href="/cars" className="text-gray-700 text-sm lg:text-base hover:text-blue-600 transition-colors font-medium">{t("cars")}</Link>
+            {!isAdmin && (
+              <Link href="/sell" className="text-gray-700 text-sm lg:text-base hover:text-blue-600 transition-colors font-medium">{t("sell")}</Link>
+            )}
+            <Link href="/about" className="text-gray-700 text-sm lg:text-base hover:text-blue-600 transition-colors font-medium">{t("about")}</Link>
+            <Link href="/contact" className="text-gray-700 text-sm lg:text-base hover:text-blue-600 transition-colors font-medium">{t("contact")}</Link>
           </nav>
 
           <div className="hidden mobile:flex items-center gap-3">
-            {/* Burada onLanguageChange prop-u əlavə olundu */}
             <LanguageSwitcher onLanguageChange={handleLanguageChange} />
 
-            <Button
-              variant="outline"
-              asChild
-              className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200 hover:from-blue-100 hover:to-blue-200 w-[200px]"
-            >
+            <Button variant="outline" asChild className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200 hover:from-blue-100 hover:to-blue-200 w-[200px]">
               <Link href={postAdPath}>
                 <Plus className="h-4 w-4 mr-2" />
                 {t("postAd")}
               </Link>
             </Button>
 
-            {isLoggedIn ? (
+            {isLoggedIn && profileData ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="hover:bg-blue-50">
@@ -115,29 +119,35 @@ export function Navbar() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuItem asChild>
-                    <Link href="/profile">
+                    <Link href={isAdmin ? "/admin/dashboard" : "/profile"}>
                       <User className="h-4 w-4 mr-2" />
                       {t("profile")}
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/favorites">
-                      <Heart className="h-4 w-4 mr-2" />
-                      {t("favorites")}
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/my-ads">
-                      <Plus className="h-4 w-4 mr-2" />
-                      {t("myAds")}
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/settings">
-                      <Settings className="h-4 w-4 mr-2" />
-                      {t("settings")}
-                    </Link>
-                  </DropdownMenuItem>
+
+                  {!isAdmin && (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link href="/favorites">
+                          <Heart className="h-4 w-4 mr-2" />
+                          {t("favorites")}
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/my-ads">
+                          <Plus className="h-4 w-4 mr-2" />
+                          {t("myAds")}
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/settings">
+                          <Settings className="h-4 w-4 mr-2" />
+                          {t("settings")}
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout}>
                     <LogOut className="h-4 w-4 mr-2" />
@@ -150,10 +160,7 @@ export function Navbar() {
                 <Button variant="ghost" asChild className="w-[100px] hover:bg-blue-50">
                   <Link href="/auth/login">{t("login")}</Link>
                 </Button>
-                <Button
-                  asChild
-                  className="bg-gradient-to-r w-[100px] from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
-                >
+                <Button asChild className="bg-gradient-to-r w-[100px] from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800">
                   <Link href="/auth/register">{t("register")}</Link>
                 </Button>
               </div>
@@ -161,7 +168,6 @@ export function Navbar() {
           </div>
 
           <div className="flex items-center gap-2 mobile:hidden">
-            {/* mobile üçün də prop artıq ötürülür (əvvəl də vardı amma burada saxladım) */}
             <LanguageSwitcher onLanguageChange={handleLanguageChange} />
 
             <Sheet>
@@ -172,76 +178,59 @@ export function Navbar() {
               </SheetTrigger>
               <SheetContent side="right" className="w-80">
                 <div className="flex flex-col gap-4 mt-8">
-                  <Link href="/" className="text-lg font-medium hover:text-blue-600 transition-colors">
-                    {t("home")}
-                  </Link>
-                  <Link href="/cars" className="text-lg font-medium hover:text-blue-600 transition-colors">
-                    {t("cars")}
-                  </Link>
-                  <Link href="/sell" className="text-lg font-medium hover:text-blue-600 transition-colors">
-                    {t("sell")}
-                  </Link>
-                  <Link href="/about" className="text-lg font-medium hover:text-blue-600 transition-colors">
-                    {t("about")}
-                  </Link>
-                  <Link href="/contact" className="text-lg font-medium hover:text-blue-600 transition-colors">
-                    {t("contact")}
-                  </Link>
+                  <Link href="/" className="text-lg font-medium hover:text-blue-600 transition-colors">{t("home")}</Link>
+                  <Link href="/cars" className="text-lg font-medium hover:text-blue-600 transition-colors">{t("cars")}</Link>
+                  <Link href="/sell" className="text-lg font-medium hover:text-blue-600 transition-colors">{t("sell")}</Link>
+                  <Link href="/about" className="text-lg font-medium hover:text-blue-600 transition-colors">{t("about")}</Link>
+                  <Link href="/contact" className="text-lg font-medium hover:text-blue-600 transition-colors">{t("contact")}</Link>
 
-                  <div className="border-t pt-4 mt-4">
-                    <Button className="w-full mb-3 bg-gradient-to-r from-blue-600 to-blue-700" asChild>
-                      <Link href={postAdPath}>
-                        <Plus className="h-4 w-4 mr-2" />
-                        {t("postAd")}
-                      </Link>
-                    </Button>
+                  {isLoggedIn && profileData ? (
+                    <div className="border-t pt-4 mt-4 space-y-2">
+                      <Button variant="outline" className="w-full justify-start bg-transparent" asChild>
+                        <Link href={isAdmin ? "/admin/dashboard" : "/profile"}>
+                          <User className="h-4 w-4 mr-2" />
+                          {t("profile")}
+                        </Link>
+                      </Button>
 
-                    {isLoggedIn ? (
-                      <div className="space-y-2">
-                        <Button variant="outline" className="w-full justify-start bg-transparent" asChild>
-                          <Link href="/profile">
-                            <User className="h-4 w-4 mr-2" />
-                            {t("profile")}
-                          </Link>
-                        </Button>
-                        <Button variant="outline" className="w-full justify-start bg-transparent" asChild>
-                          <Link href="/favorites">
-                            <Heart className="h-4 w-4 mr-2" />
-                            {t("favorites")}
-                          </Link>
-                        </Button>
-                        <Button variant="outline" className="w-full justify-start bg-transparent" asChild>
-                          <Link href="/my-ads">
-                            <Plus className="h-4 w-4 mr-2" />
-                            {t("myAds")}
-                          </Link>
-                        </Button>
-                        <Button variant="outline" className="w-full justify-start bg-transparent" asChild>
-                          <Link href="/settings">
-                            <Settings className="h-4 w-4 mr-2" />
-                            {t("settings")}
-                          </Link>
-                        </Button>
-                        <Button
-                          variant="outline"
-                          className="w-full justify-start bg-transparent"
-                          onClick={handleLogout}
-                        >
-                          <LogOut className="h-4 w-4 mr-2" />
-                          {t("logout")}
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <Button variant="outline" className="w-full bg-transparent" asChild>
-                          <Link href="/auth/login">{t("login")}</Link>
-                        </Button>
-                        <Button className="w-full bg-gradient-to-r from-blue-600 to-blue-700" asChild>
-                          <Link href="/auth/register">{t("register")}</Link>
-                        </Button>
-                      </div>
-                    )}
-                  </div>
+                      {!isAdmin && (
+                        <>
+                          <Button variant="outline" className="w-full justify-start bg-transparent" asChild>
+                            <Link href="/favorites">
+                              <Heart className="h-4 w-4 mr-2" />
+                              {t("favorites")}
+                            </Link>
+                          </Button>
+                          <Button variant="outline" className="w-full justify-start bg-transparent" asChild>
+                            <Link href="/my-ads">
+                              <Plus className="h-4 w-4 mr-2" />
+                              {t("myAds")}
+                            </Link>
+                          </Button>
+                          <Button variant="outline" className="w-full justify-start bg-transparent" asChild>
+                            <Link href="/settings">
+                              <Settings className="h-4 w-4 mr-2" />
+                              {t("settings")}
+                            </Link>
+                          </Button>
+                        </>
+                      )}
+
+                      <Button variant="outline" className="w-full justify-start bg-transparent" onClick={handleLogout}>
+                        <LogOut className="h-4 w-4 mr-2" />
+                        {t("logout")}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2 mt-4">
+                      <Button variant="outline" className="w-full bg-transparent" asChild>
+                        <Link href="/auth/login">{t("login")}</Link>
+                      </Button>
+                      <Button className="w-full bg-gradient-to-r from-blue-600 to-blue-700" asChild>
+                        <Link href="/auth/register">{t("register")}</Link>
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </SheetContent>
             </Sheet>
