@@ -150,6 +150,19 @@ class ApiClient {
     return this.request(`/carsdata/keys?search=${search}`, { method: 'GET' });
   }
 
+  async adminStars() {
+    return this.request(`/admin/stats`, { method: 'GET' });
+  }
+
+  async recentCars() {
+    return this.request(`/user-cars/recent`, { method: 'GET' });
+  }
+
+  async recentUsers() {
+    return this.request(`/auth/users/recent`, { method: 'GET' });
+  }
+
+
   async carsModelSearch(search: string) {
     return this.request(`/carsdata/values?search=${search}`, { method: 'GET' });
   }
@@ -210,8 +223,8 @@ class ApiClient {
     return this.request(`/user-cars/${Id}`, {
       method: "delete",
     })
-
   }
+
   async addAdmin(formData: FormData) {
     return this.request(`/auth/admin/signup`, {
       method: "POST",
@@ -347,9 +360,19 @@ class ApiClient {
     });
   }
 
-  async getUsers(page = 1, limit = 10) {
-    return this.request(`/auth/users?page=${page}&limit=${limit}`)
+  async getUsers(page = 1, limit = 10, search?: string) {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+
+    if (search && search.trim() !== "") {
+      params.append("search", search.trim());
+    }
+
+    return this.request(`/auth/users?${params.toString()}`);
   }
+
 
   async getCarId(id: number) {
     return this.request(`/car/${id}`)
@@ -361,7 +384,7 @@ class ApiClient {
   }
 
   async deleteUser(id: string) {
-    return this.request(`/users/${id}`, {
+    return this.request(`/auth/users/${id}`, {
       method: "DELETE",
     })
   }

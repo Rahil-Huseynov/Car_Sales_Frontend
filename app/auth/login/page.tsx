@@ -32,15 +32,23 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isPending, setIsPending] = useState(false)
   const router = useRouter()
-  const { login } = useAuth()
+  const { login, reloadUser } = useAuth()
 
   useEffect(() => {
     if (typeof window === "undefined") return
     const token = tokenManager.getAccessToken()
     if (token) {
-      router.replace("/profile")
+      reloadUser().then((user) => {
+        if (user) {
+          if (user.role === "admin" || user.role === "superadmin") {
+            router.replace("/admin/dashboard")
+          } else {
+            router.replace("/profile")
+          }
+        }
+      })
     }
-  }, [router])
+  }, [router, reloadUser])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -56,7 +64,12 @@ export default function LoginPage() {
 
       if (result.success) {
         toast.success(t("loginSuccess"), { position: "top-right", autoClose: 2000 })
-        router.replace("/profile")
+        const role = result.user?.role
+        if (role === "admin" || role === "superadmin") {
+          router.replace("/admin/dashboard")
+        } else {
+          router.replace("/profile")
+        }
         return
       }
 

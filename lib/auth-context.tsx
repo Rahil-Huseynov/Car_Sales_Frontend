@@ -41,8 +41,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!token) return null
     try {
       const data = await apiClient.getCurrentUser()
-      setUser(data)
-      return data
+      // Normalize the response
+      const normalizedUser = data.user || data.admin || data
+      setUser(normalizedUser)
+      return normalizedUser
     } catch {
       tokenManager.clearTokens()
       setUser(null)
@@ -69,13 +71,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const response = await apiClient.login(email, password)
 
-      if (response.accessToken && response.user?.role) {
-        tokenManager.setAccessToken(response.accessToken, remember)
-        if (response.refreshToken) {
-          tokenManager.setRefreshToken(response.refreshToken, remember)
+      if (response.accessToken) {
+        const responseUser = response.user || response.admin
+        if (responseUser?.role) {
+          tokenManager.setAccessToken(response.accessToken, remember)
+          if (response.refreshToken) {
+            tokenManager.setRefreshToken(response.refreshToken, remember)
+          }
+          setUser(responseUser)
+          return { success: true, user: responseUser }
         }
-        setUser(response.user)
-        return { success: true, user: response.user }
       }
 
       return { success: false, error: "Giriş məlumatları yanlışdır" }
