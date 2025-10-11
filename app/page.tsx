@@ -119,7 +119,7 @@ function CarCard({ car, t, index, language }: { car: UserCar; t: (k: string) => 
   const conditionLabel = findTranslation(conditions as any[], car.condition ?? "", language) || (car.condition ?? "");
   const colorLabel = findTranslation(colors as any[], car.color ?? "", language) || (car.color ?? "");
   const locationLabel = findTranslation(cities as any[], car.location ?? "", language) || (car.location ?? "");
-
+  const viewcountLabel = car.viewcount || 0
   return (
     <Card className={`overflow-hidden card-hover border-0 bg-white/90 backdrop-blur-sm transition-all duration-500 ${isLoaded ? "animate-fadeInUp opacity-100" : "opacity-0"}`} style={{ animationDelay: `${index * 0.05}s` }}>
       <div className="relative group">
@@ -164,7 +164,7 @@ function CarCard({ car, t, index, language }: { car: UserCar; t: (k: string) => 
               <p className="text-sm text-gray-600">{car.year} • {conditionLabel} • </p>
               <div className="flex items-center gap-1">
                 <Eye color="#4B5563" className="flex items-center h-4 w-4 text-blue-500" />
-                <p className="text-gray-600">{car.viewcount}</p>
+                <p className="text-gray-600">{viewcountLabel}</p>
               </div>
             </div>
           </div>

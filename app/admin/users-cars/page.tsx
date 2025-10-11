@@ -190,7 +190,6 @@ export default function UserCarsPage() {
       return { ...prev, features: Array.from(s) }
     })
   }, [])
-
   return (
     <div className="space-y-6">
       <Card>

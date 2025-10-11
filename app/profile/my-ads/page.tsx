@@ -27,8 +27,6 @@ import {
   Upload,
   ImageIcon,
   X,
-  User,
-  Phone,
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -58,7 +56,7 @@ export function getAuthHeaders() {
   const headers: Record<string, string> = { Accept: "application/json" }
   try {
     if (typeof window !== "undefined") {
-      const token = localStorage.getItem("token") || sessionStorage.getItem("token") ;
+      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
       if (token) {
         headers["Authorization"] = `Bearer ${token}`
       }
@@ -72,13 +70,14 @@ export function getAuthHeaders() {
 }
 
 type RawCarImage = { id?: number; url?: string } | string
+
 type RawUserCar = {
   id: number
-  brand: string
-  model: string
-  year: number
-  price: number
-  mileage: number
+  brand?: string
+  model?: string
+  year?: number
+  price?: number
+  mileage?: number
   fuel?: string
   transmission?: string
   color?: string
@@ -100,6 +99,7 @@ type RawUserCar = {
   phoneCode?: string
   phone?: string
   email?: string
+  features?: string[] | string
 }
 
 type CarImage = {
@@ -186,14 +186,18 @@ function AdCard({
   ad,
   onEdit,
   onDelete,
+  onMarkSold,
   index,
   isDeleting,
+  isSelling,
 }: {
   ad: CarAd
   onEdit: (id: number) => void
   onDelete: (id: number) => void
+  onMarkSold: (id: number) => void
   index: number
   isDeleting?: boolean
+  isSelling?: boolean
 }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isLoaded, setIsLoaded] = useState(false)
@@ -227,6 +231,8 @@ function AdCard({
         return "bg-green-100 text-green-800 border-green-200"
       case "Premium":
         return "bg-yellow-100 text-yellow-800 border-yellow-200"
+      case "Sold":
+        return "bg-purple-100 text-purple-800 border-purple-200"
       default:
         return "bg-gray-100 text-gray-800 border-gray-200"
     }
@@ -238,6 +244,8 @@ function AdCard({
         return <CheckCircle className="h-3 w-3" />
       case "Premium":
         return <Clock className="h-3 w-3" />
+      case "Sold":
+        return <PackageCheck className="h-3 w-3" />
       default:
         return <XCircle className="h-3 w-3" />
     }
@@ -276,6 +284,8 @@ function AdCard({
               variant="ghost"
               className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 h-8 w-8"
               onClick={prevImage}
+              title={t("previousImage") || "Previous image"}
+              aria-label={t("previousImage") || "Previous image"}
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -285,6 +295,8 @@ function AdCard({
               variant="ghost"
               className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 h-8 w-8"
               onClick={nextImage}
+              title={t("nextImage") || "Next image"}
+              aria-label={t("nextImage") || "Next image"}
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
@@ -356,6 +368,8 @@ function AdCard({
             e.stopPropagation()
             router.push(`/cars/${ad.allCarsListId}`)
           }}
+          title={t("viewAd") || "View ad"}
+          aria-label={t("viewAd") || "View ad"}
         >
           <Eye className="h-4 w-4 mr-2" />
           {t("view")}
@@ -369,6 +383,8 @@ function AdCard({
             e.stopPropagation()
             onEdit(ad.id)
           }}
+          title={t("editAd") || "Edit"}
+          aria-label={t("editAd") || "Edit"}
         >
           <Edit className="h-4 w-4" />
         </Button>
@@ -383,8 +399,25 @@ function AdCard({
             onDelete(ad.id)
           }}
           disabled={isDeleting}
+          title={t("deleteAd") || "Delete"}
+          aria-label={t("deleteAd") || "Delete"}
         >
           {isDeleting ? <Trash2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          className="border-yellow-200 text-yellow-600 hover:bg-yellow-50 bg-transparent pointer-events-auto z-20"
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            onMarkSold(ad.id)
+          }}
+          disabled={isSelling || ad.status === "Sold"}
+          title={ad.status === "Sold" ? t("alreadySold") || "Already sold" : t("markAsSold") || "Mark as sold"}
+          aria-label={ad.status === "Sold" ? t("alreadySold") || "Already sold" : t("markAsSold") || "Mark as sold"}
+        >
+          <PackageCheck className="h-4 w-4" />
         </Button>
       </CardFooter>
     </Card>
@@ -412,6 +445,7 @@ export default function MyAdsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<"all" | "Standart" | "Premium" | "Sold">("all")
   const [deletingIds, setDeletingIds] = useState<number[]>([])
+  const [sellingIds, setSellingIds] = useState<number[]>([])
   const [editingId, setEditingId] = useState<number | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingData, setEditingData] = useState<any>(null)
@@ -799,6 +833,33 @@ export default function MyAdsPage() {
     })
   }, [])
 
+  const handleMarkSold = async (id: number) => {
+    if (!id) return
+    setSellingIds(prev => [...prev, id])
+    try {
+      const payload = { status: "Sold" }
+      if (apiClient && typeof (apiClient as any).put === "function") {
+        await (apiClient as any).put(`/user-cars/${id}`, payload)
+      } else {
+        const headers = { ...getAuthHeaders(), "Content-Type": "application/json" }
+        const res = await fetch(`${API}/user-cars/${id}`, { method: "PUT", headers, credentials: "include", body: JSON.stringify(payload) })
+        if (!res.ok) {
+          const txt = await res.text().catch(() => null)
+          console.error("mark sold failed", res.status, txt)
+          throw new Error("Mark as sold failed")
+        }
+      }
+
+      setAds(prev => prev.map(a => a.id === id ? { ...a, status: "Sold" } : a))
+      toast.success(t("markedSold") || "Elan 'Sold' olaraq qeyd edildi")
+    } catch (err) {
+      console.error(err)
+      toast.error(t("markSoldFailed") || "Elanı 'Sold' etmək mümkün olmadı")
+    } finally {
+      setSellingIds(prev => prev.filter(x => x !== id))
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex justify-center items-center">
@@ -864,7 +925,7 @@ export default function MyAdsPage() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredAds.map((ad, index) => (
-                  <AdCard key={ad.id} ad={ad} onEdit={handleEdit} onDelete={handleDelete} index={index} isDeleting={deletingIds.includes(ad.id)} />
+                  <AdCard key={ad.id} ad={ad} onEdit={handleEdit} onDelete={handleDelete} onMarkSold={handleMarkSold} index={index} isDeleting={deletingIds.includes(ad.id)} isSelling={sellingIds.includes(ad.id)} />
                 ))}
               </div>
             )}

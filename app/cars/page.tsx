@@ -143,7 +143,7 @@ function CarCard({
   const conditionLabel = findTranslation(conditionsList, car.condition ?? "", language) || (car.condition ?? "")
   const colorLabel = findTranslation(colorsList, car.color ?? "", language) || (car.color ?? "")
   const locationLabel = findTranslation(citiesList, car.location ?? car.city ?? "", language) || (car.location ?? car.city ?? "")
-
+  const viewcount = car.viewcount || 0
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow">
       <div className="relative group">
@@ -224,7 +224,7 @@ function CarCard({
               <p className="text-sm text-gray-600">{car.year} • {conditionLabel} • </p>
               <div className="flex items-center gap-1">
                 <Eye color="#4B5563" className="flex items-center h-4 w-4 text-blue-500" />
-                <p className="text-gray-600">{car.viewcount}</p>
+                <p className="text-gray-600">{viewcount}</p>
               </div>
             </div>
           </div>
