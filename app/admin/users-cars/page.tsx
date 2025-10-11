@@ -44,6 +44,7 @@ type UserCar = {
   mileage?: number
   fuel?: string
   condition?: string
+  viewcount?: number
   color?: string
   ban?: string
   location?: string
@@ -235,6 +236,7 @@ export default function UserCarsPage() {
                       <TableHead className="text-left">{t("Price") || "Price"}</TableHead>
                       <TableHead className="text-left">{t("Mileage") || "Mileage"}</TableHead>
                       <TableHead className="text-left">{t("Status") || "Status"}</TableHead>
+                      <TableHead className="text-left">{t("Views") || "Views"}</TableHead>
                       <TableHead className="text-right">{t("Actions") || "Actions"}</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -251,6 +253,7 @@ export default function UserCarsPage() {
                             {car.status}
                           </Badge>
                         </TableCell>
+                        <TableCell>{car.viewcount}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end space-x-2">
                             <Button size="sm" variant="ghost" onClick={() => openCarModal(car)}>
@@ -457,7 +460,7 @@ export default function UserCarsPage() {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="premium" className="capitalize">{t("premium")}</SelectItem>
-                              <SelectItem value="standart" className="capitalize">{t("standart") }</SelectItem>
+                              <SelectItem value="standart" className="capitalize">{t("standart")}</SelectItem>
                               <SelectItem value="sold" className="capitalize">{t("sold")}</SelectItem>
                             </SelectContent>
                           </Select>

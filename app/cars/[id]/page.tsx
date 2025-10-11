@@ -79,6 +79,7 @@ type CarType = {
   bodyType?: string
   condition?: string
   engine?: string
+  viewcount?: number
   power?: string
   email?: string | null
   name?: string | null
@@ -811,6 +812,7 @@ export default function CarDetailPage() {
   const conditionLabel = findTranslationFromList(conditionsStatic, car.condition ?? "", lang) || t(car.condition ?? "")
   const colorLabel = findTranslationFromList(colorsStatic, car.color ?? "", lang) || t(car.color ?? "")
   const locationLabel = findTranslationFromList(citiesStatic, car.location ?? car.location ?? "", lang) || t(car.location ?? car.location ?? "")
+  const viewcountLabel = car.viewcount
   const bodyTypeLabel = findTranslationFromList(bodyTypesStatic, car.ban ?? car.bodyType ?? "", lang) || (car.ban ?? car.bodyType ?? "")
   const engineLabel = findTranslationFromList(engineOptionsStatic, car.engine ?? "", lang) || (car.engine ?? "")
 
@@ -1092,6 +1094,10 @@ export default function CarDetailPage() {
                 <div className="flex justify-between">
                   <span className="text-gray-600">{t("location")}:</span>
                   <span className="font-semibold">{locationLabel}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">{t("Views")}:</span>
+                  <span className="font-semibold">{viewcountLabel}</span>
                 </div>
                 {car.createdAt ? (
                   <div className="flex justify-between">

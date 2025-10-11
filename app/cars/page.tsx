@@ -50,6 +50,7 @@ type UserCar = {
   mileage?: number
   fuel?: string
   gearbox?: string
+  viewcount?: number
   condition?: string
   color?: string
   location?: string
@@ -219,9 +220,13 @@ function CarCard({
               {car.brand}{" "}
               {car.model?.length && car.model.length > 32 ? car.model.slice(0, 40) + "..." : car.model ?? ""}
             </h3>
-            <p className="text-sm text-gray-600">
-              {car.year} • {conditionLabel}
-            </p>
+            <div className="flex items-center gap-1">
+              <p className="text-sm text-gray-600">{car.year} • {conditionLabel} • </p>
+              <div className="flex items-center gap-1">
+                <Eye color="#4B5563" className="flex items-center h-4 w-4 text-blue-500" />
+                <p className="text-gray-600">{car.viewcount}</p>
+              </div>
+            </div>
           </div>
         </div>
       </CardHeader>
