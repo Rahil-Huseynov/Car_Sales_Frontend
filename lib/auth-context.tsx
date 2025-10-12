@@ -22,7 +22,6 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -58,12 +57,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(false)
     }
     init()
-  }, [reloadUser])
-  useEffect(() => {
-    const interval = setInterval(() => {
-      reloadUser().catch(() => { })
-    }, 10000)
-    return () => clearInterval(interval)
   }, [reloadUser])
 
   const login = async (email: string, password: string, remember = false) => {

@@ -59,7 +59,7 @@ export default function ModelSelect({
     return { items: [], meta: undefined };
   };
   const callApi = async (pageParam: number, limitParam: number, brandArg?: string, searchQ?: string) => {
-    if (brandArg && typeof (apiClient as any).carsSpesificData === "function") {
+    if (brandArg && brandArg !== "all" && typeof (apiClient as any).carsSpesificData === "function") {
       return await (apiClient as any).carsSpesificData(pageParam, limitParam, brandArg, searchQ);
     }
     if (typeof (apiClient as any).carsModelSearch === "function" && searchQ) {
@@ -78,7 +78,7 @@ export default function ModelSelect({
     const thisRequestId = ++requestIdRef.current;
 
     try {
-      const res = await callApi(p, LIMIT, brd && brd !== "" ? brd : undefined, searchQ);
+      const res = await callApi(p, LIMIT, brd && brd !== "" && brd !== "all" ? brd : undefined, searchQ);
       if (thisRequestId !== requestIdRef.current) return;
 
       const { items: arr, meta } = normalizeResponse(res);

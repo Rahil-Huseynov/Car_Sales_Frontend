@@ -30,6 +30,9 @@ import { cities, colors, conditions, fuels, gearboxOptions, years } from "@/lib/
 import BrandSelect from "@/components/BrandSelect";
 import ModelSelect from "@/components/ModelSelect";
 import { useDefaultLanguage } from "@/components/useLanguage";
+import { useRouter } from "next/navigation";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 type CarImage = { id: number; url: string };
 type UserCar = {
@@ -56,6 +59,7 @@ type UserCar = {
   status?: string;
   views?: number;
   images: CarImage[];
+  isFavorited?: boolean;
 };
 
 type OptionItem = {
@@ -101,14 +105,44 @@ function buildImageUrl(raw: string) {
   return `${base}/${path}`;
 }
 
-function CarCard({ car, t, index, language }: { car: UserCar; t: (k: string) => string; index: number; language: string }) {
+function CarCard({ car, t, index, language, onFavoriteToggle }: { car: UserCar; t: (k: string) => string; index: number; language: string; onFavoriteToggle: (carId: number, isFavorited: boolean) => void }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
-
+  const [isFavorited, setIsFavorited] = useState(car.isFavorited ?? false);
+  const { logout } = useAuth();
+  const router = useRouter(); 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoaded(true), index * 80);
     return () => clearTimeout(timer);
   }, [index]);
+
+  const handleFavorite = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      if (isFavorited) {
+        await apiClient.removeFavorite(car.id);
+        setIsFavorited(false);
+        onFavoriteToggle(car.id, false);
+        toast.success(t("removedFromFavorites"));
+      } else {
+        await apiClient.addFavorite(car.id);
+        setIsFavorited(true);
+        onFavoriteToggle(car.id, true);
+        toast.success(t("addedToFavorites"));
+      }
+    } catch (err: any) {
+      console.error("Favorite error:", err); 
+      if (err?.response?.status === 401 || err?.status === 401 || err?.statusCode === 401 || err?.message?.includes("401")) {
+        logout();
+        toast.error(t("sessionExpired") || "Your session has expired. Please log in again.");
+        router.push("/auth/login");
+      } else {
+        toast.error(t("favoriteError") || "Failed to update favorite status");
+      }
+    }
+  };
+
   const images = car.images && car.images.length > 0 ? car.images.map((i) => i.url || "/placeholder.svg") : ["/placeholder.svg"];
   const currentRaw = images[currentImageIndex] ?? "/placeholder.svg";
   const imageUrl = buildImageUrl(currentRaw);
@@ -149,8 +183,8 @@ function CarCard({ car, t, index, language }: { car: UserCar; t: (k: string) => 
           {currentImageIndex + 1}/{images.length}
         </div>
 
-        <Button size="icon" variant="ghost" className="absolute top-3 right-3 bg-white/90 hover:bg-white backdrop-blur-sm z-10 transition-all duration-300 hover:scale-110 hover:text-red-500" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
-          <Heart className="h-4 w-4" />
+        <Button size="icon" variant="ghost" className={`absolute top-3 right-3 bg-white/90 hover:bg-white backdrop-blur-sm z-10 transition-all duration-300 hover:scale-110 ${isFavorited ? 'text-red-500 hover:text-red-600' : 'hover:text-red-500'}`} onClick={handleFavorite}>
+          <Heart className="h-4 w-4" fill={isFavorited ? 'currentColor' : 'none'} />
         </Button>
       </div>
 
@@ -195,7 +229,7 @@ function CarCard({ car, t, index, language }: { car: UserCar; t: (k: string) => 
   );
 }
 export default function HomePage() {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
   const [cars, setCars] = useState<UserCar[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -218,6 +252,7 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
   const [profileData, setProfileData] = useState<any | null>(null);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [favorites, setFavorites] = useState<Set<number>>(new Set());
 
   const fetchCarsFromApi = async () => {
     setIsLoading(true);
@@ -278,6 +313,7 @@ export default function HomePage() {
         createdAt: car.createdAt,
         updatedAt: car.updatedAt,
         views: car.views ?? 0,
+        isFavorited: favorites.has(car.id),
       })) as UserCar[];
 
       setCars(normalized);
@@ -291,24 +327,58 @@ export default function HomePage() {
     }
   };
 
-  const fetchProfile = async () => {
-    try {
-      const token = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
-      if (!token) return;
-      const user = await apiClient.getCurrentUser();
-      setProfileData(user);
-    } catch (err) {
-      logout();
+  useEffect(() => {
+    const fetchUser = async () => {
+      const token = localStorage.getItem("access_token") || sessionStorage.getItem("access_token");
+      if (!token) {
+        setIsLoading(false)
+        return
+      }
+      try {
+        const data = await apiClient.getCurrentUser()
+        setProfileData(data)
+      } catch {
+        logout()
+      } finally {
+        setIsLoading(false)
+      }
     }
+    fetchUser()
+    const interval = setInterval(fetchUser, 10000)
+    return () => clearInterval(interval)
+  }, [logout])
+
+
+  const fetchFavorites = async () => {
+    if (!user) return;
+    try {
+      const favs: { carId: number }[] = await apiClient.getFavorites();
+      const favSet = new Set<number>(favs.map((f) => f.carId));
+      setFavorites(favSet);
+    } catch (err) {
+      console.error("Failed to fetch favorites", err);
+    }
+  };
+
+  const handleFavoriteToggle = (carId: number, isFavorited: boolean) => {
+    setFavorites(prev => {
+      const newSet = new Set(prev);
+      if (isFavorited) {
+        newSet.add(carId);
+      } else {
+        newSet.delete(carId);
+      }
+      return newSet;
+    });
   };
 
   useEffect(() => {
     fetchCarsFromApi();
-  }, [page, selectedBrand, selectedModel, selectedYear, selectedFuel, selectedGearbox, selectedCondition, selectedLocation, selectedColor, priceRange.min, priceRange.max, searchTerm, sortBy]);
+  }, [page, selectedBrand, selectedModel, selectedYear, selectedFuel, selectedGearbox, selectedCondition, selectedLocation, selectedColor, priceRange.min, priceRange.max, searchTerm, sortBy, favorites]);
 
   useEffect(() => {
-    fetchProfile();
-  }, []);
+    fetchFavorites();
+  }, [user]);
 
   useEffect(() => {
     setSelectedModel("all");
@@ -765,7 +835,7 @@ export default function HomePage() {
             ) : (
               <>
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-4 md:gap-6">
-                  {cars.map((car, idx) => <CarCard key={car.id} car={car} t={t} index={idx} language={lang} />)}
+                  {cars.map((car, idx) => <CarCard key={car.id} car={car} t={t} index={idx} language={lang} onFavoriteToggle={handleFavoriteToggle} />)}
                 </div>
 
                 {cars.length === 0 && (
@@ -786,6 +856,7 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+      <ToastContainer position="bottom-right" autoClose={3000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover theme="light" />
     </div>
   );
 }

@@ -87,10 +87,10 @@ export default function RegisterPage() {
       setIsPending(false)
 
       if (response?.success) {
-        if (response.accessToken) {
+        if (response.access_token) {
           try {
-            localStorage.setItem("accessToken", response.accessToken)
-            sessionStorage.setItem("accessToken", response.accessToken);
+            localStorage.setItem("access_token", response.access_token)
+            sessionStorage.setItem("access_token", response.access_token);
           } catch { }
         }
         const msg = response.message || t("registrationSuccess")

@@ -445,9 +445,26 @@ class ApiClient {
     return { success: true };
   }
 
+  async addFavorite(carId: number) {
+    return this.request(`/favorites/${carId}`, {
+      method: "POST",
+    });
+  }
+
+  async removeFavorite(carId: number) {
+    return this.request(`/favorites/${carId}`, {
+      method: "DELETE",
+    });
+  }
+
+  async getFavorites() {
+    return this.request(`/favorites`, {
+      method: "GET",
+    });
+  }
+
 }
 
 export const apiClient = new ApiClient()
 
 export default apiClient
-

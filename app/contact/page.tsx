@@ -42,7 +42,7 @@ export default function ContactPage() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const token = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken") ;
+      const token = localStorage.getItem("access_token") || sessionStorage.getItem("access_token");
       if (!token) {
         setLoading(false)
         return
@@ -52,13 +52,13 @@ export default function ContactPage() {
         setProfileData(data)
       } catch {
         logout()
-        window.location.reload()
       } finally {
         setLoading(false)
       }
     }
-
     fetchUser()
+    const interval = setInterval(fetchUser, 10000)
+    return () => clearInterval(interval)
   }, [logout])
 
   const handleSubmit = (e: React.FormEvent) => {

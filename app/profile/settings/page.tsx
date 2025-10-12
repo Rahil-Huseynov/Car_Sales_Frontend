@@ -69,6 +69,9 @@ export default function SettingsPage() {
       }
     }
     fetchUser()
+    const interval = setInterval(fetchUser, 10000)
+    return () => clearInterval(interval)
+
   }, [logout, lang])
 
   useEffect(() => {

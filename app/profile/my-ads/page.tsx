@@ -471,7 +471,10 @@ export default function MyAdsPage() {
       }
     }
     fetchUser()
+    const interval = setInterval(fetchUser, 10000)
+    return () => clearInterval(interval)
   }, [logout])
+
 
   useEffect(() => {
     const fetch = async () => {

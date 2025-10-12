@@ -72,7 +72,6 @@ export default function ProfilePage() {
       try {
         const data = await apiClient.getCurrentUser()
         setProfileData(data)
-        setFavoriteCars([])
       } catch {
         logout()
       } finally {
@@ -80,7 +79,10 @@ export default function ProfilePage() {
       }
     }
     fetchUser()
+    const interval = setInterval(fetchUser, 10000)
+    return () => clearInterval(interval)
   }, [logout])
+
 
   const IMAGE_BASE = (process.env.NEXT_PUBLIC_API_URL_FOR_IMAGE ?? "").replace(/\/+$/, "")
 

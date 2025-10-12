@@ -46,6 +46,7 @@ import {
   features as featuresStatic,
 } from "@/lib/car-data"
 import { useDefaultLanguage } from "@/components/useLanguage"
+import { useAuth } from "@/lib/auth-context"
 
 
 type OptionItem = {
@@ -62,6 +63,16 @@ type Seller = {
   email?: string
   phoneNumber?: string | null
   phoneCode?: string | null
+}
+
+type User = {
+  id: number
+  firstName: string
+  lastName: string
+  email: string
+  phoneNumber: string
+  role: string
+  createdAt: string
 }
 
 type CarType = {
@@ -600,8 +611,6 @@ export default function CarDetailPage() {
   const transitionProperty = `max-height ${animDuration}ms ease, opacity ${Math.round(animDuration * 0.7)}ms ease, transform ${animDuration}ms cubic-bezier(.2,.8,.2,1)`
   const { lang, setLang } = useDefaultLanguage();
   const t = (key: string) => translateString(lang, key);
-
-
   const fuelsList = useMemo(() => normalizeList(fuelsStatic), [])
   const transmissionsList = useMemo(() => normalizeList(gearboxStatic), [])
   const conditionsList = useMemo(() => normalizeList(conditionsStatic), [])
@@ -610,6 +619,29 @@ export default function CarDetailPage() {
   const bodyTypesList = useMemo(() => normalizeList(bodyTypesStatic), [])
   const engineOptionsList = useMemo(() => normalizeList(engineOptionsStatic), [])
   const featuresList = useMemo(() => normalizeList(featuresStatic), [])
+  const [profileData, setProfileData] = useState<User | null>(null)
+  const { logout } = useAuth()
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const token = localStorage.getItem("access_token") || sessionStorage.getItem("access_token");
+      if (!token) {
+        setLoading(false)
+        return
+      }
+      try {
+        const data = await apiClient.getCurrentUser()
+        setProfileData(data)
+      } catch {
+        logout()
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchUser()
+    const interval = setInterval(fetchUser, 10000)
+    return () => clearInterval(interval)
+  }, [logout])
 
   useEffect(() => {
     const el = descRef.current

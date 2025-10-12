@@ -206,13 +206,15 @@ export default function SellPage() {
       }
     }
     fetchUser()
+    const interval = setInterval(fetchUser, 10000)
+    return () => clearInterval(interval)
   }, [logout])
 
   const [images, setImages] = useState<ImageItem[]>([])
 
   useEffect(() => {
-    const accessToken = tokenManager.getAccessToken();
-    if (!accessToken) router.push("/auth/login?redirect=/sell")
+    const access_token = tokenManager.getAccessToken();
+    if (!access_token) router.push("/auth/login?redirect=/sell")
   }, [router])
 
   useEffect(() => {
@@ -661,4 +663,4 @@ export default function SellPage() {
       </div>
     </div>
   )
-}1
+} 1

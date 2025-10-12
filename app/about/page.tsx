@@ -33,7 +33,7 @@ export default function AboutPage() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const token = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken") ;
+      const token = localStorage.getItem("access_token") || sessionStorage.getItem("access_token");
       if (!token) {
         setLoading(false)
         return
@@ -47,8 +47,9 @@ export default function AboutPage() {
         setLoading(false)
       }
     }
-
     fetchUser()
+    const interval = setInterval(fetchUser, 10000)
+    return () => clearInterval(interval)
   }, [logout])
 
   const values = [

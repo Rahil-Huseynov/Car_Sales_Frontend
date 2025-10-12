@@ -11,8 +11,8 @@ export async function login(prevState: any, formData: FormData) {
   const user = MOCK_USERS.find((u) => u.email === email && u.password === password)
 
   if (user) {
-    const accessToken = `mock-access-token-${Date.now()}`
-    return { success: true, message: "Giriş uğurlu!", accessToken }
+    const access_token = `mock-access-token-${Date.now()}`
+    return { success: true, message: "Giriş uğurlu!", access_token }
   } else {
     return { success: false, message: "Yanlış e-mail və ya şifrə." }
   }
@@ -42,9 +42,9 @@ export async function register(prevState: any, formData: FormData) {
   }
 
   MOCK_USERS.push({ email, password, name: `${firstName} ${lastName}` }) 
-  const accessToken = `mock-access-token-${Date.now()}`
+  const access_token = `mock-access-token-${Date.now()}`
 
-  return { success: true, message: "Qeydiyyat uğurlu!", accessToken }
+  return { success: true, message: "Qeydiyyat uğurlu!", access_token }
 }
 
 export async function logout() {

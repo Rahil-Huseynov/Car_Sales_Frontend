@@ -60,6 +60,16 @@ type UserCar = {
   [k: string]: any
 }
 
+type User = {
+  id: number
+  firstName: string
+  lastName: string
+  email: string
+  phoneNumber: string
+  role: string
+  createdAt: string
+}
+
 type OptionItem = {
   key: string
   translations: { en: string; az: string;[k: string]: string }
@@ -303,14 +313,35 @@ export default function CarsPage() {
   const [isServerPagination, setIsServerPagination] = useState(false)
   const { lang, setLang } = useDefaultLanguage();
   const t = (key: string) => translateString(lang, key);
-
-
   const years = useMemo(() => (Array.isArray(yearsStatic) ? yearsStatic.slice() : []), [])
   const fuelsList = useMemo(() => sortByLabel(fuelsStatic as any[], lang), [lang])
   const transmissionsList = useMemo(() => sortByLabel(gearboxStatic as any[], lang), [lang])
   const conditionsList = useMemo(() => sortByLabel(conditionsStatic as any[], lang), [lang])
   const colorsList = useMemo(() => sortByLabel(colorsStatic as any[], lang), [lang])
   const citiesList = useMemo(() => sortByLabel(citiesStatic as any[], lang), [lang])
+  const [profileData, setProfileData] = useState<User | null>(null)
+  const { logout } = useAuth()
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const token = localStorage.getItem("access_token") || sessionStorage.getItem("access_token");
+      if (!token) {
+        setLoading(false)
+        return
+      }
+      try {
+        const data = await apiClient.getCurrentUser()
+        setProfileData(data)
+      } catch {
+        logout()
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchUser()
+    const interval = setInterval(fetchUser, 10000)
+    return () => clearInterval(interval)
+  }, [logout])
 
   useEffect(() => {
     setSelectedModel("all")

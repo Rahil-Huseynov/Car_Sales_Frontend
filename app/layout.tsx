@@ -1,7 +1,6 @@
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
-import ClientAuthWrapper from "@/components/ClientAuthWrapper"
 import { AuthProvider } from "@/lib/auth-context"
 import { LanguageProvider } from "@/components/LanguageProvider"
 
@@ -19,11 +18,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="az">
       <body className={inter.className}>
         <AuthProvider>
-          <ClientAuthWrapper>
             <LanguageProvider>
               {children}
             </LanguageProvider>
-          </ClientAuthWrapper>
         </AuthProvider>
       </body>
     </html>
