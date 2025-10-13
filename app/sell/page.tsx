@@ -333,7 +333,7 @@ export default function SellPage() {
         description: descriptionText || formData.description,
         features: formData.features || [],
         userId: formData.userId,
-        status: "Standart",
+        status: "standart",
       }
 
       const userCar = await apiClient.addcardata(payload)

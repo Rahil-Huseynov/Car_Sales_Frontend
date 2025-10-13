@@ -105,35 +105,47 @@ function buildImageUrl(raw: string) {
   return `${base}/${path}`;
 }
 
-function CarCard({ car, t, index, language, onFavoriteToggle }: { car: UserCar; t: (k: string) => string; index: number; language: string; onFavoriteToggle: (carId: number, isFavorited: boolean) => void }) {
+function CarCard({
+  car,
+  t,
+  index,
+  language,
+  onToggleFavorite,
+  isFavoritedProp,
+}: {
+  car: UserCar;
+  t: (k: string) => string;
+  index: number;
+  language: string;
+  onToggleFavorite: (carId: number, currentlyFavorited: boolean) => Promise<{ favorited: boolean; favId?: number }>;
+  isFavoritedProp?: boolean;
+}) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [isFavorited, setIsFavorited] = useState(car.isFavorited ?? false);
+  const [isFavorited, setIsFavorited] = useState<boolean>(isFavoritedProp ?? false);
   const { logout } = useAuth();
-  const router = useRouter(); 
+  const router = useRouter();
+
   useEffect(() => {
     const timer = setTimeout(() => setIsLoaded(true), index * 80);
     return () => clearTimeout(timer);
   }, [index]);
 
+  useEffect(() => {
+    setIsFavorited(Boolean(isFavoritedProp));
+  }, [isFavoritedProp]);
+
   const handleFavorite = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     try {
-      if (isFavorited) {
-        await apiClient.removeFavorite(car.id);
-        setIsFavorited(false);
-        onFavoriteToggle(car.id, false);
-        toast.success(t("removedFromFavorites"));
-      } else {
-        await apiClient.addFavorite(car.id);
-        setIsFavorited(true);
-        onFavoriteToggle(car.id, true);
-        toast.success(t("addedToFavorites"));
-      }
+      setIsFavorited((s) => !s);
+      const res = await onToggleFavorite(car.id, isFavorited);
+      setIsFavorited(Boolean(res?.favorited));
     } catch (err: any) {
-      console.error("Favorite error:", err); 
-      if (err?.response?.status === 401 || err?.status === 401 || err?.statusCode === 401 || err?.message?.includes("401")) {
+      console.error("Favorite error (CarCard):", err);
+      setIsFavorited((s) => !s);
+      if (err?.response?.status === 401 || err?.status === 401 || err?.statusCode === 401) {
         logout();
         toast.error(t("sessionExpired") || "Your session has expired. Please log in again.");
         router.push("/auth/login");
@@ -153,7 +165,8 @@ function CarCard({ car, t, index, language, onFavoriteToggle }: { car: UserCar; 
   const conditionLabel = findTranslation(conditions as any[], car.condition ?? "", language) || (car.condition ?? "");
   const colorLabel = findTranslation(colors as any[], car.color ?? "", language) || (car.color ?? "");
   const locationLabel = findTranslation(cities as any[], car.location ?? "", language) || (car.location ?? "");
-  const viewcountLabel = car.viewcount || 0
+  const viewcountLabel = car.viewcount || 0;
+
   return (
     <Card className={`overflow-hidden card-hover border-0 bg-white/90 backdrop-blur-sm transition-all duration-500 ${isLoaded ? "animate-fadeInUp opacity-100" : "opacity-0"}`} style={{ animationDelay: `${index * 0.05}s` }}>
       <div className="relative group">
@@ -228,6 +241,7 @@ function CarCard({ car, t, index, language, onFavoriteToggle }: { car: UserCar; 
     </Card>
   );
 }
+
 export default function HomePage() {
   const { logout, user } = useAuth();
 
@@ -348,28 +362,67 @@ export default function HomePage() {
     return () => clearInterval(interval)
   }, [logout])
 
+  const [favoritesMap, setFavoritesMap] = useState<Record<number, number>>({});
 
   const fetchFavorites = async () => {
     if (!user) return;
     try {
-      const favs: { carId: number }[] = await apiClient.getFavorites();
+      const favs: { id: number; carId: number }[] = await apiClient.getFavorites();
       const favSet = new Set<number>(favs.map((f) => f.carId));
+      const favMap: Record<number, number> = {};
+      favs.forEach((f) => {
+        favMap[f.carId] = f.id;
+      });
       setFavorites(favSet);
+      setFavoritesMap(favMap);
     } catch (err) {
       console.error("Failed to fetch favorites", err);
     }
   };
 
-  const handleFavoriteToggle = (carId: number, isFavorited: boolean) => {
-    setFavorites(prev => {
-      const newSet = new Set(prev);
-      if (isFavorited) {
-        newSet.add(carId);
+  const toggleFavoriteForCar = async (carId: number, currentlyFavorited: boolean) => {
+    try {
+      if (currentlyFavorited) {
+        const favId = favoritesMap[carId];
+        if (!favId) {
+          if (typeof (apiClient as any).removeFavoriteByCarId === "function") {
+            await (apiClient as any).removeFavoriteByCarId(carId);
+          } else {
+            throw new Error("Favorite id not found for removal");
+          }
+        } else {
+          await apiClient.removeFavorite(favId);
+        }
+        setFavorites(prev => {
+          const s = new Set(prev);
+          s.delete(carId);
+          return s;
+        });
+        setFavoritesMap(prev => {
+          const copy = { ...prev };
+          delete copy[carId];
+          return copy;
+        });
+        toast.success(t("removedFromFavorites"));
+        return { favorited: false };
       } else {
-        newSet.delete(carId);
+        const res = await apiClient.addFavorite(carId);
+        const createdFavId = res?.id ?? res?.favorite?.id ?? undefined;
+        setFavorites(prev => {
+          const s = new Set(prev);
+          s.add(carId);
+          return s;
+        });
+        if (createdFavId) {
+          setFavoritesMap(prev => ({ ...prev, [carId]: createdFavId }));
+        }
+        toast.success(t("addedToFavorites"));
+        return { favorited: true, favId: createdFavId };
       }
-      return newSet;
-    });
+    } catch (err: any) {
+      console.error("toggleFavoriteForCar error:", err);
+      throw err;
+    }
   };
 
   useEffect(() => {
@@ -835,7 +888,17 @@ export default function HomePage() {
             ) : (
               <>
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-4 md:gap-6">
-                  {cars.map((car, idx) => <CarCard key={car.id} car={car} t={t} index={idx} language={lang} onFavoriteToggle={handleFavoriteToggle} />)}
+                  {cars.map((car, idx) => (
+                    <CarCard
+                      key={car.id}
+                      car={car}
+                      t={t}
+                      index={idx}
+                      language={lang}
+                      onToggleFavorite={toggleFavoriteForCar}
+                      isFavoritedProp={favorites.has(car.id)}
+                    />
+                  ))}
                 </div>
 
                 {cars.length === 0 && (

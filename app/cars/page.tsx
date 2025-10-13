@@ -31,14 +31,15 @@ import {
   conditions as conditionsStatic,
   colors as colorsStatic,
   cities as citiesStatic,
-  features as featuresStatic,
   years as yearsStatic,
 } from "@/lib/car-data"
 import BrandSelect from "@/components/BrandSelect"
 import ModelSelect from "@/components/ModelSelect"
-import { getTranslation, translateString } from "@/lib/i18n"
-import { useLanguage } from "@/hooks/use-language"
+import { translateString } from "@/lib/i18n"
 import { useDefaultLanguage } from "@/components/useLanguage"
+import { useRouter } from "next/navigation"
+import { ToastContainer, toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 type CarImage = { id: number; url: string } | string
 type UserCar = {
@@ -58,6 +59,7 @@ type UserCar = {
   images?: CarImage[]
   featured?: boolean
   [k: string]: any
+  isFavorited?: boolean
 }
 
 type User = {
@@ -115,6 +117,7 @@ function findTranslation(list: any[] | undefined, key: string | undefined | null
   return String(key)
 }
 
+/* --- CarCard: artık API çağırmır; parent vasitəsilə toggle edilir --- */
 function CarCard({
   car,
   t,
@@ -124,6 +127,7 @@ function CarCard({
   conditionsList,
   colorsList,
   citiesList,
+  onFavoriteToggle
 }: {
   car: UserCar
   t: (k: string) => string
@@ -133,9 +137,16 @@ function CarCard({
   conditionsList: OptionItem[]
   colorsList: OptionItem[]
   citiesList: OptionItem[]
+  onFavoriteToggle: (carId: number, currentlyFavorited: boolean) => Promise<void>
 }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [isFavorited, setIsFavorited] = useState<boolean>(Boolean(car.isFavorited))
   const { logout } = useAuth()
+  const router = useRouter()
+  useEffect(() => {
+    setIsFavorited(Boolean(car.isFavorited))
+  }, [car.isFavorited])
+
   const imageUrls = (car.images ?? []).map((img) => (typeof img === "string" ? img : img?.url ?? "/placeholder.svg"))
   const nextImage = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -148,12 +159,35 @@ function CarCard({
     setCurrentImageIndex((prev) => (prev - 1 + Math.max(1, imageUrls.length)) % Math.max(1, imageUrls.length))
   }
 
+  const handleFavorite = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    const prev = isFavorited
+    setIsFavorited(!prev)
+
+    try {
+      await onFavoriteToggle(car.id!, prev)
+    } catch (err: any) {
+      setIsFavorited(prev)
+      console.error("Favorite error (Card):", err)
+      if (err?.response?.status === 401 || err?.status === 401 || err?.statusCode === 401 || String(err?.message).includes("401")) {
+        logout()
+        toast.error(t("sessionExpired") || "Your session has expired. Please log in again.")
+        router.push("/auth/login")
+      } else {
+        toast.error(t("favoriteError") || "Failed to update favorite status")
+      }
+    }
+  }
+
   const fuelLabel = findTranslation(fuelsList, car.fuel ?? "", language) || (car.fuel ?? "")
   const gearboxLabel = findTranslation(transmissionsList, car.gearbox ?? "", language) || (car.gearbox ?? "")
   const conditionLabel = findTranslation(conditionsList, car.condition ?? "", language) || (car.condition ?? "")
   const colorLabel = findTranslation(colorsList, car.color ?? "", language) || (car.color ?? "")
   const locationLabel = findTranslation(citiesList, car.location ?? car.city ?? "", language) || (car.location ?? car.city ?? "")
   const viewcount = car.viewcount || 0
+
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow">
       <div className="relative group">
@@ -213,13 +247,10 @@ function CarCard({
         <Button
           size="icon"
           variant="ghost"
-          className="absolute top-2 right-2 bg-white/80 hover:bg-white z-10"
-          onClick={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-          }}
+          className={`absolute top-2 right-2 bg-white/80 hover:bg-white z-10 ${isFavorited ? 'text-red-500' : ''}`}
+          onClick={handleFavorite}
         >
-          <Heart className="h-4 w-4" />
+          <Heart className="h-4 w-4" fill={isFavorited ? 'currentColor' : 'none'} />
         </Button>
       </div>
 
@@ -291,7 +322,9 @@ function CarCard({
   )
 }
 
+/* --- Parent: CarsPage --- */
 export default function CarsPage() {
+  const { logout, user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedBrand, setSelectedBrand] = useState("all")
   const [selectedYear, setSelectedYear] = useState("all")
@@ -311,7 +344,7 @@ export default function CarsPage() {
   const [totalCount, setTotalCount] = useState<number | null>(null)
   const [totalPagesFromServer, setTotalPagesFromServer] = useState<number | null>(null)
   const [isServerPagination, setIsServerPagination] = useState(false)
-  const { lang, setLang } = useDefaultLanguage();
+  const { lang } = useDefaultLanguage();
   const t = (key: string) => translateString(lang, key);
   const years = useMemo(() => (Array.isArray(yearsStatic) ? yearsStatic.slice() : []), [])
   const fuelsList = useMemo(() => sortByLabel(fuelsStatic as any[], lang), [lang])
@@ -320,7 +353,8 @@ export default function CarsPage() {
   const colorsList = useMemo(() => sortByLabel(colorsStatic as any[], lang), [lang])
   const citiesList = useMemo(() => sortByLabel(citiesStatic as any[], lang), [lang])
   const [profileData, setProfileData] = useState<User | null>(null)
-  const { logout } = useAuth()
+  const [favorites, setFavorites] = useState<Set<number>>(new Set())
+  const [favoritesMap, setFavoritesMap] = useState<Record<number, number>>({}); 
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -397,7 +431,7 @@ export default function CarsPage() {
           const cleanedUrl = rawUrl.replace(/^\/?uploads\/?/, "")
           return IMAGE_BASE ? `${IMAGE_BASE}/${cleanedUrl}` : `/${cleanedUrl}`
         })
-        return { ...c, images: imgs }
+        return { ...c, images: imgs, isFavorited: favorites.has(c.id) }
       })
       setCars(mapped)
       if (typeof total === "number") {
@@ -417,9 +451,77 @@ export default function CarsPage() {
     }
   }
 
+  const fetchFavorites = async () => {
+    if (!user) return;
+    try {
+      const favs: { id: number; carId: number }[] = await apiClient.getFavorites();
+      const favSet = new Set<number>(favs.map((f) => f.carId));
+      const favMap: Record<number, number> = {};
+      favs.forEach((f) => {
+        favMap[f.carId] = f.id;
+      });
+      setFavorites(favSet);
+      setFavoritesMap(favMap);
+      setCars((prev) => prev.map((c) => ({ ...c, isFavorited: favSet.has(c.id) })))
+    } catch (err) {
+      console.error("Failed to fetch favorites", err);
+    }
+  };
+
+  const toggleFavoriteForCar = async (carId: number, currentlyFavorited: boolean) => {
+    try {
+      if (currentlyFavorited) {
+        const favId = favoritesMap[carId];
+        if (favId) {
+          await apiClient.removeFavorite(favId)
+        } else if (typeof (apiClient as any).removeFavoriteByCarId === "function") {
+          await (apiClient as any).removeFavoriteByCarId(carId)
+        } else {
+          await apiClient.removeFavorite(carId).catch((err: any) => {
+            throw err
+          })
+        }
+        setFavorites(prev => {
+          const s = new Set(prev);
+          s.delete(carId);
+          return s;
+        });
+        setFavoritesMap(prev => {
+          const copy = { ...prev };
+          delete copy[carId];
+          return copy;
+        });
+        setCars(prev => prev.map(c => c.id === carId ? { ...c, isFavorited: false } : c));
+        toast.success(t("removedFromFavorites"));
+        return
+      } else {
+        const res = await apiClient.addFavorite(carId)
+        const createdFavId = res?.id ?? res?.favorite?.id ?? undefined
+        setFavorites(prev => {
+          const s = new Set(prev);
+          s.add(carId);
+          return s;
+        })
+        if (createdFavId) {
+          setFavoritesMap(prev => ({ ...prev, [carId]: createdFavId }))
+        }
+        setCars(prev => prev.map(c => c.id === carId ? { ...c, isFavorited: true } : c));
+        toast.success(t("addedToFavorites"));
+        return
+      }
+    } catch (err: any) {
+      console.error("toggleFavoriteForCar error:", err)
+      throw err
+    }
+  };
+
+  useEffect(() => {
+    fetchFavorites();
+  }, [user]);
+
   useEffect(() => {
     fetchCars()
-  }, [currentPage, searchTerm, selectedBrand, selectedModel, selectedYear, selectedFuel, selectedGearbox, selectedCondition, selectedLocation, selectedColor, priceRange.min, priceRange.max, sortBy])
+  }, [currentPage, searchTerm, selectedBrand, selectedModel, selectedYear, selectedFuel, selectedGearbox, selectedCondition, selectedLocation, selectedColor, priceRange.min, priceRange.max, sortBy, favorites])
 
   const totalPages = isServerPagination
     ? Math.max(1, Math.ceil((totalCount ?? 0) / itemsPerPage))
@@ -489,6 +591,7 @@ export default function CarsPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Filters (same as before) */}
                 <div>
                   <label className="text-sm font-medium mb-2 block text-gray-700">{t("brand")}</label>
                   <BrandSelect
@@ -569,9 +672,9 @@ export default function CarsPage() {
                     <SelectTrigger><SelectValue placeholder={t("selectCity")} /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">{t("all")}</SelectItem>
-                      {citiesList.map((citiesList) => (
-                        <SelectItem key={citiesList.key} value={citiesList.key}>
-                          {citiesList.translations[lang] ?? citiesList.translations.en}
+                      {citiesList.map((ci) => (
+                        <SelectItem key={ci.key} value={ci.key}>
+                          {ci.translations[lang] ?? ci.translations.en}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -650,6 +753,7 @@ export default function CarsPage() {
                       conditionsList={conditionsList}
                       colorsList={colorsList}
                       citiesList={citiesList}
+                      onFavoriteToggle={toggleFavoriteForCar}
                     />
                   ))}
                 </div>
@@ -672,6 +776,7 @@ export default function CarsPage() {
           </div>
         </div>
       </div>
+      <ToastContainer position="bottom-right" autoClose={3000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover theme="light" />
     </div>
   )
 }

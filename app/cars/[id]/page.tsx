@@ -43,19 +43,16 @@ import {
   cities as citiesStatic,
   bodyTypes as bodyTypesStatic,
   engineOptions as engineOptionsStatic,
+  status as statusStatic,
   features as featuresStatic,
 } from "@/lib/car-data"
 import { useDefaultLanguage } from "@/components/useLanguage"
 import { useAuth } from "@/lib/auth-context"
-
-
 type OptionItem = {
   key: string;
   translations: { [lang: string]: string } & { en: string };
 };
-
 type ImageItem = string | { id?: number; url?: string }
-
 type Seller = {
   id?: number
   firstName?: string
@@ -64,7 +61,6 @@ type Seller = {
   phoneNumber?: string | null
   phoneCode?: string | null
 }
-
 type User = {
   id: number
   firstName: string
@@ -74,7 +70,6 @@ type User = {
   role: string
   createdAt: string
 }
-
 type CarType = {
   id: number
   brand: string
@@ -112,9 +107,7 @@ type CarType = {
   ban?: string
   createdAt?: string
 }
-
 const API_UPLOADS_BASE = (process.env.NEXT_PUBLIC_API_URL_FOR_IMAGE || "").replace(/\/+$/, "")
-
 function safeImageUrl(i?: ImageItem) {
   if (!i) return "/placeholder.svg"
   const raw = typeof i === "string" ? i : i.url ?? ""
@@ -123,7 +116,6 @@ function safeImageUrl(i?: ImageItem) {
   const cleaned = raw.replace(/^\/+/, "").replace(/^uploads\/+?/i, "")
   return API_UPLOADS_BASE ? `${API_UPLOADS_BASE}/${cleaned}` : `/${cleaned}`
 }
-
 function toOption(item: any): OptionItem {
   if (!item && item !== "") {
     return { key: "", translations: { en: "", az: "" } }
@@ -142,7 +134,7 @@ function toOption(item: any): OptionItem {
 function normalizeList(list: any[] | undefined) {
   return (list ?? []).map(toOption)
 }
-function findTranslationFromList(list: any[] | undefined, rawKey: string | undefined | null, language: string) {
+export function findTranslationFromList(list: any[] | undefined, rawKey: string | undefined | null, language: string) {
   if (!rawKey && rawKey !== "") return ""
   const keyStr = String(rawKey ?? "")
   const normalized = normalizeList(list)
@@ -152,8 +144,6 @@ function findTranslationFromList(list: any[] | undefined, rawKey: string | undef
   }
   return keyStr
 }
-
-
 type ShareModalProps = {
   isOpen: boolean
   onClose: () => void
@@ -162,18 +152,15 @@ type ShareModalProps = {
   subtitle?: string
   image?: string
 }
-
 function ShareModal({ isOpen, onClose, shareUrl, title, subtitle, image }: ShareModalProps) {
   const overlayRef = useRef<HTMLDivElement | null>(null)
   const inputRef = useRef<HTMLInputElement | null>(null)
   const lastActiveRef = useRef<HTMLElement | null>(null)
   const [isCopying, setIsCopying] = useState(false)
   const [copied, setCopied] = useState(false)
-  const { language } = useLanguage()
-  const t = (key: string): string => {
-    const val = getTranslation(language, key)
-    return typeof val === "string" ? val : key
-  }
+  const { lang } = useDefaultLanguage();
+  const t = (key: string) => translateString(lang, key);
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose()
@@ -193,32 +180,26 @@ function ShareModal({ isOpen, onClose, shareUrl, title, subtitle, image }: Share
         }
       }
     }
-
     if (isOpen) {
       lastActiveRef.current = document.activeElement as HTMLElement
       document.addEventListener("keydown", onKey)
       setTimeout(() => inputRef.current?.focus(), 60)
       document.body.style.overflow = "hidden"
     }
-
     return () => {
       document.removeEventListener("keydown", onKey)
       lastActiveRef.current?.focus?.()
       document.body.style.overflow = ""
     }
   }, [isOpen, onClose])
-
   useEffect(() => {
     setCopied(false)
     setIsCopying(false)
-  }, [language])
-
+  }, [lang])
   if (!isOpen) return null
-
   const handleOverlayClick = (e: React.MouseEvent) => {
     if (e.target === overlayRef.current) onClose()
   }
-
   const handleCopy = async () => {
     if (!shareUrl) return
     try {
@@ -234,7 +215,6 @@ function ShareModal({ isOpen, onClose, shareUrl, title, subtitle, image }: Share
       setIsCopying(false)
     }
   }
-
   const handleNativeShare = async () => {
     if (!shareUrl) return
     if (navigator.share) {
@@ -253,7 +233,6 @@ function ShareModal({ isOpen, onClose, shareUrl, title, subtitle, image }: Share
       await handleCopy()
     }
   }
-
   const openSocial = (service: "facebook" | "telegram" | "whatsapp") => {
     const enc = encodeURIComponent(shareUrl)
     let url = ""
@@ -263,7 +242,6 @@ function ShareModal({ isOpen, onClose, shareUrl, title, subtitle, image }: Share
       url = `https://api.whatsapp.com/send?text=${encodeURIComponent(`${title ? title + " - " : ""}${shareUrl}`)}`
     window.open(url, "_blank", "noopener,noreferrer,width=600,height=600")
   }
-
   return (
     <div
       ref={overlayRef}
@@ -283,7 +261,6 @@ function ShareModal({ isOpen, onClose, shareUrl, title, subtitle, image }: Share
               {subtitle && <p className="text-sm text-gray-500 mt-0.5">{subtitle}</p>}
             </div>
           </div>
-
           <div className="flex items-center gap-2">
             <button
               onClick={() => {
@@ -295,13 +272,11 @@ function ShareModal({ isOpen, onClose, shareUrl, title, subtitle, image }: Share
             >
               <ExternalLink className="h-4 w-4 text-gray-600" /> {t("open")}
             </button>
-
             <button onClick={onClose} className="rounded-full p-2 text-gray-600 hover:bg-gray-100" aria-label="Close share modal">
               <X className="h-4 w-4" />
             </button>
           </div>
         </div>
-
         <div className="px-6 py-5">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-shrink-0">
@@ -313,7 +288,6 @@ function ShareModal({ isOpen, onClose, shareUrl, title, subtitle, image }: Share
                 )}
               </div>
             </div>
-
             <div className="flex-1">
               <label className="block text-xs font-medium text-gray-500 mb-2">{t("link")}</label>
               <div className="flex w-full gap-2">
@@ -324,7 +298,6 @@ function ShareModal({ isOpen, onClose, shareUrl, title, subtitle, image }: Share
                   onFocus={(e) => e.currentTarget.select()}
                   className="flex-1 rounded-lg border border-gray-200 px-4 py-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
                 />
-
                 <button
                   onClick={handleCopy}
                   disabled={isCopying}
@@ -335,7 +308,6 @@ function ShareModal({ isOpen, onClose, shareUrl, title, subtitle, image }: Share
                   <span>{copied ? t("copied") : t("copy")}</span>
                 </button>
               </div>
-
               <div className="mt-4 flex flex-wrap items-center gap-3">
                 <button
                   onClick={handleNativeShare}
@@ -343,20 +315,16 @@ function ShareModal({ isOpen, onClose, shareUrl, title, subtitle, image }: Share
                 >
                   <Share2 className="h-4 w-4" /> {t("share")}
                 </button>
-
                 <button onClick={() => openSocial("facebook")} className="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm hover:bg-gray-50">
                   Facebook
                 </button>
-
                 <button onClick={() => openSocial("telegram")} className="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm hover:bg-gray-50">
                   Telegram
                 </button>
-
                 <button onClick={() => openSocial("whatsapp")} className="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm hover:bg-gray-50">
                   WhatsApp
                 </button>
               </div>
-
               <div className="mt-4 flex items-center justify-between">
                 <p className="text-xs text-gray-400">{t("urlAssurance")}</p>
                 <div className="text-xs text-gray-400" />
@@ -364,7 +332,6 @@ function ShareModal({ isOpen, onClose, shareUrl, title, subtitle, image }: Share
             </div>
           </div>
         </div>
-
         <div className="flex items-center justify-end gap-3 border-t px-6 py-4">
           <button
             onClick={() => {
@@ -377,7 +344,6 @@ function ShareModal({ isOpen, onClose, shareUrl, title, subtitle, image }: Share
           >
             {t("sendByMail")}
           </button>
-
           <button onClick={onClose} className="rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
             {t("close")}
           </button>
@@ -386,7 +352,6 @@ function ShareModal({ isOpen, onClose, shareUrl, title, subtitle, image }: Share
     </div>
   )
 }
-
 type ContactModalProps = {
   isOpen: boolean
   onClose: () => void
@@ -395,7 +360,6 @@ type ContactModalProps = {
   prefillPhone?: string | null
   carTitle?: string
 }
-
 function ContactModal({ isOpen, onClose, toEmail, subject, prefillPhone, carTitle }: ContactModalProps) {
   const overlayRef = useRef<HTMLDivElement | null>(null)
   const [name, setName] = useState("")
@@ -404,11 +368,9 @@ function ContactModal({ isOpen, onClose, toEmail, subject, prefillPhone, carTitl
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
   const [error, setError] = useState<string | null | undefined>(null)
-  const { language } = useLanguage()
-  const t = (key: string): string => {
-    const val = getTranslation(language, key)
-    return typeof val === "string" ? val : key
-  }
+  const { lang } = useDefaultLanguage();
+  const t = (key: string) => translateString(lang, key);
+
   useEffect(() => {
     if (isOpen) {
       setError(null)
@@ -420,30 +382,25 @@ function ContactModal({ isOpen, onClose, toEmail, subject, prefillPhone, carTitl
       document.body.style.overflow = ""
     }
   }, [isOpen])
-
   useEffect(() => {
     if (!isOpen) return
-    const lang = (language || "").toString().toLowerCase()
+    const language = (lang || "").toString().toLowerCase()
     let defaultMsg = ""
-    if (lang.startsWith("az")) {
+    if (language.startsWith("az")) {
       defaultMsg = `Salam,\n\nMən ${carTitle ?? ""} avtomobili ilə maraqlanıram. Xahiş edirəm əlavə məlumat və təklif etdiyiniz şərtlər haqqında ətraflı məlumat verəsiniz.\n\nƏvvəlcədən təşəkkür edirəm.\n`
     } else {
       defaultMsg = `Hello,\n\nI'm interested in the ${carTitle ?? ""} car. Please send more details and the terms you offer.\n\nThank you in advance.\n`
     }
     setMessage(defaultMsg)
-  }, [isOpen, language, carTitle])
-
+  }, [isOpen, lang, carTitle])
   if (!isOpen) return null
-
   const handleOverlayClick = (e: React.MouseEvent) => {
     if (e.target === overlayRef.current) onClose()
   }
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setSending(true)
     setError(null)
-
     const payload = {
       to: toEmail || "",
       subject: subject || `${t("interestedIn")}: ${carTitle ?? ""}`,
@@ -452,7 +409,6 @@ function ContactModal({ isOpen, onClose, toEmail, subject, prefillPhone, carTitl
       message,
       phone: prefillPhone || undefined,
     }
-
     try {
       if (apiClient && typeof (apiClient as any).sendEmail === "function") {
         try {
@@ -505,7 +461,6 @@ function ContactModal({ isOpen, onClose, toEmail, subject, prefillPhone, carTitl
       setSending(false)
     }
   }
-
   return (
     <div
       ref={overlayRef}
@@ -520,16 +475,13 @@ function ContactModal({ isOpen, onClose, toEmail, subject, prefillPhone, carTitl
             <h3 className="text-lg font-semibold">{t("sendMessageToSeller")}</h3>
             <p className="text-xs text-gray-500 mt-0.5">{t("writeYourQuestion")}</p>
           </div>
-
           <button type="button" onClick={onClose} className="text-gray-600 rounded-full p-2 hover:bg-gray-100">
             ✕
           </button>
         </div>
-
         <div className="px-5 py-4 space-y-3">
           {sent ? <div className="rounded-md bg-green-50 px-4 py-3 text-green-700">{t("messageSentSuccessfully")}</div> : null}
           {error ? <div className="rounded-md bg-red-50 px-4 py-3 text-red-700">{error}</div> : null}
-
           <div>
             <label className="text-xs text-gray-500">{t("nameOptional")}</label>
             <input
@@ -539,7 +491,6 @@ function ContactModal({ isOpen, onClose, toEmail, subject, prefillPhone, carTitl
               placeholder={t("enterYourName")}
             />
           </div>
-
           <div>
             <label className="text-xs text-gray-500">{t("emailForContact")}</label>
             <input
@@ -550,7 +501,6 @@ function ContactModal({ isOpen, onClose, toEmail, subject, prefillPhone, carTitl
               type="email"
             />
           </div>
-
           <div>
             <label className="text-xs text-gray-500">{t("message")}</label>
             <textarea
@@ -559,13 +509,11 @@ function ContactModal({ isOpen, onClose, toEmail, subject, prefillPhone, carTitl
               onChange={(e) => setMessage(e.target.value)}
             />
           </div>
-
           <div>
             <label className="text-xs text-gray-500">{t("sellersEmail")}</label>
             <input readOnly value={toEmail ?? ""} className="mt-1 w-full rounded-md border bg-gray-50 px-3 py-2 text-sm" />
           </div>
         </div>
-
         <div className="flex items-center justify-end gap-3 border-t px-5 py-3">
           <button
             type="button"
@@ -579,7 +527,6 @@ function ContactModal({ isOpen, onClose, toEmail, subject, prefillPhone, carTitl
           >
             {t("openWithMailClient")}
           </button>
-
           <button type="submit" disabled={sending} className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
             {sending ? t("sending") : t("sendMessage")}
           </button>
@@ -588,23 +535,18 @@ function ContactModal({ isOpen, onClose, toEmail, subject, prefillPhone, carTitl
     </div>
   )
 }
-
 export default function CarDetailPage() {
   const params = useParams()
   const router = useRouter()
   const idParam = Array.isArray(params?.id) ? params?.id[0] : params?.id
   const id = idParam ? Number(idParam) : NaN
-
   const [loading, setLoading] = useState(true)
   const [car, setCar] = useState<CarType | null>(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [error, setError] = useState<string | null | undefined>(null)
-
   const [isShareOpen, setIsShareOpen] = useState(false)
   const [shareUrl, setShareUrl] = useState<string>("")
-
   const [contactOpen, setContactOpen] = useState(false)
-
   const [descExpanded, setDescExpanded] = useState(false)
   const descRef = useRef<HTMLDivElement | null>(null)
   const animDuration = 300
@@ -621,6 +563,8 @@ export default function CarDetailPage() {
   const featuresList = useMemo(() => normalizeList(featuresStatic), [])
   const [profileData, setProfileData] = useState<User | null>(null)
   const { logout } = useAuth()
+  const [favorites, setFavorites] = useState<Set<number>>(new Set())
+  const [isFavorited, setIsFavorited] = useState(false)
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -642,7 +586,6 @@ export default function CarDetailPage() {
     const interval = setInterval(fetchUser, 10000)
     return () => clearInterval(interval)
   }, [logout])
-
   useEffect(() => {
     const el = descRef.current
     if (!el) return
@@ -654,21 +597,138 @@ export default function CarDetailPage() {
     el.style.display = "none"
   }, [])
 
+  const [favoritesMap, setFavoritesMap] = useState<Record<number, number>>({}) 
+
+  const fetchFavoritesData = async () => {
+    if (!profileData) return
+    try {
+      const favs: { id: number; carId: number }[] = await apiClient.getFavorites()
+      const favSet = new Set<number>(favs.map((f) => f.carId))
+      const favMap: Record<number, number> = {}
+      favs.forEach((f) => {
+        favMap[f.carId] = f.id
+      })
+      setFavorites(favSet)
+      setFavoritesMap(favMap)
+      setIsFavorited(favSet.has(car?.id ?? 0))
+    } catch (err) {
+      console.error("Failed to fetch favorites", err)
+    }
+  }
+
+  const handleFavoriteToggle = (carId: number, add: boolean, favId?: number) => {
+    setFavorites(prev => {
+      const newSet = new Set(prev);
+      if (add) newSet.add(carId);
+      else newSet.delete(carId);
+      return newSet;
+    });
+    setFavoritesMap(prev => {
+      const copy = { ...prev }
+      if (add && favId) copy[carId] = favId
+      if (!add) delete copy[carId]
+      return copy
+    })
+  }
+
+  const handleFavorite = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!car) return
+
+    try {
+      if (isFavorited) {
+        const favId = favoritesMap[car.id]
+        if (!favId) {
+          console.warn("Favorite id for car not found locally, attempting removal by car id as fallback")
+          if (typeof (apiClient as any).removeFavoriteByCarId === "function") {
+            await (apiClient as any).removeFavoriteByCarId(car.id)
+          } else {
+            throw new Error("Favorite id not found")
+          }
+        } else {
+          await apiClient.removeFavorite(favId) 
+        }
+        setIsFavorited(false)
+        handleFavoriteToggle(car.id, false)
+        toast.success(t("removedFromFavorites"))
+      } else {
+        const res = await apiClient.addFavorite(car.id)
+        const createdFavId = (res && res.id) ? res.id : undefined
+        setIsFavorited(true)
+        handleFavoriteToggle(car.id, true, createdFavId)
+        toast.success(t("addedToFavorites"))
+      }
+    } catch (err: any) {
+      console.error("Favorite error:", err)
+      if (err?.response?.status === 401 || err?.status === 401) {
+        logout()
+        toast.error(t("sessionExpired") || "Your session has expired. Please log in again.")
+        router.push("/auth/login")
+      } else {
+        toast.error(t("favoriteError") || "Failed to update favorite status")
+      }
+    }
+  }
+
+  useEffect(() => {
+    if (!id || Number.isNaN(id)) {
+      const msg = t("invalidId") || t("fetchError")
+      setError(msg)
+      setLoading(false)
+      toast.error(msg)
+      return
+    }
+    const controller = new AbortController()
+    const signal = controller.signal
+    async function fetchCar() {
+      setLoading(true)
+      setError(null)
+      try {
+        const res = await apiClient.getCarId(id)
+        if (!res) {
+          const msg = t("carNotFound")
+          setError(msg)
+          setCar(null)
+          setLoading(false)
+          toast.error(msg)
+          return
+        }
+        setCar(res)
+        setCurrentImageIndex(0)
+      } catch (e: any) {
+        console.error(e)
+        const msg = (e && (e as any).message) ? String((e as any).message) : t("fetchError")
+        setError(msg)
+        toast.error(msg)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchCar()
+    return () => controller.abort()
+  }, [id, lang])
+  useEffect(() => {
+    if (!car) return
+    const base = process.env.NEXT_PUBLIC_SITE_URL || (typeof window !== "undefined" ? window.location.origin : "")
+    setShareUrl(`${base}/cars/${car.id}`)
+  }, [car])
+  useEffect(() => {
+    if (!profileData || !car) return;
+    fetchFavoritesData()
+  }, [profileData, car?.id])
   function toggleDesc() {
     const el = descRef.current
     if (!el) {
       setDescExpanded((s) => !s)
       return
     }
-
     const clone = el.cloneNode(true) as HTMLDivElement
     el.parentNode?.replaceChild(clone, el)
     descRef.current = clone
     const node = descRef.current!
-
     node.style.overflow = "hidden"
     node.style.transition = transitionProperty
-
     const cleanupEnd = (wasExpanding: boolean) => {
       if (wasExpanding) {
         node.style.maxHeight = "none"
@@ -678,13 +738,11 @@ export default function CarDetailPage() {
         node.style.display = "none"
       }
     }
-
     let fallbackTimer: number | undefined
     const setFallback = (wasExpanding: boolean) => {
       window.clearTimeout((fallbackTimer as unknown) as number)
       fallbackTimer = window.setTimeout(() => cleanupEnd(wasExpanding), animDuration + 120)
     }
-
     if (!descExpanded) {
       node.style.display = "block"
       node.style.maxHeight = "0px"
@@ -729,64 +787,14 @@ export default function CarDetailPage() {
       setDescExpanded(false)
     }
   }
-
-  useEffect(() => {
-    if (!id || Number.isNaN(id)) {
-      const msg = t("invalidId") || t("fetchError")
-      setError(msg)
-      setLoading(false)
-      toast.error(msg)
-      return
-    }
-
-    const controller = new AbortController()
-    const signal = controller.signal
-
-    async function fetchCar() {
-      setLoading(true)
-      setError(null)
-      try {
-        const res = await apiClient.getCarId(id)
-        if (!res) {
-          const msg = t("carNotFound")
-          setError(msg)
-          setCar(null)
-          setLoading(false)
-          toast.error(msg)
-          return
-        }
-        setCar(res)
-        setCurrentImageIndex(0)
-      } catch (e: any) {
-        console.error(e)
-        const msg = (e && (e as any).message) ? String((e as any).message) : t("fetchError")
-        setError(msg)
-        toast.error(msg)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchCar()
-    return () => controller.abort()
-  }, [id, lang])
-
-  useEffect(() => {
-    if (!car) return
-    const base = process.env.NEXT_PUBLIC_SITE_URL || (typeof window !== "undefined" ? window.location.origin : "")
-    setShareUrl(`${base}/cars/${car.id}`)
-  }, [car])
-
   const nextImage = () => {
     if (!car?.images?.length) return
     setCurrentImageIndex((prev) => (prev + 1) % (car.images!.length || 1))
   }
-
   const prevImage = () => {
     if (!car?.images?.length) return
     setCurrentImageIndex((prev) => (prev - 1 + (car.images!.length || 1)) % (car.images!.length || 1))
   }
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -796,7 +804,6 @@ export default function CarDetailPage() {
       </div>
     )
   }
-
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -813,7 +820,6 @@ export default function CarDetailPage() {
       </div>
     )
   }
-
   if (!car) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -830,7 +836,6 @@ export default function CarDetailPage() {
       </div>
     )
   }
-
   const images = car.images && car.images.length ? car.images.map(safeImageUrl) : ["/placeholder.svg"]
   const sellerName = car.user ? `${car.user.firstName ?? ""} ${car.user.lastName ?? ""}`.trim() : car.name
   const sellerEmail = car.email ?? car.user?.email
@@ -847,11 +852,12 @@ export default function CarDetailPage() {
   const viewcountLabel = car.viewcount || 0
   const bodyTypeLabel = findTranslationFromList(bodyTypesStatic, car.ban ?? car.bodyType ?? "", lang) || (car.ban ?? car.bodyType ?? "")
   const engineLabel = findTranslationFromList(engineOptionsStatic, car.engine ?? "", lang) || (car.engine ?? "")
+  const statusLabel = findTranslationFromList(statusStatic, car.status ?? car.status ?? "", lang) || (car.status ?? car.status ?? "")
+
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-
       <div className="container mx-auto px-4 py-6 md:py-8">
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 md:gap-8">
           <div className="xl:col-span-2 space-y-4 md:space-y-6">
@@ -865,7 +871,6 @@ export default function CarDetailPage() {
                     height={400}
                     className="w-full h-64 md:h-96 object-contain rounded-t-lg"
                   />
-
                   <Button
                     size="icon"
                     variant="secondary"
@@ -875,7 +880,6 @@ export default function CarDetailPage() {
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
-
                   <Button
                     size="icon"
                     variant="secondary"
@@ -885,16 +889,18 @@ export default function CarDetailPage() {
                   >
                     <ChevronRight className="h-4 w-4" />
                   </Button>
-
                   <div className="absolute bottom-4 left-4 bg-black/70 text-white px-3 py-1 rounded-md text-sm">
                     {currentImageIndex + 1} / {images.length}
                   </div>
-
                   <div className="absolute top-4 right-4 flex gap-2">
-                    <Button size="icon" variant="secondary" aria-label={t("favorite")}>
-                      <Heart className="h-4 w-4" />
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className={`absolute top-0 right-11 bg-white/80 hover:bg-white z-10 ${isFavorited ? 'text-red-500' : ''}`}
+                      onClick={handleFavorite}
+                    >
+                      <Heart className="h-4 w-4" fill={isFavorited ? 'currentColor' : 'none'} />
                     </Button>
-
                     <Button
                       size="icon"
                       variant="secondary"
@@ -905,7 +911,6 @@ export default function CarDetailPage() {
                     </Button>
                   </div>
                 </div>
-
                 <div className="grid grid-cols-5 gap-2 p-4">
                   {images.map((image, index) => (
                     <button
@@ -925,7 +930,6 @@ export default function CarDetailPage() {
                 </div>
               </CardContent>
             </Card>
-
             <Card>
               <CardHeader>
                 <div className="flex justify-between items-start">
@@ -941,7 +945,7 @@ export default function CarDetailPage() {
                     <p className="text-3xl font-bold text-blue-600">{(car.price ?? 0).toLocaleString()} ₼</p>
                     {car.status ? (
                       <div className="mt-2">
-                        <Badge>{car.status}</Badge>
+                        <Badge>{statusLabel}</Badge>
                       </div>
                     ) : null}
                   </div>
@@ -978,9 +982,7 @@ export default function CarDetailPage() {
                     </div>
                   </div>
                 </div>
-
                 <Separator className="my-6" />
-
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                   <div className="flex items-center gap-2">
                     <CarFront className="h-5 w-5 text-gray-500" />
@@ -1011,17 +1013,13 @@ export default function CarDetailPage() {
                     </div>
                   </div>
                 </div>
-
                 <Separator className="my-6" />
-
                 <div>
                   <h3 className="text-lg font-semibold mb-3">{t("description")}</h3>
-
                   <p className="text-gray-700 leading-relaxed">
                     {descriptionText.slice(0, 200)}
                     {isLongDesc && !descExpanded ? "..." : ""}
                   </p>
-
                   {isLongDesc ? (
                     <>
                       <div
@@ -1033,7 +1031,6 @@ export default function CarDetailPage() {
                       >
                         <p className="text-gray-700 leading-relaxed">{descriptionText.slice(200)}</p>
                       </div>
-
                       <button
                         onClick={toggleDesc}
                         aria-expanded={descExpanded}
@@ -1045,10 +1042,8 @@ export default function CarDetailPage() {
                     </>
                   ) : null}
                 </div>
-
               </CardContent>
             </Card>
-
             <Card>
               <CardHeader>
                 <CardTitle>{t("features")}</CardTitle>
@@ -1068,7 +1063,6 @@ export default function CarDetailPage() {
               </CardContent>
             </Card>
           </div>
-
           <div className="space-y-6">
             <Card>
               <CardHeader>
@@ -1082,7 +1076,6 @@ export default function CarDetailPage() {
                     {locationLabel}
                   </div>
                 </div>
-
                 <div className="space-y-2">
                   <div className="grid grid-cols-2 gap-2">
                     <a
@@ -1092,7 +1085,6 @@ export default function CarDetailPage() {
                       <Phone className="h-4 w-4 mr-2" />
                       {sellerPhone ?? t("noPhone")}
                     </a>
-
                     <button type="button" onClick={() => setContactOpen(true)} className="inline-flex items-center justify-center rounded-md border px-3 py-2 text-sm font-medium hover:bg-gray-50">
                       <Mail className="h-4 w-4 mr-2" />
                       {t("sendEmail")}
@@ -1101,7 +1093,6 @@ export default function CarDetailPage() {
                 </div>
               </CardContent>
             </Card>
-
             <Card>
               <CardHeader>
                 <CardTitle>{t("quickInfo")}</CardTitle>
@@ -1139,7 +1130,6 @@ export default function CarDetailPage() {
                 ) : null}
               </CardContent>
             </Card>
-
             <Card className="border-yellow-200 bg-yellow-50">
               <CardContent className="pt-6">
                 <div className="flex items-start gap-3">
@@ -1154,7 +1144,6 @@ export default function CarDetailPage() {
           </div>
         </div>
       </div>
-
       <ShareModal
         isOpen={isShareOpen}
         onClose={() => setIsShareOpen(false)}
@@ -1171,7 +1160,6 @@ export default function CarDetailPage() {
         subject={`${car.brand} ${car.model}`}
         carTitle={`${car.brand} ${car.model}`}
       />
-
       <ToastContainer position="top-right" autoClose={3000} />
     </div>
   )

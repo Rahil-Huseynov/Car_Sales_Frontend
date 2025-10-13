@@ -27,6 +27,9 @@ import {
   Upload,
   ImageIcon,
   X,
+  TrendingUp,
+  Crown,
+  Star,
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -47,6 +50,7 @@ import { ToastContainer, toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import { useAuth } from "@/lib/auth-context"
 import { useDefaultLanguage } from "@/components/useLanguage"
+import { findTranslationFromList } from "@/app/cars/[id]/page"
 
 const API = process.env.NEXT_PUBLIC_API_URL || ""
 const IMAGE_BASE = process.env.NEXT_PUBLIC_API_URL_FOR_IMAGE || ""
@@ -181,7 +185,9 @@ const buildImageUrl = (maybe: RawCarImage | undefined): string | null => {
     return `${IMAGE_BASE}${url}`
   }
 }
-
+import {
+  status as statusStatic,
+} from "@/lib/car-data"
 function AdCard({
   ad,
   onEdit,
@@ -201,11 +207,9 @@ function AdCard({
 }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isLoaded, setIsLoaded] = useState(false)
-  const { language } = useLanguage()
-  const t = (key: string): string => {
-    const val = getTranslation(language, key)
-    return typeof val === "string" ? val : key
-  }
+  const { lang, setLang } = useDefaultLanguage();
+  const t = (key: string) => translateString(lang, key);
+
   const router = useRouter()
 
   useEffect(() => {
@@ -227,11 +231,11 @@ function AdCard({
 
   const getStatusColor = (status: CarAd["status"]) => {
     switch (status) {
-      case "Standart":
+      case "standart":
         return "bg-green-100 text-green-800 border-green-200"
-      case "Premium":
+      case "premium":
         return "bg-yellow-100 text-yellow-800 border-yellow-200"
-      case "Sold":
+      case "sold":
         return "bg-purple-100 text-purple-800 border-purple-200"
       default:
         return "bg-gray-100 text-gray-800 border-gray-200"
@@ -240,11 +244,11 @@ function AdCard({
 
   const getStatusIcon = (status: CarAd["status"]) => {
     switch (status) {
-      case "Standart":
-        return <CheckCircle className="h-3 w-3" />
-      case "Premium":
-        return <Clock className="h-3 w-3" />
-      case "Sold":
+      case "standart":
+        return <Star className="h-3 w-3" />
+      case "premium":
+        return <Crown className="h-3 w-3" />
+      case "sold":
         return <PackageCheck className="h-3 w-3" />
       default:
         return <XCircle className="h-3 w-3" />
@@ -253,6 +257,7 @@ function AdCard({
 
   const imageSrc = ad.images.length > 0 ? ad.images[currentImageIndex] : "/placeholder.svg"
   const isRemote = imageSrc.startsWith("http")
+  const statusLabel = findTranslationFromList(statusStatic, ad.status ?? ad.status ?? "", lang) || (ad.status ?? ad.status ?? "")
 
   return (
     <Card
@@ -274,7 +279,7 @@ function AdCard({
 
         <Badge className={`absolute top-3 left-3 ${getStatusColor(ad.status)} z-10 flex items-center gap-1`}>
           {getStatusIcon(ad.status)}
-          {t(ad.status)}
+          {statusLabel}
         </Badge>
 
         {ad.images.length > 1 && (
@@ -368,8 +373,8 @@ function AdCard({
             e.stopPropagation()
             router.push(`/cars/${ad.allCarsListId}`)
           }}
-          title={t("viewAd") || "View ad"}
-          aria-label={t("viewAd") || "View ad"}
+          title={t("viewAd")}
+          aria-label={t("viewAd")}
         >
           <Eye className="h-4 w-4 mr-2" />
           {t("view")}
@@ -383,8 +388,8 @@ function AdCard({
             e.stopPropagation()
             onEdit(ad.id)
           }}
-          title={t("editAd") || "Edit"}
-          aria-label={t("editAd") || "Edit"}
+          title={t("editAd")}
+          aria-label={t("editAd")}
         >
           <Edit className="h-4 w-4" />
         </Button>
@@ -399,8 +404,8 @@ function AdCard({
             onDelete(ad.id)
           }}
           disabled={isDeleting}
-          title={t("deleteAd") || "Delete"}
-          aria-label={t("deleteAd") || "Delete"}
+          title={t("deleteAd")}
+          aria-label={t("deleteAd")}
         >
           {isDeleting ? <Trash2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
         </Button>
@@ -413,9 +418,9 @@ function AdCard({
             e.stopPropagation()
             onMarkSold(ad.id)
           }}
-          disabled={isSelling || ad.status === "Sold"}
-          title={ad.status === "Sold" ? t("alreadySold") || "Already sold" : t("markAsSold") || "Mark as sold"}
-          aria-label={ad.status === "Sold" ? t("alreadySold") || "Already sold" : t("markAsSold") || "Mark as sold"}
+          disabled={isSelling || ad.status === "sold"}
+          title={ad.status === "sold" ? t("alreadySold") || "Already sold" : t("markAsSold") || "Mark as sold"}
+          aria-label={ad.status === "sold" ? t("alreadySold") || "Already sold" : t("markAsSold") || "Mark as sold"}
         >
           <PackageCheck className="h-4 w-4" />
         </Button>
@@ -443,7 +448,7 @@ function Modal({ open, onClose, title, children }: any) {
 export default function MyAdsPage() {
   const [ads, setAds] = useState<CarAd[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<"all" | "Standart" | "Premium" | "Sold">("all")
+  const [activeTab, setActiveTab] = useState<"all" | "standart" | "premium" | "sold">("all")
   const [deletingIds, setDeletingIds] = useState<number[]>([])
   const [sellingIds, setSellingIds] = useState<number[]>([])
   const [editingId, setEditingId] = useState<number | null>(null)
@@ -490,7 +495,7 @@ export default function MyAdsPage() {
 
           if (images.length === 0) images.push("/placeholder.svg")
 
-          const status = c.status ?? "Standart"
+          const status = c.status ?? "standart"
 
           return {
             id: c.id,
@@ -617,7 +622,7 @@ export default function MyAdsPage() {
   }
 
   const filteredAds = ads.filter((ad) => (activeTab === "all" ? true : ad.status === activeTab))
-  const getTabCount = (status: "all" | "Standart" | "Premium" | "Sold") => (status === "all" ? ads.length : ads.filter((a) => a.status === status).length)
+  const getTabCount = (status: "all" | "standart" | "premium" | "sold") => (status === "all" ? ads.length : ads.filter((a) => a.status === status).length)
 
   const handleInputChange = (k: string, v: any) => {
     setEditingData((prev: any) => ({ ...prev, [k]: v }))
@@ -840,7 +845,7 @@ export default function MyAdsPage() {
     if (!id) return
     setSellingIds(prev => [...prev, id])
     try {
-      const payload = { status: "Sold" }
+      const payload = { status: "sold" }
       if (apiClient && typeof (apiClient as any).put === "function") {
         await (apiClient as any).put(`/user-cars/${id}`, payload)
       } else {
@@ -853,11 +858,11 @@ export default function MyAdsPage() {
         }
       }
 
-      setAds(prev => prev.map(a => a.id === id ? { ...a, status: "Sold" } : a))
-      toast.success(t("markedSold") || "Elan 'Sold' olaraq qeyd edildi")
+      setAds(prev => prev.map(a => a.id === id ? { ...a, status: "sold" } : a))
+      toast.success(t("markedSold") || "Elan 'sold' olaraq qeyd edildi")
     } catch (err) {
       console.error(err)
-      toast.error(t("markSoldFailed") || "Elanı 'Sold' etmək mümkün olmadı")
+      toast.error(t("markSoldFailed") || "Elanı 'sold' etmək mümkün olmadı")
     } finally {
       setSellingIds(prev => prev.filter(x => x !== id))
     }
@@ -875,7 +880,7 @@ export default function MyAdsPage() {
     <div className="min-h-screen bg-gray-50">
       <ToastContainer position="top-right" autoClose={4000} hideProgressBar={false} newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
 
-      <section className="bg-gradient-to-br from-green-500 via-green-600 to-green-700 text-white py-12 md:py-16 relative overflow-hidden">
+      <section className="bg-gradient-to-br from-green-500 via-green-600 rounded-md to-green-700 text-white py-12 md:py-16 relative overflow-hidden">
         <div className="container mx-auto px-4 relative z-10 flex justify-between items-center">
           <h1 className="text-3xl md:text-4xl font-bold flex items-center gap-3">
             <BarChart3 className="h-8 w-8 text-green-200" />
@@ -892,7 +897,7 @@ export default function MyAdsPage() {
       </section>
 
       <div className="container mx-auto px-4 py-8">
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "all" | "Standart" | "Premium" | "Sold")} className="w-full">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "all" | "standart" | "premium" | "sold")} className="w-full">
           <TabsList className="grid w-full grid-cols-4 mb-8">
             <TabsTrigger value="all" className="flex items-center gap-2">
               <ReceiptText className="h-4 w-4" />
@@ -900,15 +905,15 @@ export default function MyAdsPage() {
             </TabsTrigger>
             <TabsTrigger value="Standart" className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4" />
-              {t("Standart")} ({getTabCount("Standart")})
+              {t("Standart")} ({getTabCount("standart")})
             </TabsTrigger>
             <TabsTrigger value="Premium" className="flex items-center gap-2">
               <Clock className="h-4 w-4" />
-              {t("Premium")} ({getTabCount("Premium")})
+              {t("Premium")} ({getTabCount("premium")})
             </TabsTrigger>
             <TabsTrigger value="Sold" className="flex items-center gap-2">
               <PackageCheck className="h-4 w-4" />
-              {t("Sold")} ({getTabCount("Sold")})
+              {t("Sold")} ({getTabCount("sold")})
             </TabsTrigger>
             <TabsTrigger value="all" className="invisible" />
           </TabsList>

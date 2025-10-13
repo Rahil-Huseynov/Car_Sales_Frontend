@@ -589,5 +589,12 @@ export const features: { key: string; translations: { en: string; az: string; pl
   { key: "Roadside Assistance Included", translations: { en: "Roadside Assistance Included", az: "Yolda kömək daxil", pl: "Assistance drogowy w zestawie", de: "Pannenhilfe enthalten", es: "Asistencia en carretera incluida", pt: "Assistência na estrada incluída", tr: "Yolda Yardım Dahil", uk: "Дорожня допомога включена" } },
 ];
 
+export const status = [
+  { key: "premium", translations: { en: "Premium", az: "Premium", pl: "Premium", de: "Premium", es: "Premium", pt: "Premium", tr: "Premium", uk: "Преміум" } },
+  { key: "standart", translations: {   en: "Standard",   az: "Standart",   pl: "Standard",   de: "Standard",   es: "Estándar",   pt: "Padrão",   tr: "Standart",   uk: "Стандарт" } },
+  { key: "sold", translations: {   en: "Sold",   az: "Satılıb",   pl: "Sprzedany",   de: "Verkauft",   es: "Vendido",   pt: "Vendido",   tr: "Satıldı",   uk: "Продано" } },
+]
+
+
 export const years = Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i)
 
