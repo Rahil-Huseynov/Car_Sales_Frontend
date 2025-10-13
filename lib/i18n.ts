@@ -532,7 +532,11 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "MyAds": "Mənim elanlarım",
     "SeenCount": "Baxılıb",
     "MarkAsSold": "Satıldı olaraq qeyd et",
-    "Condition": "Vəziyyət"
+    "Condition": "Vəziyyət",
+    "removedFromFavorites": "Favoritlərdən silindi",
+    "addedToFavorites": "Favoritlərə əlavə olundu",
+    "sessionExpired": "Sessiyanız bitib. Zəhmət olmasa yenidən daxil olun.",
+    "favoriteError": "Favorit statusunu yeniləmək mümkün olmadı",
   },
   en: {
     "Admins": "Admins",
@@ -1051,7 +1055,11 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "MyAds": "Mənim elanlarım",
     "SeenCount": "Baxılıb",
     "MarkAsSold": "Satıldı olaraq qeyd et",
-    "Condition": "Vəziyyət"
+    "Condition": "Vəziyyət",
+    "removedFromFavorites": "Removed from favorites",
+    "addedToFavorites": "Added to favorites",
+    "sessionExpired": "Your session has expired. Please log in again.",
+    "favoriteError": "Failed to update favorite status",
   },
   de: {
     "FullName": "Vollständiger Name",
@@ -1570,7 +1578,11 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "MyAds": "Meine Anzeigen",
     "SeenCount": "Angesehen",
     "MarkAsSold": "Als verkauft markieren",
-    "Condition": "Zustand"
+    "Condition": "Zustand",
+    "removedFromFavorites": "Aus Favoriten entfernt",
+    "addedToFavorites": "Zu Favoriten hinzugefügt",
+    "sessionExpired": "Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.",
+    "favoriteError": "Favoritenstatus konnte nicht aktualisiert werden",
   },
   es: {
     "FullName": "Nombre completo",
@@ -2089,7 +2101,11 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "MyAds": "Meine Anzeigen",
     "SeenCount": "Angesehen",
     "MarkAsSold": "Als verkauft markieren",
-    "Condition": "Zustand"
+    "Condition": "Zustand",
+    "removedFromFavorites": "Eliminado de favoritos",
+    "addedToFavorites": "Agregado a favoritos",
+    "sessionExpired": "Su sesión ha expirado. Por favor inicie sesión de nuevo.",
+    "favoriteError": "No se pudo actualizar el estado de favoritos",
   },
   tr: {
     "FullName": "Tam isim",
@@ -2608,7 +2624,12 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "MyAds": "İlanlarım",
     "SeenCount": "Görüntülenme",
     "MarkAsSold": "Satıldı olarak işaretle",
-    "Condition": "Durum"
+    "Condition": "Durum",
+    "removedFromFavorites": "Favorilerden çıkarıldı",
+    "addedToFavorites": "Favorilere eklendi",
+    "sessionExpired": "Oturum süreniz doldu. Lütfen tekrar giriş yapın.",
+    "favoriteError": "Favori durumu güncellenemedi",
+
   },
   pt: {
     "FullName": "Nome completo",
@@ -3127,7 +3148,11 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "MyAds": "Meus anúncios",
     "SeenCount": "Visualizações",
     "MarkAsSold": "Marcar como vendido",
-    "Condition": "Condição"
+    "Condition": "Condição",
+    "removedFromFavorites": "Removido dos favoritos",
+    "addedToFavorites": "Adicionado aos favoritos",
+    "sessionExpired": "Sua sessão expirou. Por favor, faça login novamente.",
+    "favoriteError": "Falha ao atualizar o estado dos favoritos",
   },
   pl: {
     "FullName": "Pełne imię i nazwisko",
@@ -3646,7 +3671,11 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "MyAds": "Moje ogłoszenia",
     "SeenCount": "Wyświetlenia",
     "MarkAsSold": "Oznacz jako sprzedane",
-    "Condition": "Stan"
+    "Condition": "Stan",
+    "removedFromFavorites": "Usunięto z ulubionych",
+    "addedToFavorites": "Dodano do ulubionych",
+    "sessionExpired": "Twoja sesja wygasła. Zaloguj się ponownie.",
+    "favoriteError": "Nie udało się zaktualizować statusu ulubionych",
   },
   uk: {
     "FullName": "Повне ім'я",
@@ -4058,7 +4087,11 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "MyAds": "Мої оголошення",
     "SeenCount": "Перегляди",
     "MarkAsSold": "Позначити як продано",
-    "Condition": "Стан"
+    "Condition": "Стан",
+    "removedFromFavorites": "Видалено з обраного",
+    "addedToFavorites": "Додано в обране",
+    "sessionExpired": "Ваша сесія закінчилась. Будь ласка, увійдіть ще раз.",
+    "favoriteError": "Не вдалося оновити статус обраного",
   }
 } as const;
 

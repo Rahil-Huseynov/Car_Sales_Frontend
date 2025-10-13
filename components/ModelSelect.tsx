@@ -83,7 +83,6 @@ export default function ModelSelect({
 
       const { items: arr, meta } = normalizeResponse(res);
       const arrLength = Array.isArray(arr) ? arr.length : 0;
-      console.log(`[ModelSelect] apiReturned page=${p} count=${arrLength} brand=${brd ?? "none"} search="${searchQ ?? ""}"`);
 
       if (p === 1) {
         const unique = Array.from(new Set(arr));
@@ -143,7 +142,6 @@ export default function ModelSelect({
       setItems(unique);
       setHasMore(unique.length >= LIMIT);
       setPage(1);
-      console.log(`[ModelSelect] search="${trimmed}" returned ${unique.length} items (brand=${brand})`);
     } catch (err) {
       console.error("Model search failed:", err);
     } finally {
