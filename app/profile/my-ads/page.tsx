@@ -30,6 +30,7 @@ import {
   TrendingUp,
   Crown,
   Star,
+  Cog,
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -100,6 +101,7 @@ type RawUserCar = {
   engine?: string
   gearbox?: string
   name?: string
+  viewcount?: number
   phoneCode?: string
   phone?: string
   email?: string
@@ -123,6 +125,8 @@ type UserCar = {
   fuel?: string
   transmission?: string
   condition?: string
+  gearbox?: string
+  viewcount?: number
   color?: string
   location?: string
   city?: string
@@ -158,6 +162,8 @@ type CarAd = {
   mileage: number
   fuel: string
   transmission: string
+  gearbox: string
+  viewcount: number
   color: string
   location: string | null
   city?: string | null
@@ -231,7 +237,7 @@ function AdCard({
 
   const getStatusColor = (status: CarAd["status"]) => {
     switch (status) {
-      case "standart":
+      case "basic":
         return "bg-green-100 text-green-800 border-green-200"
       case "premium":
         return "bg-yellow-100 text-yellow-800 border-yellow-200"
@@ -244,7 +250,7 @@ function AdCard({
 
   const getStatusIcon = (status: CarAd["status"]) => {
     switch (status) {
-      case "standart":
+      case "basic":
         return <Star className="h-3 w-3" />
       case "premium":
         return <Crown className="h-3 w-3" />
@@ -258,7 +264,12 @@ function AdCard({
   const imageSrc = ad.images.length > 0 ? ad.images[currentImageIndex] : "/placeholder.svg"
   const isRemote = imageSrc.startsWith("http")
   const statusLabel = findTranslationFromList(statusStatic, ad.status ?? ad.status ?? "", lang) || (ad.status ?? ad.status ?? "")
-
+  const fuelLabel = findTranslationFromList(fuels as any[], ad.fuel ?? "", lang) || (ad.fuel ?? "");
+  const gearboxLabel = findTranslationFromList(gearboxOptions as any[], ad.gearbox ?? "", lang) || (ad.gearbox ?? "");
+  const conditionLabel = findTranslationFromList(conditions as any[], ad.condition ?? "", lang) || (ad.condition ?? "");
+  const colorLabel = findTranslationFromList(colors as any[], ad.color ?? "", lang) || (ad.color ?? "");
+  const locationLabel = findTranslationFromList(cities as any[], ad.location ?? "", lang) || (ad.location ?? "");
+  const viewcountLabel = ad.viewcount || 0
   return (
     <Card
       className={`overflow-hidden card-hover border-0 bg-white/90 backdrop-blur-sm transition-all duration-500 ${isLoaded ? "animate-fadeInUp opacity-100" : "opacity-0"
@@ -315,51 +326,31 @@ function AdCard({
       </div>
 
       <CardHeader className="pb-2">
-        <div className="flex justify-between items-start">
-          <div>
-            <h3 className="font-bold h-16 text-lg text-gray-800 break-word group-hover:text-blue-600 transition-colors duration-300">
+        <div className="items-start">
+            <h3 className="font-bold h-16 text-lg text-gray-800">
               {ad.brand} {ad.model.length > 32 ? ad.model.slice(0, 40) + "..." : ad.model}
             </h3>
-            <p className="text-sm text-gray-600">
-              {ad.year} • {t(ad.condition ?? "unknown")}
-            </p>
-            {ad.createdAt && (
-              <p className="text-xs text-gray-500 mt-1">
-                {t("createdOn")}: {new Date(ad.createdAt).toLocaleDateString()}
-              </p>
-            )}
-          </div>
+            <div className="flex items-center justify-between gap-1">
+              <p className="text-sm text-gray-600">{ad.year} • {conditionLabel}</p>
+              <div className="flex items-center gap-1">
+                <Eye color="#4B5563" className="flex items-center h-4 w-4 text-blue-500" />
+                <p className="text-gray-600">{viewcountLabel}</p>
+              </div>
+            </div>
         </div>
       </CardHeader>
 
       <CardContent className="pt-0">
         <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-4">
-          <div className="flex items-center gap-1">
-            <Car className="h-4 w-4 text-blue-500" />
-            {ad.mileage.toLocaleString()} {t("km")}
-          </div>
-          <div className="flex items-center gap-1">
-            <Fuel className="h-4 w-4 text-blue-500" />
-            {t(ad.fuel || "unknown")}
-          </div>
-          <div className="flex items-center gap-1">
-            <Users className="h-4 w-4 text-blue-500" />
-            {t(ad.transmission || "unknown")}
-          </div>
-          <div className="flex items-center gap-1">
-            <MapPin className="h-4 w-4 text-blue-500" />
-            {ad.location ?? ad.city ?? t("unknown")}
-          </div>
+          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><Car className="h-4 w-4 text-blue-500" />{(ad.mileage ?? 0).toLocaleString()} {t("km") || "km"}</div>
+          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><Fuel className="h-4 w-4 text-blue-500" />{fuelLabel}</div>
+          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><Cog className="h-4 w-4 text-blue-500" />{gearboxLabel}</div>
+          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><MapPin className="h-4 w-4 text-blue-500" />{locationLabel}</div>
         </div>
-
         <div className="flex items-center justify-between">
-          <Badge variant="outline" className="mb-2 border-blue-200 text-blue-600">
-            {t(ad.color || "unknown")}
-          </Badge>
+          <Badge variant="outline" className="mb-2 border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors duration-300">{colorLabel}</Badge>
           <div className="text-right">
-            <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
-              {ad.price.toLocaleString()} ₼
-            </p>
+            <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">{(ad.price ?? 0).toLocaleString()} ₼</p>
           </div>
         </div>
       </CardContent>
@@ -448,7 +439,10 @@ function Modal({ open, onClose, title, children }: any) {
 export default function MyAdsPage() {
   const [ads, setAds] = useState<CarAd[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<"all" | "standart" | "premium" | "sold">("all")
+  const [activeTab, setActiveTab] = useState<"all" 
+  | "basic" 
+  | "premium" 
+  | "sold">("all")
   const [deletingIds, setDeletingIds] = useState<number[]>([])
   const [sellingIds, setSellingIds] = useState<number[]>([])
   const [editingId, setEditingId] = useState<number | null>(null)
@@ -495,7 +489,7 @@ export default function MyAdsPage() {
 
           if (images.length === 0) images.push("/placeholder.svg")
 
-          const status = c.status ?? "standart"
+          const status = c.status ?? "basic"
 
           return {
             id: c.id,
@@ -516,6 +510,8 @@ export default function MyAdsPage() {
             views: c.views ?? 0,
             calls: c.calls ?? 0,
             messages: c.messages ?? 0,
+            viewcount: c.viewcount ?? 0,
+            gearbox: c.gearbox ?? "",
             description: c.description,
             allCarsListId: c.allCarsListId
           }
@@ -622,7 +618,10 @@ export default function MyAdsPage() {
   }
 
   const filteredAds = ads.filter((ad) => (activeTab === "all" ? true : ad.status === activeTab))
-  const getTabCount = (status: "all" | "standart" | "premium" | "sold") => (status === "all" ? ads.length : ads.filter((a) => a.status === status).length)
+  const getTabCount = (status: "all" 
+     |"basic" 
+     | "premium" 
+     | "sold") => (status === "all" ? ads.length : ads.filter((a) => a.status === status).length)
 
   const handleInputChange = (k: string, v: any) => {
     setEditingData((prev: any) => ({ ...prev, [k]: v }))
@@ -859,10 +858,10 @@ export default function MyAdsPage() {
       }
 
       setAds(prev => prev.map(a => a.id === id ? { ...a, status: "sold" } : a))
-      toast.success(t("markedSold") || "Elan 'sold' olaraq qeyd edildi")
+      toast.success(t("markedSold"))
     } catch (err) {
       console.error(err)
-      toast.error(t("markSoldFailed") || "Elanı 'sold' etmək mümkün olmadı")
+      toast.error(t("markSoldFailed"))
     } finally {
       setSellingIds(prev => prev.filter(x => x !== id))
     }
@@ -897,21 +896,24 @@ export default function MyAdsPage() {
       </section>
 
       <div className="container mx-auto px-4 py-8">
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "all" | "standart" | "premium" | "sold")} className="w-full">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "all" 
+          | "basic" 
+          | "premium" 
+          | "sold")} className="w-full">
           <TabsList className="grid w-full grid-cols-4 mb-8">
             <TabsTrigger value="all" className="flex items-center gap-2">
               <ReceiptText className="h-4 w-4" />
               {t("all")} ({getTabCount("all")})
             </TabsTrigger>
-            <TabsTrigger value="Standart" className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4" />
-              {t("Standart")} ({getTabCount("standart")})
+            <TabsTrigger value="basic" className="flex items-center gap-2">
+              <Star className="h-4 w-4" />
+              {t("basic")} ({getTabCount("basic")})
             </TabsTrigger>
-            <TabsTrigger value="Premium" className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
+            {/* <TabsTrigger value="Premium" className="flex items-center gap-2">
+              <Crown className="h-4 w-4" />
               {t("Premium")} ({getTabCount("premium")})
-            </TabsTrigger>
-            <TabsTrigger value="Sold" className="flex items-center gap-2">
+            </TabsTrigger> */}
+            <TabsTrigger value="sold" className="flex items-center gap-2">
               <PackageCheck className="h-4 w-4" />
               {t("Sold")} ({getTabCount("sold")})
             </TabsTrigger>

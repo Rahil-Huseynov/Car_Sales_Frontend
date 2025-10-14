@@ -80,7 +80,7 @@ export default function RegisterPage() {
     fixedFormData.append("lastName", String(formData.get("lastName") ?? ""))
     fixedFormData.append("phoneNumber", phoneNumber)
     fixedFormData.append("phoneCode", phoneCode)
-    fixedFormData.append("role", "standart")
+    fixedFormData.append("role", "basic")
 
     try {
       const response = await apiClient.register(fixedFormData)
@@ -189,7 +189,7 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">{t("password")}</Label>
+                <Label htmlFor="password">{t("Password")}</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input

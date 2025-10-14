@@ -288,15 +288,15 @@ function ShareModal({ isOpen, onClose, shareUrl, title, subtitle, image }: Share
                 </button>
 
                 <button onClick={() => openSocial("facebook")} className="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm hover:bg-gray-50">
-                  {t("facebook")}
+                  {t("Facebook")}
                 </button>
 
                 <button onClick={() => openSocial("telegram")} className="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm hover:bg-gray-50">
-                  {t("telegram")}
+                  {t("Telegram")}
                 </button>
 
                 <button onClick={() => openSocial("whatsapp")} className="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm hover:bg-gray-50">
-                  {t("whatsapp")}
+                  {t("Whatsapp")}
                 </button>
               </div>
 
@@ -481,18 +481,17 @@ function FavoriteCarCard({
         </div>
       </div>
 
+
       <CardHeader className="pb-2">
-        <div className="flex justify-between items-start">
-          <div>
-            <h3 className="font-bold h-16 text-lg text-gray-800">
-              {car.brand} {car.model}
-            </h3>
+        <div className="items-start">
+          <h3 className="font-bold h-16 text-lg text-gray-800">
+            {car.brand} {car.model.length > 32 ? car.model.slice(0, 40) + "..." : car.model}
+          </h3>
+          <div className="flex items-center justify-between gap-1">
+            <p className="text-sm text-gray-600">{car.year} • {conditionLabel}</p>
             <div className="flex items-center gap-1">
-              <p className="text-sm text-gray-600">{car.year} • {conditionLabel} • </p>
-              <div className="flex items-center gap-1">
-                <Eye color="#4B5563" className="flex items-center h-4 w-4 text-blue-500" />
-                <p className="text-gray-600">{viewcountLabel}</p>
-              </div>
+              <Eye color="#4B5563" className="flex items-center h-4 w-4 text-blue-500" />
+              <p className="text-gray-600">{viewcountLabel}</p>
             </div>
           </div>
         </div>

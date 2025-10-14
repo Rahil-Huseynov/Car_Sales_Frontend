@@ -1,166 +1,71 @@
 export const fuels = [
-  {
-    key: "Petrol",
-    translations: {
-      en: "Petrol",
-      az: "Benzin",
-      pl: "Benzyna",
-      de: "Benzin",
-      es: "Gasolina",
-      pt: "Gasolina",
-      tr: "Benzin",
-      uk: "Бензин"
-    }
-  },
-  {
-    key: "Diesel",
-    translations: {
-      en: "Diesel",
-      az: "Dizel",
-      pl: "Diesel",
-      de: "Diesel",
-      es: "Diésel",
-      pt: "Diesel",
-      tr: "Dizel",
-      uk: "Дизель"
-    }
-  },
-  {
-    key: "Hybrid",
-    translations: {
-      en: "Hybrid",
-      az: "Hibrid",
-      pl: "Hybryda",
-      de: "Hybrid",
-      es: "Híbrido",
-      pt: "Híbrido",
-      tr: "Hibrit",
-      uk: "Гібрид"
-    }
-  },
-  {
-    key: "Plug-in Hybrid",
-    translations: {
-      en: "Plug-in Hybrid",
-      az: "Plug-in Hibrid",
-      pl: "Hybryda Plug-in",
-      de: "Plug-in-Hybrid",
-      es: "Híbrido Enchufable",
-      pt: "Híbrido Plug-in",
-      tr: "Plug-in Hibrit",
-      uk: "Плагін-гібрид"
-    }
-  },
-  {
-    key: "Electric",
-    translations: {
-      en: "Electric",
-      az: "Elektrik",
-      pl: "Elektryczny",
-      de: "Elektrisch",
-      es: "Eléctrico",
-      pt: "Elétrico",
-      tr: "Elektrik",
-      uk: "Електромобіль"
-    }
-  },
-  {
-    key: "CNG",
-    translations: {
-      en: "CNG",
-      az: "CNG",
-      pl: "CNG",
-      de: "CNG",
-      es: "GNL",
-      pt: "GNV",
-      tr: "CNG",
-      uk: "КПГ"
-    }
-  },
-  {
-    key: "LPG",
-    translations: {
-      en: "LPG",
-      az: "LPG",
-      pl: "LPG",
-      de: "LPG",
-      es: "GLP",
-      pt: "GLP",
-      tr: "LPG",
-      uk: "ЗВГ"
-    }
-  },
-  {
-    key: "Hydrogen",
-    translations: {
-      en: "Hydrogen",
-      az: "Hidrogen",
-      pl: "Wodór",
-      de: "Wasserstoff",
-      es: "Hidrógeno",
-      pt: "Hidrogênio",
-      tr: "Hidrojen",
-      uk: "Водень"
-    }
-  },
-  {
-    key: "Ethanol",
-    translations: {
-      en: "Ethanol",
-      az: "Etanol",
-      pl: "Etanol",
-      de: "Ethanol",
-      es: "Etanol",
-      pt: "Etanol",
-      tr: "Etanol",
-      uk: "Етанол"
-    }
-  },
-  {
-    key: "Methanol",
-    translations: {
-      en: "Methanol",
-      az: "Metanol",
-      pl: "Metanol",
-      de: "Methanol",
-      es: "Metanol",
-      pt: "Metanol",
-      tr: "Metanol",
-      uk: "Метанол"
-    }
-  },
-  {
-    key: "Biofuel",
-    translations: {
-      en: "Biofuel",
-      az: "Biofuel",
-      pl: "Biopaliwo",
-      de: "Biokraftstoff",
-      es: "Biocombustible",
-      pt: "Biocombustível",
-      tr: "Biyoyakıt",
-      uk: "Біопаливо"
-    }
-  }
+  { key: "Petrol", translations: { en: "Petrol", az: "Benzin", pl: "Benzyna", de: "Benzin", es: "Gasolina", pt: "Gasolina", tr: "Benzin", uk: "Бензин" } },
+  { key: "Diesel", translations: { en: "Diesel", az: "Dizel", pl: "Diesel", de: "Diesel", es: "Diésel", pt: "Diesel", tr: "Dizel", uk: "Дизель" } },
+  { key: "Hybrid", translations: { en: "Hybrid", az: "Hibrid", pl: "Hybryda", de: "Hybrid", es: "Híbrido", pt: "Híbrido", tr: "Hibrit", uk: "Гібрид" } },
+  { key: "Plug-in Hybrid", translations: { en: "Plug-in Hybrid", az: "Plug-in Hibrid", pl: "Hybryda Plug-in", de: "Plug-in-Hybrid", es: "Híbrido Enchufable", pt: "Híbrido Plug-in", tr: "Plug-in Hibrit", uk: "Плагін-гібрид" } },
+  { key: "Mild Hybrid", translations: { en: "Mild Hybrid", az: "Mild Hibrid", pl: "Mild-hybryda", de: "Mild-Hybrid", es: "Mild Hybrid", pt: "Mild Hybrid", tr: "Mild Hibrit", uk: "Mild-гібрид" } },
+  { key: "Diesel Hybrid", translations: { en: "Diesel Hybrid", az: "Dizel Hibrid", pl: "Hybryda Dieslowa", de: "Diesel-Hybrid", es: "Híbrido Diésel", pt: "Híbrido Diesel", tr: "Dizel Hibrit", uk: "Дизель-гібрид" } },
+  { key: "Electric", translations: { en: "Electric", az: "Elektrik", pl: "Elektryczny", de: "Elektrisch", es: "Eléctrico", pt: "Elétrico", tr: "Elektrik", uk: "Електромобіль" } },
+  { key: "Range Extender (Electric)", translations: { en: "Range Extender (Electric)", az: "Range Extender (Elektrikli)", pl: "Range Extender (elektryczny)", de: "Range Extender (elektrisch)", es: "Extensor de autonomía (eléctrico)", pt: "Extensor de Autonomia (elétrico)", tr: "Menzil Genişletici (Elektrikli)", uk: "Подовжувач ходу (електричний)" } },
+  { key: "Fuel Cell (FCEV)", translations: { en: "Fuel Cell (FCEV)", az: "Yanacaq Hüceyrəsi (FCEV)", pl: "Ogniwo paliwowe (FCEV)", de: "Brennstoffzelle (FCEV)", es: "Pila de combustible (FCEV)", pt: "Célula de Combustível (FCEV)", tr: "Yakıt Hücresi (FCEV)", uk: "Паливний елемент (FCEV)" } },
+  { key: "CNG", translations: { en: "CNG", az: "CNG", pl: "CNG", de: "CNG", es: "GNL", pt: "GNV", tr: "CNG", uk: "КПГ" } },
+  { key: "CBG", translations: { en: "Compressed Biogas (CBG)", az: "Sıxılmış Biogaz (CBG)", pl: "Sprężony biogaz (CBG)", de: "Komprimiertes Biogas (CBG)", es: "Biogás comprimido (CBG)", pt: "Biogás comprimido (CBG)", tr: "Sıkıştırılmış Biyogaz (CBG)", uk: "Стислий біогаз (CBG)" } },
+  { key: "LPG", translations: { en: "LPG", az: "LPG", pl: "LPG", de: "LPG", es: "GLP", pt: "GLP", tr: "LPG", uk: "ЗВГ" } },
+  { key: "Hydrogen", translations: { en: "Hydrogen", az: "Hidrogen", pl: "Wodór", de: "Wasserstoff", es: "Hidrógeno", pt: "Hidrogênio", tr: "Hidrojen", uk: "Водень" } },
+  { key: "Ethanol", translations: { en: "Ethanol", az: "Etanol", pl: "Etanol", de: "Ethanol", es: "Etanol", pt: "Etanol", tr: "Etanol", uk: "Етанол" } },
+  { key: "Methanol", translations: { en: "Methanol", az: "Metanol", pl: "Metanol", de: "Methanol", es: "Metanol", pt: "Metanol", tr: "Metanol", uk: "Метанол" } },
+  { key: "Flex-fuel (E85)", translations: { en: "Flex-fuel (E85)", az: "Flex-fuel (E85)", pl: "Flex-fuel (E85)", de: "Flex-Fuel (E85)", es: "Flex-fuel (E85)", pt: "Flex-fuel (E85)", tr: "Flex-fuel (E85)", uk: "Flex-fuel (E85)" } },
+  { key: "Biodiesel", translations: { en: "Biodiesel", az: "Biodizel", pl: "Biodiesel", de: "Biodiesel", es: "Biodiésel", pt: "Biodiesel", tr: "Biyodizel", uk: "Біодизель" } },
+  { key: "Biofuel", translations: { en: "Biofuel", az: "Biofuel", pl: "Biopaliwo", de: "Biokraftstoff", es: "Biocombustible", pt: "Biocombustível", tr: "Biyoyakıt", uk: "Біопаливо" } },
+  { key: "Renewable Diesel", translations: { en: "Renewable Diesel", az: "Bərpa Olunan Dizel", pl: "Odnawialny diesel", de: "Erneuerbarer Diesel", es: "Diésel renovable", pt: "Diesel renovável", tr: "Yenilenebilir Dizel", uk: "Відновлюваний дизель" } },
+  { key: "Synthetic Fuel", translations: { en: "Synthetic Fuel", az: "Sintetik Yanacaq", pl: "Paliwo syntetyczne", de: "Synthetischer Kraftstoff", es: "Combustible sintético", pt: "Combustível sintético", tr: "Sentetik Yakıt", uk: "Синтетичне паливо" } },
+  { key: "Gas (other)", translations: { en: "Gas (other)", az: "Qaz (digər)", pl: "Gaz (inne)", de: "Gas (andere)", es: "Gas (otro)", pt: "Gás (outro)", tr: "Gaz (diğer)", uk: "Газ (інші)" } },
+  { key: "Other", translations: { en: "Other", az: "Digər", pl: "Inne", de: "Andere", es: "Otro", pt: "Outro", tr: "Diğer", uk: "Інше" } },
 ];
 
 export const gearboxOptions = [
   { key: "Manual", translations: { en: "Manual", az: "Mexaniki", pl: "Manualna", de: "Manuell", es: "Manual", pt: "Manual", tr: "Manuel", uk: "Механіка" } },
+  { key: "Manual (MT)", translations: { en: "Manual (MT)", az: "Mexaniki (MT)", pl: "Manualna (MT)", de: "Manuell (MT)", es: "Manual (MT)", pt: "Manual (MT)", tr: "Manuel (MT)", uk: "Механіка (MT)" } },
   { key: "Automatic", translations: { en: "Automatic", az: "Avtomatik", pl: "Automatyczna", de: "Automatik", es: "Automático", pt: "Automático", tr: "Otomatik", uk: "Автомат" } },
-  { key: "Dual-clutch", translations: { en: "Dual-clutch", az: "İkili-qatlı", pl: "Dwusprzęgłowa", de: "Doppelkupplung", es: "Doble Embrague", pt: "Dupla Embreagem", tr: "Çift Kavramalı", uk: "Робот" } },
+  { key: "Automatic (AT)", translations: { en: "Automatic (AT)", az: "Avtomat (AT)", pl: "Automatyczny (AT)", de: "Automatik (AT)", es: "Automático (AT)", pt: "Automático (AT)", tr: "Otomatik (AT)", uk: "Автомат (AT)" } },
+  { key: "Dual-clutch (DCT)", translations: { en: "Dual-clutch (DCT)", az: "İkili debriyaj (DCT)", pl: "Dwusprzęgłowa (DCT)", de: "Doppelkupplung (DCT)", es: "Doble embrague (DCT)", pt: "Dupla embreagem (DCT)", tr: "Çift kavramalı (DCT)", uk: "Двохмуфтове (DCT)" } },
+  { key: "DSG (Direct-Shift Gearbox)", translations: { en: "DSG (Direct-Shift Gearbox)", az: "DSG (Doğrudan Keçid Qutusu)", pl: "DSG (Direct-Shift)", de: "DSG (Direktschaltgetriebe)", es: "DSG (Direct-Shift)", pt: "DSG (Direct-Shift)", tr: "DSG (Doğrudan Vites)", uk: "DSG (Direct-Shift)" } },
+  { key: "Continuously Variable (CVT)", translations: { en: "Continuously Variable (CVT)", az: "Davamlı dəyişkən (CVT)", pl: "Bezstopniowa (CVT)", de: "Stufenloses Getriebe (CVT)", es: "Variador continuo (CVT)", pt: "Variável contínua (CVT)", tr: "Sürekli değişken (CVT)", uk: "Безступінчаста (CVT)" } },
+  { key: "Variator (CVT)", translations: { en: "Variator", az: "Variator", pl: "Wariator", de: "Variator", es: "Variador", pt: "Variador", tr: "Varyatör", uk: "Варіатор" } },
+  { key: "Automatic (Variator / CVT)", translations: { en: "Automatic (Variator / CVT)", az: "Avtomat (Variator)", pl: "Automatyczny (wariator / CVT)", de: "Automatik (Variator / CVT)", es: "Automático (Variador / CVT)", pt: "Automático (Variador / CVT)", tr: "Otomatik (Varyatör / CVT)", uk: "Автомат (варіатор / CVT)" } },
+  { key: "Belt-driven variator (Belt CVT)", translations: { en: "Belt-driven variator (Belt CVT)", az: "Kəmər variatoru (Kəmər CVT)", pl: "Wariator pasowy (CVT pasowy)", de: "Riementriebener Variator (Riemen-CVT)", es: "Variador por correa (CVT correa)", pt: "Variador por correia (CVT correia)", tr: "Kemerli varyatör (Kemer CVT)", uk: "Варіатор з ременем (CVT ремінний)" } },
+  { key: "Chain-driven variator (Chain CVT)", translations: { en: "Chain-driven variator (Chain CVT)", az: "Zəncir variatoru (Zəncir CVT)", pl: "Wariator łańcuchowy (CVT łańcuch)", de: "Kettengetriebener Variator (Ketten-CVT)", es: "Variador por cadena (CVT cadena)", pt: "Variador por corrente (CVT corrente)", tr: "Zincirli varyatör (Zincir CVT)", uk: "Варіатор з ланцюгом (CVT ланцюговий)" } },
+  { key: "Toroidal CVT", translations: { en: "Toroidal CVT", az: "Toroidal CVT", pl: "CVT toroidalny", de: "Toroidales CVT", es: "CVT toroidal", pt: "CVT toroidal", tr: "Toroidal CVT", uk: "Тороїдальний CVT" } },
+  { key: "Hydraulic variator", translations: { en: "Hydraulic variator", az: "Hidravlik variator", pl: "Hidrauliczny wariator", de: "Hydraulischer Variator", es: "Variador hidráulico", pt: "Variador hidráulico", tr: "Hidrolik varyatör", uk: "Гідравлічний варіатор" } },
   { key: "eCVT", translations: { en: "eCVT", az: "eCVT", pl: "eCVT", de: "eCVT", es: "eCVT", pt: "eCVT", tr: "eCVT", uk: "eCVT" } },
-  { key: "Semi-automatic", translations: { en: "Semi-automatic", az: "Yarı avtomatik", pl: "Półautomatyczna", de: "Halbautomatik", es: "Semiautomático", pt: "Semiautomático", tr: "Yarı Otomatik", uk: "Напівавтомат" } }
+  { key: "IVT", translations: { en: "Infinitely Variable (IVT)", az: "Sonsuz dəyişkən (IVT)", pl: "Infinitely Variable (IVT)", de: "Infinitely Variable (IVT)", es: "Infinitamente variable (IVT)", pt: "Infinitely Variable (IVT)", tr: "Sonsuz değişken (IVT)", uk: "Infinitely Variable (IVT)" } },
+  { key: "Automated Manual (AMT)", translations: { en: "Automated Manual (AMT)", az: "Avtomatlaşdırılmış mexaniki (AMT)", pl: "Zautomatyzowana manualna (AMT)", de: "Automatisiertes Schaltgetriebe (AMT)", es: "Manual automatizado (AMT)", pt: "Manual automatizado (AMT)", tr: "Otomatize manuel (AMT)", uk: "Автоматизована механіка (AMT)" } },
+  { key: "Semi-automatic", translations: { en: "Semi-automatic", az: "Yarı avtomatik", pl: "Półautomatyczna", de: "Halbautomatik", es: "Semiautomático", pt: "Semiautomático", tr: "Yarı otomatik", uk: "Напівавтомат" } },
+  { key: "Tiptronic / Manual mode (auto)", translations: { en: "Tiptronic / Manual mode (auto)", az: "Tiptronic / Manual rejim (avto)", pl: "Tiptronic / tryb manualny (auto)", de: "Tiptronic / manueller Modus", es: "Tiptronic / modo manual (auto)", pt: "Tiptronic / modo manual (auto)", tr: "Tiptronic / manuel mod (oto)", uk: "Tiptronic / ручний режим" } },
+  { key: "Sequential manual", translations: { en: "Sequential manual", az: "Sıralı mexaniki", pl: "Sekwencyjna", de: "Sequenzielles Schaltgetriebe", es: "Secuencial", pt: "Sequencial", tr: "Sıralı manuel", uk: "Секвенційна механіка" } },
+  { key: "Torque-converter automatic", translations: { en: "Torque-converter automatic", az: "Tork konvertorlu avtomatik", pl: "Automat z konwerterem momentu", de: "Automatik mit Drehmomentwandler", es: "Automático con convertidor de par", pt: "Automático com conversor de binário", tr: "Tork konvertörlü otomatik", uk: "Автомат з гідротрансформатором" } },
+  { key: "Single-speed (EV)", translations: { en: "Single-speed (EV)", az: "Tək sürət (EV)", pl: "Jednobiegowa (EV)", de: "Eingang (EV)", es: "Una velocidad (EV)", pt: "Uma velocidade (EV)", tr: "Tek vites (EV)", uk: "Одношвидкісна (EV)" } },
+  { key: "Two-speed (EV)", translations: { en: "Two-speed (EV)", az: "İki sürət (EV)", pl: "Dwubiegowa (EV)", de: "Zweigang (EV)", es: "Dos velocidades (EV)", pt: "Duas velocidades (EV)", tr: "İki vites (EV)", uk: "Двошвидкісна (EV)" } },
+  { key: "Direct drive", translations: { en: "Direct drive", az: "Doğrudan ötürmə", pl: "Bezpośredni napęd", de: "Direktantrieb", es: "Transmisión directa", pt: "Transmissão direta", tr: "Doğrudan tahrik", uk: "Прямий привід" } },
+  { key: "Planetary (automatic)", translations: { en: "Planetary (automatic)", az: "Planetar (avtomatik)", pl: "Planetarne (automatyczne)", de: "Planetengetriebe (Automatik)", es: "Planetario (automático)", pt: "Planetário (automático)", tr: "Planet dişli (otomatik)", uk: "Планетарне (автомат)" } },
+  { key: "Range Extender (Electric)", translations: { en: "Range Extender (Electric)", az: "Range Extender (Elektrikli)", pl: "Range Extender (elektryczny)", de: "Range Extender (elektrisch)", es: "Extensor de autonomía (eléctrico)", pt: "Extensor de Autonomia (elétrico)", tr: "Menzil Genişletici (Elektrikli)", uk: "Подовжувач ходу (електричний)" } },
+  { key: "Fuel Cell (FCEV)", translations: { en: "Fuel Cell (FCEV)", az: "Yanacaq Hüceyrəsi (FCEV)", pl: "Ogniwo paliwowe (FCEV)", de: "Brennstoffzelle (FCEV)", es: "Pila de combustible (FCEV)", pt: "Célula de Combustível (FCEV)", tr: "Yakıt Hücresi (FCEV)", uk: "Паливний елемент (FCEV)" } },
+  { key: "Multi-speed (other)", translations: { en: "Multi-speed gearbox (other)", az: "Çox sürətli qutu (digər)", pl: "Wielobiegowa (inne)", de: "Mehrganggetriebe (andere)", es: "Caja multivelocidad (otro)", pt: "Caixa multi-marcha (outro)", tr: "Çok hızlı şanzıman (diğer)", uk: "Багатошвидкісна (інше)" } },
+  { key: "Automatic (DHT)", translations: { en: "Automatic (DHT - Dedicated Hybrid Transmission)", az: "Avtomat (DHT)", pl: "Automatyczny (DHT - dedykowana hybrydowa skrzynia)", de: "Automatik (DHT - Dedicated Hybrid Transmission)", es: "Automático (DHT - transmisión híbrida dedicada)", pt: "Automático (DHT - Transmissão Híbrida Dedicada)", tr: "Otomatik (DHT - Özel Hibrit Şanzıman)", uk: "Автомат (DHT - спеціальна гібридна трансмісія)" } },
+  { key: "Automatic (Robotized / Automated manual)", translations: { en: "Automatic (Robotized / Automated manual)", az: "Avtomat (Robot)", pl: "Automatyczny (robotyczny / zautomatyzowana manualna)", de: "Automatik (Robotergetriebe / automatisiertes Schaltgetriebe)", es: "Automático (robotizado / manual automatizado)", pt: "Automático (robotizado / manual automatizado)", tr: "Otomatik (Robotize / otomatikleştirilmiş manuel)", uk: "Автомат (роботизована / автоматизована механіка)" } },
+  { key: "Automatic (Reduction gear)", translations: { en: "Automatic (Reduction gear)", az: "Avtomat (Reduktor)", pl: "Automatyczny (reduktor)", de: "Automatik (Reduktionsgetriebe)", es: "Automático (reductor)", pt: "Automático (redutor)", tr: "Otomatik (Redüktör)", uk: "Автомат (редуктор)" } },
+  { key: "Other", translations: { en: "Other", az: "Digər", pl: "Inne", de: "Andere", es: "Otro", pt: "Outro", tr: "Diğer", uk: "Інше" } },
 ];
 
 export const conditions = [
-  { key: "New", translations: { en: "New", az: "Yeni", pl: "Nowy", de: "Neu", es: "Nuevo", pt: "Novo", tr: "Sıfır", uk: "Новий" } },
-  { key: "Used", translations: { en: "Used", az: "İstifadə olunmuş", pl: "Używany", de: "Gebraucht", es: "Usado", pt: "Usado", tr: "İkinci El", uk: "Вживаний" } },
-  { key: "Certified", translations: { en: "Certified", az: "Sertifikatlı", pl: "Certyfikowany", de: "Zertifiziert", es: "Certificado", pt: "Certificado", tr: "Sertifikalı", uk: "Сертифікований" } },
-  { key: "Repaired", translations: { en: "Repaired", az: "Təmir edilmiş", pl: "Naprawiony", de: "Repariert", es: "Reparado", pt: "Reparado", tr: "Tamirli", uk: "Відремонтований" } },
-  { key: "Restored", translations: { en: "Restored", az: "Bərpa edilmiş", pl: "Odrestaurowany", de: "Restauriert", es: "Restaurado", pt: "Restaurado", tr: "Restore Edilmiş", uk: "Відновлений" } },
-  { key: "Salvage", translations: { en: "Salvage", az: "Salvage", pl: "Wrak", de: "Schrott", es: "Siniestro", pt: "Sucata", tr: "Hasar Kayıtlı", uk: "Аварійний" } },
-  { key: "Rebuild", translations: { en: "Rebuild", az: "Rebuild", pl: "Odbudowany", de: "Wiederaufgebaut", es: "Reconstruido", pt: "Reconstruído", tr: "Yeniden İmal Edilmiş", uk: "Перероблений" } }
-];
+  { key: "New", translations: { en: "New", az: "Yeni", pl: "Nowy", de: "Neu", es: "Nuevo", pt: "Novo", tr: "Sıfır", uk: "Новий" } }, 
+  { key: "Used", translations: { en: "Used", az: "İstifadə olunmuş", pl: "Używany", de: "Gebraucht", es: "Usado", pt: "Usado", tr: "İkinci el", uk: "Вживаний" } }, 
+  { key: "Certified", translations: { en: "Certified", az: "Sertifikatlı", pl: "Certyfikowany", de: "Zertifiziert", es: "Certificado", pt: "Certificado", tr: "Sertifikalı", uk: "Сертифікований" } }, 
+  { key: "Repaired", translations: { en: "Repaired", az: "Təmir edilmiş", pl: "Naprawiony", de: "Repariert", es: "Reparado", pt: "Reparado", tr: "Tamir edilmiş", uk: "Відремонтований" } }, 
+  { key: "Restored", translations: { en: "Restored", az: "Bərpa edilmiş", pl: "Odrestaurowany", de: "Restauriert", es: "Restaurado", pt: "Restaurado", tr: "Restorasiya edilmiş", uk: "Відновлений" } }, 
+  { key: "Salvage", translations: { en: "Salvage", az: "Qəzalı / Salvaj", pl: "Po szkodzie", de: "Totalschaden", es: "Siniestro", pt: "Sinistrado", tr: "Hasar kayıtlı", uk: "Аварійний / Після ДТП" } }, 
+  { key: "Rebuild", translations: { en: "Rebuild", az: "Yenidən bərpa edilmiş", pl: "Odbudowany", de: "Wiederaufgebaut", es: "Reconstruido", pt: "Reconstruído", tr: "Yenidən təmir edilmiş", uk: "Перебудований" } }
+]
 
 export const colors = [
   { key: "Black", translations: { en: "Black", az: "Qara", pl: "Czarny", de: "Schwarz", es: "Negro", pt: "Preto", tr: "Siyah", uk: "Чорний" } },
@@ -367,6 +272,7 @@ export const cities = [
   { key: "Żuromin", translations: { en: "Zuromin", az: "Juromin", pl: "Żuromin", de: "Zuromin", es: "Zuromin", pt: "Zuromin", tr: "Zuromin", uk: "Журомін" } },
   { key: "Żyrardów", translations: { en: "Zyrardow", az: "Jirardov", pl: "Żyrardów", de: "Zyrardow", es: "Zyrardow", pt: "Zyrardow", tr: "Zyrardow", uk: "Жирардув" } }
 ]
+
 export const features: { key: string; translations: { en: string; az: string; pl: string; de: string; es: string; pt: string; tr: string; uk: string } }[] = [
   { key: "ABS", translations: { en: "ABS", az: "ABS", pl: "ABS", de: "ABS", es: "ABS", pt: "ABS", tr: "ABS", uk: "ABS" } },
   { key: "EBD", translations: { en: "EBD (Electronic Brake Distribution)", az: "EBD (Elektron əyləc paylanması)", pl: "EBD (Elektroniczny rozdzielacz hamowania)", de: "EBD (Elektronische Bremskraftverteilung)", es: "EBD (Distribución Electrónica de Frenado)", pt: "EBD (Distribuição Eletrônica de Frenagem)", tr: "EBD (Elektronik Fren Dağılımı)", uk: "EBD (Електронний розподіл гальмівної сили)" } },
@@ -591,10 +497,14 @@ export const features: { key: string; translations: { en: string; az: string; pl
 
 export const status = [
   { key: "premium", translations: { en: "Premium", az: "Premium", pl: "Premium", de: "Premium", es: "Premium", pt: "Premium", tr: "Premium", uk: "Преміум" } },
-  { key: "standart", translations: {   en: "Standard",   az: "Standart",   pl: "Standard",   de: "Standard",   es: "Estándar",   pt: "Padrão",   tr: "Standart",   uk: "Стандарт" } },
-  { key: "sold", translations: {   en: "Sold",   az: "Satılıb",   pl: "Sprzedany",   de: "Verkauft",   es: "Vendido",   pt: "Vendido",   tr: "Satıldı",   uk: "Продано" } },
+  { key: "basic", translations: { en: "Basic", az: "Sadə", pl: "Podstawowy", de: "Einfach", es: "Básico", pt: "Básico", tr: "Temel", uk: "Базовий" } },
+  { key: "sold", translations: { en: "Sold", az: "Satılıb", pl: "Sprzedany", de: "Verkauft", es: "Vendido", pt: "Vendido", tr: "Satıldı", uk: "Продано" } },
 ]
 
+export const role = [
+  { key: "premium", translations: { en: "Premium", az: "Premium", pl: "Premium", de: "Premium", es: "Premium", pt: "Premium", tr: "Premium", uk: "Преміум" } },
+  { key: "basic", translations: { en: "Basic", az: "Sadə", pl: "Podstawowy", de: "Einfach", es: "Básico", pt: "Básico", tr: "Temel", uk: "Базовий" } },
+]
 
 export const years = Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i)
 

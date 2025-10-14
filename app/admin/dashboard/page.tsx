@@ -8,24 +8,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { Eye, Edit, Trash2, Car, Users, TrendingUp } from "lucide-react"
 import apiClient from "@/lib/api-client"
-
-const locales = {
-  az: {
-    totalCars: "Ümumi avtomobil",
-    totalUsers: "Ümumi istifadəçi",
-    totalViews: "Ümumi baxış",
-    totalSales: "Ümumi satış",
-    recentCars: "Son avtomobillər",
-    recentUsers: "Son istifadəçilər",
-    statusActive: "Aktiv",
-    statusSold: "Satıldı",
-    statusPending: "Gözləmədə",
-    userStatusActive: "Aktiv",
-    userStatusBlocked: "Bloklanmış",
-    views: "baxış",
-    joinDate: "Qoşulma tarixi",
-  },
-}
+import { Language, translateString, translations } from "@/lib/i18n"
+import { useDefaultLanguage } from "@/components/useLanguage"
 
 type StatData = {
   totalAllCars: number
@@ -52,8 +36,9 @@ type UserType = {
   status: string
 }
 
-export default function AdminDashboard({ lang = "az" }: { lang?: keyof typeof locales }) {
-  const t = locales[lang]
+export default function AdminDashboard() {
+  const { lang, setLang } = useDefaultLanguage()
+  const t = (key: string) => translateString(lang, key)
 
   const [stats, setStats] = useState<StatData | null>(null)
   const [recentCars, setRecentCars] = useState<CarType[]>([])
@@ -89,7 +74,7 @@ export default function AdminDashboard({ lang = "az" }: { lang?: keyof typeof lo
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium">{t.totalCars}</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t("totalCars")}</CardTitle>
                   <Car className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
@@ -99,7 +84,7 @@ export default function AdminDashboard({ lang = "az" }: { lang?: keyof typeof lo
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium">{t.totalUsers}</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t("totalUsers")}</CardTitle>
                   <Users className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
@@ -109,7 +94,7 @@ export default function AdminDashboard({ lang = "az" }: { lang?: keyof typeof lo
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium">{t.totalViews}</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t("totalViews")}</CardTitle>
                   <Users className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
@@ -119,7 +104,7 @@ export default function AdminDashboard({ lang = "az" }: { lang?: keyof typeof lo
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium">{t.totalSales}</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t("totalSales")}</CardTitle>
                   <TrendingUp className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
@@ -131,7 +116,7 @@ export default function AdminDashboard({ lang = "az" }: { lang?: keyof typeof lo
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>{t.recentCars}</CardTitle>
+                  <CardTitle>{t("recentCars")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {recentCars.map((car) => (
@@ -143,16 +128,16 @@ export default function AdminDashboard({ lang = "az" }: { lang?: keyof typeof lo
                       <div className="text-right">
                         <Badge
                           variant={
-                            car.status === t.statusActive
+                            car.status === t("statusActive")
                               ? "default"
-                              : car.status === t.statusSold
+                              : car.status === t("statusSold")
                                 ? "secondary"
                                 : "outline"
                           }
                         >
                           {car.status}
                         </Badge>
-                        <p className="text-xs text-gray-500 mt-1">{car.views} {t.views}</p>
+                        <p className="text-xs text-gray-500 mt-1">{car.views} {t("views")}</p>
                       </div>
                     </div>
                   ))}
@@ -161,7 +146,7 @@ export default function AdminDashboard({ lang = "az" }: { lang?: keyof typeof lo
 
               <Card>
                 <CardHeader>
-                  <CardTitle>{t.recentUsers}</CardTitle>
+                  <CardTitle>{t("recentUsers")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {recentUsers.map((user) => (

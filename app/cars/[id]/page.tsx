@@ -943,11 +943,11 @@ export default function CarDetailPage() {
                   </div>
                   <div className="text-right">
                     <p className="text-3xl font-bold text-blue-600">{(car.price ?? 0).toLocaleString()} ₼</p>
-                    {car.status ? (
+                    {/* {car.status ? (
                       <div className="mt-2">
                         <Badge>{statusLabel}</Badge>
                       </div>
-                    ) : null}
+                    ) : null} */}
                   </div>
                 </div>
               </CardHeader>

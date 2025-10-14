@@ -1,4 +1,3 @@
-// app/admins/page.tsx  (və ya components/AdminsPage.tsx)
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
@@ -103,7 +102,6 @@ export default function AdminsPage() {
     }
   };
 
-  // debounce when typing
   useEffect(() => {
     if (searchTimeoutRef.current) {
       window.clearTimeout(searchTimeoutRef.current);
@@ -118,19 +116,14 @@ export default function AdminsPage() {
         window.clearTimeout(searchTimeoutRef.current);
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm]);
 
-  // load when page changes
   useEffect(() => {
     loadUsers(currentPage, searchTerm);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage]);
 
-  // initial load
   useEffect(() => {
     loadUsers(1, "");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleDeleteUser = async (userId: string) => {
@@ -138,7 +131,6 @@ export default function AdminsPage() {
       try {
         await apiClient.deleteAdmin(userId);
         toast.success(t("AdminDeletedSuccessfully"));
-        // if current page becomes empty after deletion, ensure page doesn't exceed totalPages
         const newTotalPages = Math.max(1, totalPages);
         if (currentPage > newTotalPages) setCurrentPage(newTotalPages);
         await loadUsers(currentPage, searchTerm);
@@ -200,7 +192,6 @@ export default function AdminsPage() {
     setLoadingEditSubmit(true);
 
     try {
-      // send only allowed fields
       const payload: any = {
         id: editAdmin.id,
         firstName: editAdmin.firstName,

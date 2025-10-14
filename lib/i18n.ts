@@ -552,7 +552,20 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "close_share_modal": "Paylaşım pəncərəsini bağla",
     "loadFavoritesFailed": "Seçilmişləri yükləmək alınmadı",
     "removeFavoriteFailed": "Seçilmiş avtomobili silmək alınmadı",
-
+    "totalCars": "Ümumi avtomobil",
+    "totalUsers": "Ümumi istifadəçi",
+    "totalViews": "Ümumi baxış",
+    "totalSales": "Ümumi satış",
+    "recentCars": "Son avtomobillər",
+    "recentUsers": "Son istifadəçilər",
+    "statusActive": "Aktiv",
+    "statusSold": "Satıldı",
+    "statusPending": "Gözləmədə",
+    "userStatusActive": "Aktiv",
+    "userStatusBlocked": "Bloklanmış",
+    "views": "baxış",
+    "joinDate": "Qoşulma tarixi",
+    "basic": "Sadə",
   },
   en: {
     "Admins": "Admins",
@@ -1091,6 +1104,20 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "close_share_modal": "Close share modal",
     "loadFavoritesFailed": "Failed to load favorites",
     "removeFavoriteFailed": "Failed to remove favorite",
+    "totalCars": "Total cars",
+    "totalUsers": "Total users",
+    "totalViews": "Total views",
+    "totalSales": "Total sales",
+    "recentCars": "Recent cars",
+    "recentUsers": "Recent users",
+    "statusActive": "Active",
+    "statusSold": "Sold",
+    "statusPending": "Pending",
+    "userStatusActive": "Active",
+    "userStatusBlocked": "Blocked",
+    "views": "views",
+    "joinDate": "Join date",
+    "basic": "Basic",
 
   },
   de: {
@@ -1630,6 +1657,21 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "close_share_modal": "Teilen-Fenster schließen",
     "loadFavoritesFailed": "Favoriten konnten nicht geladen werden",
     "removeFavoriteFailed": "Favorit konnte nicht entfernt werden",
+    "totalCars": "Gesamtfahrzeuge",
+    "totalUsers": "Gesamtnutzer",
+    "totalViews": "Gesamtansichten",
+    "totalSales": "Gesamtverkäufe",
+    "recentCars": "Neueste Fahrzeuge",
+    "recentUsers": "Neueste Benutzer",
+    "statusActive": "Aktiv",
+    "statusSold": "Verkauft",
+    "statusPending": "Ausstehend",
+    "userStatusActive": "Aktiv",
+    "userStatusBlocked": "Gesperrt",
+    "views": "Ansichten",
+    "joinDate": "Beitrittsdatum",
+    "basic": "Einfach",
+
   },
   es: {
     "FullName": "Nombre completo",
@@ -2168,7 +2210,20 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "close_share_modal": "Cerrar ventana de compartir",
     "loadFavoritesFailed": "No se pudieron cargar los favoritos",
     "removeFavoriteFailed": "No se pudo eliminar el favorito",
-
+    "totalCars": "Total de coches",
+    "totalUsers": "Total de usuarios",
+    "totalViews": "Total de vistas",
+    "totalSales": "Ventas totales",
+    "recentCars": "Coches recientes",
+    "recentUsers": "Usuarios recientes",
+    "statusActive": "Activo",
+    "statusSold": "Vendido",
+    "statusPending": "Pendiente",
+    "userStatusActive": "Activo",
+    "userStatusBlocked": "Bloqueado",
+    "views": "vistas",
+    "joinDate": "Fecha de unión",
+    "basic": "Básico",
   },
   tr: {
     "FullName": "Tam isim",
@@ -2707,7 +2762,23 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "close_share_modal": "Paylaşım penceresini kapat",
     "loadFavoritesFailed": "Favoriler yüklenemedi",
     "removeFavoriteFailed": "Favori kaldırılamadı",
+    "totalCars": "Toplam araç",
+    "totalUsers": "Toplam kullanıcı",
+    "totalViews": "Toplam görüntüleme",
+    "totalSales": "Toplam satış",
+    "recentCars": "Son araçlar",
+    "recentUsers": "Son kullanıcılar",
+    "statusActive": "Aktif",
+    "statusSold": "Satıldı",
+    "statusPending": "Beklemede",
+    "userStatusActive": "Aktif",
+    "userStatusBlocked": "Engellendi",
+    "views": "görüntüleme",
+    "joinDate": "Katılma tarihi",
+    "basic": "Temel",
 
+
+  
   },
   pt: {
     "FullName": "Nome completo",
@@ -3246,7 +3317,20 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "close_share_modal": "Fechar modal de compartilhamento",
     "loadFavoritesFailed": "Falha ao carregar favoritos",
     "removeFavoriteFailed": "Falha ao remover favorito",
-
+    "totalCars": "Total de carros",
+    "totalUsers": "Total de usuários",
+    "totalViews": "Total de visualizações",
+    "totalSales": "Vendas totais",
+    "recentCars": "Carros recentes",
+    "recentUsers": "Usuários recentes",
+    "statusActive": "Ativo",
+    "statusSold": "Vendido",
+    "statusPending": "Pendente",
+    "userStatusActive": "Ativo",
+    "userStatusBlocked": "Bloqueado",
+    "views": "visualizações",
+    "joinDate": "Data de adesão",
+    "basic": "Básico",
 
   },
   pl: {
@@ -3786,8 +3870,20 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "close_share_modal": "Zamknij okno udostępniania",
     "loadFavoritesFailed": "Nie udało się załadować ulubionych",
     "removeFavoriteFailed": "Nie udało się usunąć ulubionego",
-
-
+    "totalCars": "Łączna liczba samochodów",
+    "totalUsers": "Łączna liczba użytkowników",
+    "totalViews": "Łączna liczba wyświetleń",
+    "totalSales": "Łączna liczba sprzedaży",
+    "recentCars": "Ostatnie samochody",
+    "recentUsers": "Ostatni użytkownicy",
+    "statusActive": "Aktywny",
+    "statusSold": "Sprzedany",
+    "statusPending": "Oczekujące",
+    "userStatusActive": "Aktywny",
+    "userStatusBlocked": "Zablokowany",
+    "views": "wyświetlenia",
+    "joinDate": "Data dołączenia",
+    "basic": "Podstawowy",  
   },
   uk: {
     "FullName": "Повне ім'я",
@@ -4228,13 +4324,25 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "close_share_modal": "Закрити вікно спільного використання",
     "loadFavoritesFailed": "Не вдалося завантажити вибране",
     "removeFavoriteFailed": "Не вдалося видалити вибране",
-
-
+    "totalCars": "Загальна кількість авто",
+    "totalUsers": "Загальна кількість користувачів",
+    "totalViews": "Загальна кількість переглядів",
+    "totalSales": "Загальна кількість продажів",
+    "recentCars": "Останні авто",
+    "recentUsers": "Останні користувачі",
+    "statusActive": "Активний",
+    "statusSold": "Продано",
+    "statusPending": "В очікуванні",
+    "userStatusActive": "Активний",
+    "userStatusBlocked": "Заблоковано",
+    "views": "перегляди",
+    "joinDate": "Дата приєднання",
+    "basic": "Базовий",
   }
 } as const;
 
 
-export const defaultLanguage: Language = "en";
+export const defaultLanguage: Language = "pl";
 
 export function getTranslation(language: Language | undefined, key: string): TranslationValue | undefined {
   const lang = language ?? defaultLanguage;

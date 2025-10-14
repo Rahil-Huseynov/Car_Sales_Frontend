@@ -17,6 +17,8 @@ import "react-toastify/dist/ReactToastify.css"
 import { useAuth } from "@/lib/auth-context"
 import CountryCodeSelect from "@/components/CountryCodeSelect"
 import { useDefaultLanguage } from "@/components/useLanguage"
+import { findTranslationFromList } from "@/app/cars/[id]/page"
+import { role } from "@/lib/car-data"
 
 type User = {
   id: number
@@ -124,6 +126,9 @@ export default function SettingsPage() {
     }
   }
 
+  const roleLabel = findTranslationFromList(role as any[], profileData?.role ?? "", lang) || (profileData?.role ?? "");
+  
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50">
       <div className="container mx-auto px-4 py-8">
@@ -156,7 +161,7 @@ export default function SettingsPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="flex items-center gap-6">
+                  <div className="grid md:flex items-center gap-6">
                     <div className="relative group">
                       <Avatar className="h-24 w-24">
                         <AvatarFallback>
@@ -165,12 +170,12 @@ export default function SettingsPage() {
                       </Avatar>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold">
+                      <h3 className="text-xl font-semibold break-words">
                         {profileData?.firstName} {profileData?.lastName}
                       </h3>
-                      <p className="text-gray-500">{profileData?.email}</p>
+                      <p className="text-gray-500 break-all">{profileData?.email}</p>
                       <Badge variant="secondary" className="mt-2 uppercase">
-                        {profileData?.role} {t("user")}
+                        {roleLabel} {t("user")}
                       </Badge>
                     </div>
                   </div>
@@ -239,7 +244,7 @@ export default function SettingsPage() {
                         />
                         <Button
                           type="button"
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
                           className="absolute right-0 top-0 h-full px-3"
                           onClick={() => setShowPassword(!showPassword)}
@@ -261,7 +266,7 @@ export default function SettingsPage() {
                         />
                         <Button
                           type="button"
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
                           className="absolute right-0 top-0 h-full px-3"
                           onClick={() => setNewShowPassword(!showNewPassword)}
@@ -283,7 +288,7 @@ export default function SettingsPage() {
                         />
                         <Button
                           type="button"
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
                           className="absolute right-0 top-0 h-full px-3"
                           onClick={() => setshowConfirmPassword(!showConfirmPassword)}

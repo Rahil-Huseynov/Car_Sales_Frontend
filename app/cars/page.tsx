@@ -117,7 +117,6 @@ function findTranslation(list: any[] | undefined, key: string | undefined | null
   return String(key)
 }
 
-/* --- CarCard: artık API çağırmır; parent vasitəsilə toggle edilir --- */
 function CarCard({
   car,
   t,
@@ -255,18 +254,15 @@ function CarCard({
       </div>
 
       <CardHeader className="pb-2">
-        <div className="flex justify-between items-start">
-          <div>
-            <h3 className="font-bold h-16 text-lg text-gray-800 break-word group-hover:text-blue-600 transition-colors duration-300">
-              {car.brand}{" "}
-              {car.model?.length && car.model.length > 32 ? car.model.slice(0, 40) + "..." : car.model ?? ""}
-            </h3>
+        <div className="items-start">
+          <h3 className="font-bold h-16 text-lg text-gray-800">
+            {car.brand} {car.model?.length && car.model.length > 32 ? car.model.slice(0, 40) + "..." : car.model ?? ""}
+          </h3>
+          <div className="flex items-center justify-between gap-1">
+            <p className="text-sm text-gray-600">{car.year} • {conditionLabel}</p>
             <div className="flex items-center gap-1">
-              <p className="text-sm text-gray-600">{car.year} • {conditionLabel} • </p>
-              <div className="flex items-center gap-1">
-                <Eye color="#4B5563" className="flex items-center h-4 w-4 text-blue-500" />
-                <p className="text-gray-600">{viewcount}</p>
-              </div>
+              <Eye color="#4B5563" className="flex items-center h-4 w-4 text-blue-500" />
+              <p className="text-gray-600">{viewcount}</p>
             </div>
           </div>
         </div>
@@ -307,7 +303,7 @@ function CarCard({
         </div>
       </CardContent>
 
-      <CardFooter className="mt-auto p-4 border-t border-gray-100 bg-white sticky bottom-0">
+      <CardFooter className="mt-auto pl-4 pr-4 border-t border-gray-100 bg-white sticky bottom-0">
         <Button
           asChild
           className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 btn-animate transition-all duration-300 hover:scale-105"
@@ -322,7 +318,6 @@ function CarCard({
   )
 }
 
-/* --- Parent: CarsPage --- */
 export default function CarsPage() {
   const { logout, user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("")
@@ -354,7 +349,7 @@ export default function CarsPage() {
   const citiesList = useMemo(() => sortByLabel(citiesStatic as any[], lang), [lang])
   const [profileData, setProfileData] = useState<User | null>(null)
   const [favorites, setFavorites] = useState<Set<number>>(new Set())
-  const [favoritesMap, setFavoritesMap] = useState<Record<number, number>>({}); 
+  const [favoritesMap, setFavoritesMap] = useState<Record<number, number>>({});
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -591,7 +586,6 @@ export default function CarsPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Filters (same as before) */}
                 <div>
                   <label className="text-sm font-medium mb-2 block text-gray-700">{t("brand")}</label>
                   <BrandSelect

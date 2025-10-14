@@ -202,21 +202,20 @@ function CarCard({
       </div>
 
       <CardHeader className="pb-2">
-        <div className="flex justify-between items-start">
-          <div>
-            <h3 className="font-bold h-16 text-lg text-gray-800 break-word group-hover:text-blue-600 transition-colors duration-300">
-              {car.brand} {car.model.length > 32 ? car.model.slice(0, 40) + "..." : car.model}
-            </h3>
+        <div className="items-start">
+          <h3 className="font-bold h-16 text-lg text-gray-800">
+            {car.brand}  {car.model.length > 32 ? car.model.slice(0, 40) + "..." : car.model}
+          </h3>
+          <div className="flex items-center justify-between gap-1">
+            <p className="text-sm text-gray-600">{car.year} • {conditionLabel}</p>
             <div className="flex items-center gap-1">
-              <p className="text-sm text-gray-600">{car.year} • {conditionLabel} • </p>
-              <div className="flex items-center gap-1">
-                <Eye color="#4B5563" className="flex items-center h-4 w-4 text-blue-500" />
-                <p className="text-gray-600">{viewcountLabel}</p>
-              </div>
+              <Eye color="#4B5563" className="flex items-center h-4 w-4 text-blue-500" />
+              <p className="text-gray-600">{viewcountLabel}</p>
             </div>
           </div>
         </div>
       </CardHeader>
+
 
       <CardContent className="pt-0 pb-24">
         <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-4">

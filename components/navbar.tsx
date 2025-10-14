@@ -128,19 +128,19 @@ export function Navbar() {
                   {!isAdmin && (
                     <>
                       <DropdownMenuItem asChild>
-                        <Link href="/favorites">
+                        <Link href="/profile/favorites">
                           <Heart className="h-4 w-4 mr-2" />
                           {t("favorites")}
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link href="/my-ads">
+                        <Link href="/profile/my-ads">
                           <Plus className="h-4 w-4 mr-2" />
                           {t("myAds")}
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link href="/settings">
+                        <Link href="/profile/settings">
                           <Settings className="h-4 w-4 mr-2" />
                           {t("settings")}
                         </Link>
@@ -196,19 +196,19 @@ export function Navbar() {
                       {!isAdmin && (
                         <>
                           <Button variant="outline" className="w-full justify-start bg-transparent" asChild>
-                            <Link href="/favorites">
+                            <Link href="/profile/favorites">
                               <Heart className="h-4 w-4 mr-2" />
                               {t("favorites")}
                             </Link>
                           </Button>
                           <Button variant="outline" className="w-full justify-start bg-transparent" asChild>
-                            <Link href="/my-ads">
+                            <Link href="/profile/my-ads">
                               <Plus className="h-4 w-4 mr-2" />
                               {t("myAds")}
                             </Link>
                           </Button>
                           <Button variant="outline" className="w-full justify-start bg-transparent" asChild>
-                            <Link href="/settings">
+                            <Link href="/profile/settings">
                               <Settings className="h-4 w-4 mr-2" />
                               {t("settings")}
                             </Link>
