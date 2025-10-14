@@ -165,7 +165,7 @@ export default function LoginPage() {
                     {t("rememberMe")}
                   </Label>
                 </div>
-                <Link href="/auth/forgot-password" className="text-sm text-blue-600 hover:underline">
+                <Link href="/auth/forgot-password" className="text-sm text-blue-600 hover:underline text-end">
                   {t("forgotPassword")}
                 </Link>
               </div>
