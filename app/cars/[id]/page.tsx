@@ -6,6 +6,7 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import CountryCodeSelect from "@/components/CountryCodeSelect"
 import { Separator } from "@/components/ui/separator"
 import {
   Heart,
@@ -48,11 +49,16 @@ import {
 } from "@/lib/car-data"
 import { useDefaultLanguage } from "@/components/useLanguage"
 import { useAuth } from "@/lib/auth-context"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+
 type OptionItem = {
   key: string;
   translations: { [lang: string]: string } & { en: string };
 };
+
 type ImageItem = string | { id?: number; url?: string }
+
 type Seller = {
   id?: number
   firstName?: string
@@ -61,6 +67,7 @@ type Seller = {
   phoneNumber?: string | null
   phoneCode?: string | null
 }
+
 type User = {
   id: number
   firstName: string
@@ -70,6 +77,7 @@ type User = {
   role: string
   createdAt: string
 }
+
 type CarType = {
   id: number
   brand: string
@@ -96,7 +104,8 @@ type CarType = {
   description?: string
   features?: string[]
   seller?: {
-    name?: string
+    firstName: string
+    lastName: string
     phoneNumber?: string
     phoneCode?: string
     email?: string
@@ -107,7 +116,9 @@ type CarType = {
   ban?: string
   createdAt?: string
 }
+
 const API_UPLOADS_BASE = (process.env.NEXT_PUBLIC_API_URL_FOR_IMAGE || "").replace(/\/+$/, "")
+
 function safeImageUrl(i?: ImageItem) {
   if (!i) return "/placeholder.svg"
   const raw = typeof i === "string" ? i : i.url ?? ""
@@ -116,6 +127,7 @@ function safeImageUrl(i?: ImageItem) {
   const cleaned = raw.replace(/^\/+/, "").replace(/^uploads\/+?/i, "")
   return API_UPLOADS_BASE ? `${API_UPLOADS_BASE}/${cleaned}` : `/${cleaned}`
 }
+
 function toOption(item: any): OptionItem {
   if (!item && item !== "") {
     return { key: "", translations: { en: "", az: "" } }
@@ -131,9 +143,11 @@ function toOption(item: any): OptionItem {
   }
   return { key, translations }
 }
+
 function normalizeList(list: any[] | undefined) {
   return (list ?? []).map(toOption)
 }
+
 export function findTranslationFromList(list: any[] | undefined, rawKey: string | undefined | null, language: string) {
   if (!rawKey && rawKey !== "") return ""
   const keyStr = String(rawKey ?? "")
@@ -144,6 +158,7 @@ export function findTranslationFromList(list: any[] | undefined, rawKey: string 
   }
   return keyStr
 }
+
 type ShareModalProps = {
   isOpen: boolean
   onClose: () => void
@@ -152,6 +167,7 @@ type ShareModalProps = {
   subtitle?: string
   image?: string
 }
+
 function ShareModal({ isOpen, onClose, shareUrl, title, subtitle, image }: ShareModalProps) {
   const overlayRef = useRef<HTMLDivElement | null>(null)
   const inputRef = useRef<HTMLInputElement | null>(null)
@@ -192,14 +208,18 @@ function ShareModal({ isOpen, onClose, shareUrl, title, subtitle, image }: Share
       document.body.style.overflow = ""
     }
   }, [isOpen, onClose])
+
   useEffect(() => {
     setCopied(false)
     setIsCopying(false)
   }, [lang])
+
   if (!isOpen) return null
+
   const handleOverlayClick = (e: React.MouseEvent) => {
     if (e.target === overlayRef.current) onClose()
   }
+
   const handleCopy = async () => {
     if (!shareUrl) return
     try {
@@ -215,6 +235,7 @@ function ShareModal({ isOpen, onClose, shareUrl, title, subtitle, image }: Share
       setIsCopying(false)
     }
   }
+
   const handleNativeShare = async () => {
     if (!shareUrl) return
     if (navigator.share) {
@@ -233,6 +254,7 @@ function ShareModal({ isOpen, onClose, shareUrl, title, subtitle, image }: Share
       await handleCopy()
     }
   }
+
   const openSocial = (service: "facebook" | "telegram" | "whatsapp") => {
     const enc = encodeURIComponent(shareUrl)
     let url = ""
@@ -242,6 +264,7 @@ function ShareModal({ isOpen, onClose, shareUrl, title, subtitle, image }: Share
       url = `https://api.whatsapp.com/send?text=${encodeURIComponent(`${title ? title + " - " : ""}${shareUrl}`)}`
     window.open(url, "_blank", "noopener,noreferrer,width=600,height=600")
   }
+
   return (
     <div
       ref={overlayRef}
@@ -352,17 +375,20 @@ function ShareModal({ isOpen, onClose, shareUrl, title, subtitle, image }: Share
     </div>
   )
 }
+
 type ContactModalProps = {
   isOpen: boolean
   onClose: () => void
+  sellerName?: string
   toEmail?: string | null
   subject?: string
   prefillPhone?: string | null
   carTitle?: string
 }
-function ContactModal({ isOpen, onClose, toEmail, subject, prefillPhone, carTitle }: ContactModalProps) {
+
+function ContactModal({ isOpen, onClose, toEmail, sellerName, subject, prefillPhone, carTitle }: ContactModalProps) {
   const overlayRef = useRef<HTMLDivElement | null>(null)
-  const [name, setName] = useState("")
+  const [customerName, setcustomerName] = useState("")
   const [fromEmail, setFromEmail] = useState("")
   const [message, setMessage] = useState("")
   const [sending, setSending] = useState(false)
@@ -370,6 +396,8 @@ function ContactModal({ isOpen, onClose, toEmail, subject, prefillPhone, carTitl
   const [error, setError] = useState<string | null | undefined>(null)
   const { lang } = useDefaultLanguage();
   const t = (key: string) => translateString(lang, key);
+  const [buyerPhone, setBuyerPhone] = useState("");
+  const [phoneCode, setPhoneCode] = useState("");
 
   useEffect(() => {
     if (isOpen) {
@@ -382,6 +410,7 @@ function ContactModal({ isOpen, onClose, toEmail, subject, prefillPhone, carTitl
       document.body.style.overflow = ""
     }
   }, [isOpen])
+
   useEffect(() => {
     if (!isOpen) return
     const language = (lang || "").toString().toLowerCase()
@@ -393,67 +422,48 @@ function ContactModal({ isOpen, onClose, toEmail, subject, prefillPhone, carTitl
     }
     setMessage(defaultMsg)
   }, [isOpen, lang, carTitle])
+
   if (!isOpen) return null
+
   const handleOverlayClick = (e: React.MouseEvent) => {
     if (e.target === overlayRef.current) onClose()
   }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setSending(true)
     setError(null)
-    const payload = {
+
+    const payload: any = {
       to: toEmail || "",
+      sellerName: sellerName || "",
       subject: subject || `${t("interestedIn")}: ${carTitle ?? ""}`,
-      name,
-      from: fromEmail,
-      message,
-      phone: prefillPhone || undefined,
+      message: message.trim(),
     }
+
+    if (carTitle && fromEmail) {
+      payload.carTitle = carTitle
+      payload.from = fromEmail
+      payload.sellerName = sellerName
+      payload.name = customerName || undefined
+      payload.phone = `${phoneCode}${buyerPhone}` || undefined
+    }
+
+    console.log("📧 PAYLOAD:", payload)
+
     try {
-      if (apiClient && typeof (apiClient as any).sendEmail === "function") {
-        try {
-          const res = await apiClient.sendEmail(payload)
-          if (res.success) {
-            setSent(true)
-            toast.success(t("messageSentSuccessfully"))
-            setTimeout(() => {
-              window.location.reload()
-            }, 2000)
-          } else {
-            throw new Error("Server göndərmə xətası")
-          }
-        } catch (err: any) {
-          console.error(err)
-          const errMsg = err?.message || t("sendError")
-          setError(errMsg)
-          toast.error(errMsg)
-        }
+      const res = await apiClient.sendEmail(payload)
+      if (res.success) {
+        setSent(true)
+        toast.success(t("messageSentSuccessfully"))
+        setTimeout(() => {
+          window.location.reload()
+        }, 2000)
       } else {
-        const API_BASE = process.env.NEXT_PUBLIC_API_URL || ""
-        if (API_BASE) {
-          try {
-            const res = await apiClient.sendEmail(payload)
-            setSent(true)
-            toast.success(t("messageSentSuccessfully"))
-          } catch (err: any) {
-            console.error(err)
-            const errMsg = err?.message || t("serverSendError")
-            setError(errMsg)
-            toast.error(errMsg)
-          }
-        } else {
-          const mailtoTo = encodeURIComponent(String(toEmail || ""))
-          const mailSubj = encodeURIComponent(payload.subject || "")
-          const mailBody = encodeURIComponent(
-            `${payload.message}\n\n${t("name")}: ${payload.name || ""}\n${t("email")}: ${payload.from || ""}\n${t("phone")}: ${payload.phone || ""}`
-          )
-          window.location.href = `mailto:${mailtoTo}?subject=${mailSubj}&body=${mailBody}`
-          setSent(true)
-          toast.success(t("messageSentSuccessfully"))
-        }
+        throw new Error("Server göndərmə xətası")
       }
     } catch (err: any) {
-      console.error(err)
+      console.error("EMAIL ERROR:", err)
       const errMsg = err?.message || t("sendError")
       setError(errMsg)
       toast.error(errMsg)
@@ -461,6 +471,7 @@ function ContactModal({ isOpen, onClose, toEmail, subject, prefillPhone, carTitl
       setSending(false)
     }
   }
+
   return (
     <div
       ref={overlayRef}
@@ -480,35 +491,62 @@ function ContactModal({ isOpen, onClose, toEmail, subject, prefillPhone, carTitl
           </button>
         </div>
         <div className="px-5 py-4 space-y-3">
-          {sent ? <div className="rounded-md bg-green-50 px-4 py-3 text-green-700">{t("messageSentSuccessfully")}</div> : null}
-          {error ? <div className="rounded-md bg-red-50 px-4 py-3 text-red-700">{error}</div> : null}
-          <div>
-            <label className="text-xs text-gray-500">{t("nameOptional")}</label>
-            <input
-              className="mt-1 w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder={t("enterYourName")}
-            />
-          </div>
-          <div>
-            <label className="text-xs text-gray-500">{t("emailForContact")}</label>
-            <input
-              className="mt-1 w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-              value={fromEmail}
-              onChange={(e) => setFromEmail(e.target.value)}
-              placeholder={t("yourEmail")}
-              type="email"
-            />
-          </div>
+          {carTitle ? (
+            <>
+              <div>
+                <label className="text-xs text-gray-500">{t("nameOptional")}</label>
+                <input
+                  className="mt-1 w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  value={customerName}
+                  onChange={(e) => setcustomerName(e.target.value)}
+                  placeholder={t("enterYourName")}
+                />
+              </div>
+              <div>
+                <label className="text-xs text-gray-500">{t("emailForContact")}</label>
+                <input
+                  className="mt-1 w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  value={fromEmail}
+                  onChange={(e) => setFromEmail(e.target.value)}
+                  placeholder={t("yourEmail")}
+                  type="email"
+                  required
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="phone">{t("phone")}</Label>
+                <div className="flex gap-2 items-center">
+                  <div className="max-w-[150px]">
+                    <CountryCodeSelect value={phoneCode} onChange={setPhoneCode} />
+                  </div>
+                  <div className="flex-1 relative">
+                    <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="phone"
+                      name="phone"
+                      type="tel"
+                      placeholder={t("phonePlaceholder")}
+                      value={buyerPhone}
+                      onChange={(e) => setBuyerPhone(e.target.value)}
+                      required
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : null}
+
           <div>
             <label className="text-xs text-gray-500">{t("message")}</label>
             <textarea
               className="mt-1 h-28 w-full rounded-md border resize-none px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
+              required
             />
           </div>
+
           <div>
             <label className="text-xs text-gray-500">{t("sellersEmail")}</label>
             <input readOnly value={toEmail ?? ""} className="mt-1 w-full rounded-md border bg-gray-50 px-3 py-2 text-sm" />
@@ -527,7 +565,11 @@ function ContactModal({ isOpen, onClose, toEmail, subject, prefillPhone, carTitl
           >
             {t("openWithMailClient")}
           </button>
-          <button type="submit" disabled={sending} className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+          <button
+            type="submit"
+            disabled={sending || !fromEmail || !message.trim()}
+            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:bg-gray-400"
+          >
             {sending ? t("sending") : t("sendMessage")}
           </button>
         </div>
@@ -535,6 +577,7 @@ function ContactModal({ isOpen, onClose, toEmail, subject, prefillPhone, carTitl
     </div>
   )
 }
+
 export default function CarDetailPage() {
   const params = useParams()
   const router = useRouter()
@@ -586,6 +629,7 @@ export default function CarDetailPage() {
     const interval = setInterval(fetchUser, 10000)
     return () => clearInterval(interval)
   }, [logout])
+
   useEffect(() => {
     const el = descRef.current
     if (!el) return
@@ -597,7 +641,7 @@ export default function CarDetailPage() {
     el.style.display = "none"
   }, [])
 
-  const [favoritesMap, setFavoritesMap] = useState<Record<number, number>>({}) 
+  const [favoritesMap, setFavoritesMap] = useState<Record<number, number>>({})
 
   const fetchFavoritesData = async () => {
     if (!profileData) return
@@ -647,7 +691,7 @@ export default function CarDetailPage() {
             throw new Error("Favorite id not found")
           }
         } else {
-          await apiClient.removeFavorite(favId) 
+          await apiClient.removeFavorite(favId)
         }
         setIsFavorited(false)
         handleFavoriteToggle(car.id, false)
@@ -708,15 +752,18 @@ export default function CarDetailPage() {
     fetchCar()
     return () => controller.abort()
   }, [id, lang])
+
   useEffect(() => {
     if (!car) return
     const base = process.env.NEXT_PUBLIC_SITE_URL || (typeof window !== "undefined" ? window.location.origin : "")
     setShareUrl(`${base}/cars/${car.id}`)
   }, [car])
+
   useEffect(() => {
     if (!profileData || !car) return;
     fetchFavoritesData()
   }, [profileData, car?.id])
+
   function toggleDesc() {
     const el = descRef.current
     if (!el) {
@@ -787,14 +834,17 @@ export default function CarDetailPage() {
       setDescExpanded(false)
     }
   }
+
   const nextImage = () => {
     if (!car?.images?.length) return
     setCurrentImageIndex((prev) => (prev + 1) % (car.images!.length || 1))
   }
+
   const prevImage = () => {
     if (!car?.images?.length) return
     setCurrentImageIndex((prev) => (prev - 1 + (car.images!.length || 1)) % (car.images!.length || 1))
   }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -804,6 +854,7 @@ export default function CarDetailPage() {
       </div>
     )
   }
+
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -820,6 +871,7 @@ export default function CarDetailPage() {
       </div>
     )
   }
+
   if (!car) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -836,8 +888,9 @@ export default function CarDetailPage() {
       </div>
     )
   }
+
   const images = car.images && car.images.length ? car.images.map(safeImageUrl) : ["/placeholder.svg"]
-  const sellerName = car.user ? `${car.user.firstName ?? ""} ${car.user.lastName ?? ""}`.trim() : car.name
+  const sellerName = car.user ? `${car.user.firstName ?? ""} ${car.user.lastName ?? ""}`.trim() : car.name || ""
   const sellerEmail = car.email ?? car.user?.email
   const phoneCode = car.seller?.phoneCode ?? car.user?.phoneCode ?? ""
   const phone = car.seller?.phoneNumber ?? car.user?.phoneNumber ?? ""
@@ -853,7 +906,6 @@ export default function CarDetailPage() {
   const bodyTypeLabel = findTranslationFromList(bodyTypesStatic, car.ban ?? car.bodyType ?? "", lang) || (car.ban ?? car.bodyType ?? "")
   const engineLabel = findTranslationFromList(engineOptionsStatic, car.engine ?? "", lang) || (car.engine ?? "")
   const statusLabel = findTranslationFromList(statusStatic, car.status ?? car.status ?? "", lang) || (car.status ?? car.status ?? "")
-
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -943,11 +995,6 @@ export default function CarDetailPage() {
                   </div>
                   <div className="text-right">
                     <p className="text-3xl font-bold text-blue-600">{(car.price ?? 0).toLocaleString()} ₼</p>
-                    {/* {car.status ? (
-                      <div className="mt-2">
-                        <Badge>{statusLabel}</Badge>
-                      </div>
-                    ) : null} */}
                   </div>
                 </div>
               </CardHeader>
@@ -1156,6 +1203,7 @@ export default function CarDetailPage() {
         isOpen={contactOpen}
         onClose={() => setContactOpen(false)}
         toEmail={sellerEmail}
+        sellerName={sellerName}
         prefillPhone={sellerPhone}
         subject={`${car.brand} ${car.model}`}
         carTitle={`${car.brand} ${car.model}`}

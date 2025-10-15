@@ -221,7 +221,7 @@ class ApiClient {
   async AllUserCars() {
     return this.request(`/user-cars`, { method: 'GET' });
   }
-  
+
   async deleteads(Id: string) {
     return this.request(`/user-cars/${Id}`, {
       method: "delete",
@@ -425,16 +425,22 @@ class ApiClient {
     return response;
   }
 
-  async sendEmail(payload: { to: string; subject: string; message: string; name?: string; from?: string; phone?: string }) {
-    const res = await this.request('/send-email', {
+  async sendEmail(payload: {
+    to: string;
+    subject: string;
+    message: string;
+    carTitle?: string;
+    from?: string;
+    sellerName?:string;
+    name?: string;
+    phone?: string
+  }) {
+    const res = await this.request('/api/send-email', {  
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        to: payload.to,
-        subject: payload.subject,
-        text: `${payload.message}\n\nAd: ${payload.name || ''}\nEmail: ${payload.from || ''}\nTelefon: ${payload.phone || ''}`,
-      }),
+      body: JSON.stringify(payload), 
     });
+
     if (res && typeof res === 'object' && 'ok' in res && !(res as any).ok) {
       let data: any = {};
       try {
@@ -442,7 +448,8 @@ class ApiClient {
       } catch { }
       throw new Error(data.message || 'Server xətası');
     }
-    return { success: true };
+
+    return res || { success: true };
   }
 
   async addFavorite(carId: number) {
