@@ -58,12 +58,12 @@ export const gearboxOptions = [
 ];
 
 export const conditions = [
-  { key: "New", translations: { en: "New", az: "Yeni", pl: "Nowy", de: "Neu", es: "Nuevo", pt: "Novo", tr: "Sıfır", uk: "Новий" } }, 
-  { key: "Used", translations: { en: "Used", az: "İstifadə olunmuş", pl: "Używany", de: "Gebraucht", es: "Usado", pt: "Usado", tr: "İkinci el", uk: "Вживаний" } }, 
-  { key: "Certified", translations: { en: "Certified", az: "Sertifikatlı", pl: "Certyfikowany", de: "Zertifiziert", es: "Certificado", pt: "Certificado", tr: "Sertifikalı", uk: "Сертифікований" } }, 
-  { key: "Repaired", translations: { en: "Repaired", az: "Təmir edilmiş", pl: "Naprawiony", de: "Repariert", es: "Reparado", pt: "Reparado", tr: "Tamir edilmiş", uk: "Відремонтований" } }, 
-  { key: "Restored", translations: { en: "Restored", az: "Bərpa edilmiş", pl: "Odrestaurowany", de: "Restauriert", es: "Restaurado", pt: "Restaurado", tr: "Restorasiya edilmiş", uk: "Відновлений" } }, 
-  { key: "Salvage", translations: { en: "Salvage", az: "Qəzalı / Salvaj", pl: "Po szkodzie", de: "Totalschaden", es: "Siniestro", pt: "Sinistrado", tr: "Hasar kayıtlı", uk: "Аварійний / Після ДТП" } }, 
+  { key: "New", translations: { en: "New", az: "Yeni", pl: "Nowy", de: "Neu", es: "Nuevo", pt: "Novo", tr: "Sıfır", uk: "Новий" } },
+  { key: "Used", translations: { en: "Used", az: "İstifadə olunmuş", pl: "Używany", de: "Gebraucht", es: "Usado", pt: "Usado", tr: "İkinci el", uk: "Вживаний" } },
+  { key: "Certified", translations: { en: "Certified", az: "Sertifikatlı", pl: "Certyfikowany", de: "Zertifiziert", es: "Certificado", pt: "Certificado", tr: "Sertifikalı", uk: "Сертифікований" } },
+  { key: "Repaired", translations: { en: "Repaired", az: "Təmir edilmiş", pl: "Naprawiony", de: "Repariert", es: "Reparado", pt: "Reparado", tr: "Tamir edilmiş", uk: "Відремонтований" } },
+  { key: "Restored", translations: { en: "Restored", az: "Bərpa edilmiş", pl: "Odrestaurowany", de: "Restauriert", es: "Restaurado", pt: "Restaurado", tr: "Restorasiya edilmiş", uk: "Відновлений" } },
+  { key: "Salvage", translations: { en: "Salvage", az: "Qəzalı / Salvaj", pl: "Po szkodzie", de: "Totalschaden", es: "Siniestro", pt: "Sinistrado", tr: "Hasar kayıtlı", uk: "Аварійний / Після ДТП" } },
   { key: "Rebuild", translations: { en: "Rebuild", az: "Yenidən bərpa edilmiş", pl: "Odbudowany", de: "Wiederaufgebaut", es: "Reconstruido", pt: "Reconstruído", tr: "Yenidən təmir edilmiş", uk: "Перебудований" } }
 ]
 
@@ -505,6 +505,266 @@ export const role = [
   { key: "premium", translations: { en: "Premium", az: "Premium", pl: "Premium", de: "Premium", es: "Premium", pt: "Premium", tr: "Premium", uk: "Преміум" } },
   { key: "basic", translations: { en: "Basic", az: "Sadə", pl: "Podstawowy", de: "Einfach", es: "Básico", pt: "Básico", tr: "Temel", uk: "Базовий" } },
 ]
+
+export const FIELD_CATEGORIES = {
+    basic: {
+        key: "basic",
+        translations: {
+            en: "Basic Information", az: "Əsas Məlumatlar", pl: "Podstawowe Informacje", 
+            de: "Grundinformationen", es: "Información Básica", pt: "Informações Básicas", 
+            tr: "Temel Bilgiler", uk: "Основна Інформація"
+        },
+        fields: [
+            { key: "vin", translations: { en: "VIN", az: "VIN", pl: "VIN", de: "VIN", es: "VIN", pt: "VIN", tr: "VIN", uk: "VIN" }, apiKey: "VIN" },
+            { key: "error", translations: { en: "Error", az: "Xəta", pl: "Błąd", de: "Fehler", es: "Error", pt: "Erro", tr: "Hata", uk: "Помилка" }, apiKey: "ErrorText" },
+            { key: "make", translations: { en: "Make", az: "Marka", pl: "Marka", de: "Marke", es: "Marca", pt: "Marca", tr: "Marka", uk: "Марка" }, apiKey: "Make" },
+            { key: "model", translations: { en: "Model", az: "Model", pl: "Model", de: "Modell", es: "Modelo", pt: "Modelo", tr: "Model", uk: "Модель" }, apiKey: "Model" },
+            { key: "year", translations: { en: "Year", az: "İl", pl: "Rok", de: "Jahr", es: "Año", pt: "Ano", tr: "Yıl", uk: "Рік" }, apiKey: "ModelYear" },
+            { key: "trim", translations: { en: "Trim", az: "Trim", pl: "Wersja", de: "Ausstattung", es: "Acabado", pt: "Acabamento", tr: "Donanım", uk: "Комплектація" }, apiKey: "Trim" },
+            { key: "trim2", translations: { en: "Trim 2", az: "Trim 2", pl: "Wersja 2", de: "Ausstattung 2", es: "Acabado 2", pt: "Acabamento 2", tr: "Donanım 2", uk: "Комплектація 2" }, apiKey: "Trim2" },
+            { key: "series", translations: { en: "Series", az: "Seriya", pl: "Seria", de: "Serie", es: "Serie", pt: "Série", tr: "Seri", uk: "Серія" }, apiKey: "Series" },
+            { key: "series2", translations: { en: "Series 2", az: "Seriya 2", pl: "Seria 2", de: "Serie 2", es: "Serie 2", pt: "Série 2", tr: "Seri 2", uk: "Серія 2" }, apiKey: "Series2" },
+            { key: "type", translations: { en: "Type", az: "Növ", pl: "Typ", de: "Typ", es: "Tipo", pt: "Tipo", tr: "Tip", uk: "Тип" }, apiKey: "VehicleType" },
+            { key: "body", translations: { en: "Body", az: "Kuzov", pl: "Nadwozie", de: "Karosserie", es: "Carrocería", pt: "Carroceria", tr: "Gövde", uk: "Кузова" }, apiKey: "BodyClass" },
+            { key: "ncsaBody", translations: { en: "NCSA Body", az: "NCSA Kuzov", pl: "NCSA Nadwozie", de: "NCSA Karosserie", es: "NCSA Carrocería", pt: "NCSA Carroceria", tr: "NCSA Gövde", uk: "NCSA Кузов" }, apiKey: "NCSABodyType" }
+        ]
+    },
+    engine: {
+        key: "engine",
+        translations: {
+            en: "Engine", az: "Mühərrik", pl: "Silnik", de: "Motor", es: "Motor", 
+            pt: "Motor", tr: "Motor", uk: "Двигун"
+        },
+        fields: [
+            { key: "cylinders", translations: { en: "Cylinder Count", az: "Silindr sayı", pl: "Liczba cylindrów", de: "Zylinderanzahl", es: "Número de cilindros", pt: "Número de cilindros", tr: "Silindir sayısı", uk: "Кількість циліндрів" }, apiKey: "EngineCylinders" },
+            { key: "displacementCC", translations: { en: "Displacement (CC)", az: "Həcm (CC)", pl: "Pojemność (CC)", de: "Hubraum (CC)", es: "Cilindrada (CC)", pt: "Cilindrada (CC)", tr: "Hacim (CC)", uk: "Об'єм (CC)" }, apiKey: "DisplacementCC" },
+            { key: "displacementCI", translations: { en: "Displacement (CI)", az: "Həcm (CI)", pl: "Pojemność (CI)", de: "Hubraum (CI)", es: "Cilindrada (CI)", pt: "Cilindrada (CI)", tr: "Hacim (CI)", uk: "Об'єм (CI)" }, apiKey: "DisplacementCI" },
+            { key: "displacementL", translations: { en: "Displacement (L)", az: "Həcm (L)", pl: "Pojemność (L)", de: "Hubraum (L)", es: "Cilindrada (L)", pt: "Cilindrada (L)", tr: "Hacim (L)", uk: "Об'єм (L)" }, apiKey: "DisplacementL" },
+            { key: "hp", translations: { en: "Power (HP)", az: "Güc (HP)", pl: "Moc (KM)", de: "Leistung (PS)", es: "Potencia (HP)", pt: "Potência (HP)", tr: "Güç (HP)", uk: "Потужність (к.с.)" }, apiKey: "EngineHP" },
+            { key: "hpMax", translations: { en: "Power (HP) - Max", az: "Güc (HP) - Max", pl: "Moc (KM) - Max", de: "Leistung (PS) - Max", es: "Potencia (HP) - Máx", pt: "Potência (HP) - Máx", tr: "Güç (HP) - Maks", uk: "Потужність (к.с.) - Макс" }, apiKey: "EngineHP_to" },
+            { key: "kw", translations: { en: "Power (KW)", az: "Güc (KW)", pl: "Moc (kW)", de: "Leistung (kW)", es: "Potencia (kW)", pt: "Potência (kW)", tr: "Güç (kW)", uk: "Потужність (кВт)" }, apiKey: "EngineKW" },
+            { key: "configuration", translations: { en: "Configuration", az: "Konfiqurasiya", pl: "Konfiguracja", de: "Konfiguration", es: "Configuración", pt: "Configuração", tr: "Konfigürasyon", uk: "Конфігурація" }, apiKey: "EngineConfiguration" },
+            { key: "cycles", translations: { en: "Cycles", az: "Tsikl", pl: "Cykle", de: "Zyklen", es: "Ciclos", pt: "Ciclos", tr: "Döngü", uk: "Цикли" }, apiKey: "EngineCycles" },
+            { key: "manufacturer", translations: { en: "Manufacturer", az: "İstehsalçı", pl: "Producent", de: "Hersteller", es: "Fabricante", pt: "Fabricante", tr: "Üretici", uk: "Виробник" }, apiKey: "EngineManufacturer" },
+            { key: "model", translations: { en: "Model", az: "Model", pl: "Model", de: "Modell", es: "Modelo", pt: "Modelo", tr: "Model", uk: "Модель" }, apiKey: "EngineModel" },
+            { key: "valveTrain", translations: { en: "Valve Train", az: "Valf sistemi", pl: "Układ rozrządu", de: "Ventiltrieb", es: "Trén de válvulas", pt: "Trens de válvulas", tr: "Supap sistemi", uk: "Розподільний механізм" }, apiKey: "ValveTrainDesign" },
+            { key: "turbo", translations: { en: "Turbo", az: "Turbo", pl: "Turbodoładowanie", de: "Turbo", es: "Turbo", pt: "Turbo", tr: "Turbo", uk: "Турбо" }, apiKey: "Turbo" },
+            { key: "cooling", translations: { en: "Cooling", az: "Soyutma", pl: "Chłodzenie", de: "Kühlung", es: "Refrigeración", pt: "Refrigeração", tr: "Soğutma", uk: "Охолодження" }, apiKey: "CoolingType" },
+            { key: "fuelInjection", translations: { en: "Fuel Injection", az: "Yanacaq ötürülməsi", pl: "Wtrysk paliwa", de: "Kraftstoffeinspritzung", es: "Inyección de combustible", pt: "Injeção de combustível", tr: "Yakıt enjeksiyonu", uk: "Паливна система" }, apiKey: "FuelInjectionType" },
+            { key: "otherInfo", translations: { en: "Other Info", az: "Digər məlumat", pl: "Inne informacje", de: "Sonstiges", es: "Otra información", pt: "Outras informações", tr: "Diğer bilgiler", uk: "Інша інформація" }, apiKey: "OtherEngineInfo" }
+        ]
+    },
+    fuel: {
+        key: "fuel",
+        translations: { en: "Fuel", az: "Yanacaq", pl: "Paliwo", de: "Kraftstoff", es: "Combustible", pt: "Combustível", tr: "Yakıt", uk: "Паливо" },
+        fields: [
+            { key: "primaryFuel", translations: { en: "Primary Fuel", az: "Əsas yanacaq", pl: "Główne paliwo", de: "Hauptkraftstoff", es: "Combustible principal", pt: "Combustível principal", tr: "Birincil yakıt", uk: "Основне паливо" }, apiKey: "FuelTypePrimary" },
+            { key: "secondaryFuel", translations: { en: "Secondary Fuel", az: "İkinci yanacaq", pl: "Drugie paliwo", de: "Zweitkraftstoff", es: "Combustible secundario", pt: "Combustível secundário", tr: "İkincil yakıt", uk: "Другорядне паливо" }, apiKey: "FuelTypeSecondary" },
+            { key: "tankType", translations: { en: "Tank Type", az: "Bak növü", pl: "Typ zbiornika", de: "Tanktyp", es: "Tipo de tanque", pt: "Tipo de tanque", tr: "Depo tipi", uk: "Тип бака" }, apiKey: "FuelTankType" },
+            { key: "tankMaterial", translations: { en: "Tank Material", az: "Bak materialı", pl: "Materiał zbiornika", de: "Tankmaterial", es: "Material del tanque", pt: "Material do tanque", tr: "Depo malzemesi", uk: "Матеріал бака" }, apiKey: "FuelTankMaterial" }
+        ]
+    },
+    transmission: {
+        key: "transmission",
+        translations: { en: "Transmission & Drive", az: "Transmissiya və Sürücü", pl: "Skrzynia Biegów i Napęd", de: "Getriebe & Antrieb", es: "Transmisión y Tracción", pt: "Transmissão e Tração", tr: "Şanzıman ve Sürüş", uk: "Трансмісія та Привід" },
+        fields: [
+            { key: "transmission", translations: { en: "Transmission", az: "Transmissiya", pl: "Skrzynia biegów", de: "Getriebe", es: "Transmisión", pt: "Transmissão", tr: "Şanzıman", uk: "Трансмісія" }, apiKey: "TransmissionStyle" },
+            { key: "speeds", translations: { en: "Speeds", az: "Sürətlər", pl: "Biegi", de: "Gänge", es: "Velocidades", pt: "Velocidades", tr: "Vites", uk: "Швидкості" }, apiKey: "TransmissionSpeeds" },
+            { key: "driveType", translations: { en: "Drive Type", az: "Sürücü növü", pl: "Rodzaj napędu", de: "Antriebstyp", es: "Tipo de tracción", pt: "Tipo de tração", tr: "Sürüş tipi", uk: "Тип приводу" }, apiKey: "DriveType" }
+        ]
+    },
+    dimensions: {
+        key: "dimensions",
+        translations: { en: "Dimensions & Weight", az: "Ölçülər və Çəki", pl: "Wymiary i Waga", de: "Maße & Gewicht", es: "Dimensiones y Peso", pt: "Dimensões e Peso", tr: "Ölçüler ve Ağırlık", uk: "Розміри та Вага" },
+        fields: [
+            { key: "doors", translations: { en: "Doors", az: "Qapı sayı", pl: "Drzwi", de: "Türen", es: "Puertas", pt: "Portas", tr: "Kapı sayısı", uk: "Двері" }, apiKey: "Doors" },
+            { key: "seatRows", translations: { en: "Seat Rows", az: "Oturacaq sıraları", pl: "Rzędy siedzeń", de: "Sitzreihen", es: "Filas de asientos", pt: "Fileiras de assentos", tr: "Koltuk sıraları", uk: "Ряди сидінь" }, apiKey: "SeatRows" },
+            { key: "seats", translations: { en: "Seats", az: "Oturacaqlar", pl: "Miejsca", de: "Sitze", es: "Asientos", pt: "Assentos", tr: "Koltuklar", uk: "Сидіння" }, apiKey: "Seats" },
+            { key: "windows", translations: { en: "Windows", az: "Pəncərələr", pl: "Szyby", de: "Fenster", es: "Ventanas", pt: "Janelas", tr: "Camlar", uk: "Вікна" }, apiKey: "Windows" },
+            { key: "wheels", translations: { en: "Wheels", az: "Təkərlər", pl: "Koła", de: "Räder", es: "Ruedas", pt: "Rodas", tr: "Tekerlekler", uk: "Колеса" }, apiKey: "Wheels" },
+            { key: "frontWheel", translations: { en: "Front Wheel Size", az: "Ön təkər ölçüsü", pl: "Rozmiar koła przód", de: "Vorderradgröße", es: "Tamaño rueda delantera", pt: "Tamanho roda dianteira", tr: "Ön tekerlek boyutu", uk: "Розмір переднього колеса" }, apiKey: "WheelSizeFront" },
+            { key: "rearWheel", translations: { en: "Rear Wheel Size", az: "Arxa təkər ölçüsü", pl: "Rozmiar koła tył", de: "Hinterradgröße", es: "Tamaño rueda trasera", pt: "Tamanho roda traseira", tr: "Arka tekerlek boyutu", uk: "Розмір заднього колеса" }, apiKey: "WheelSizeRear" },
+            { key: "wheelbaseType", translations: { en: "Wheelbase Type", az: "Təkər bazası növü", pl: "Typ rozstawu osi", de: "Radstandtyp", es: "Tipo de distancia entre ejes", pt: "Tipo de entre-eixos", tr: "Tekerlek bazası tipi", uk: "Тип колісної бази" }, apiKey: "WheelBaseType" },
+            { key: "wheelbaseShort", translations: { en: "Short Wheelbase", az: "Qısa təkər bazası", pl: "Krótki rozstaw osi", de: "Kurzer Radstand", es: "Distancia entre ejes corta", pt: "Entre-eixos curto", tr: "Kısa tekerlek bazası", uk: "Коротка колісна база" }, apiKey: "WheelBaseShort" },
+            { key: "wheelbaseLong", translations: { en: "Long Wheelbase", az: "Uzun təkər bazası", pl: "Długi rozstaw osi", de: "Langer Radstand", es: "Distancia entre ejes larga", pt: "Entre-eixos longo", tr: "Uzun tekerlek bazası", uk: "Довга колісна база" }, apiKey: "WheelBaseLong" },
+            { key: "trackWidth", translations: { en: "Track Width", az: "İz eni", pl: "Szerokość rozstawu", de: "Spurweite", es: "Anchura de vía", pt: "Largura da via", tr: "İz genişliği", uk: "Ширина колії" }, apiKey: "TrackWidth" },
+            { key: "curbWeight", translations: { en: "Curb Weight (LB)", az: "Bordür çəkisi (LB)", pl: "Masa własna (LB)", de: "Leergewicht (LB)", es: "Peso en vacío (LB)", pt: "Peso em vazio (LB)", tr: "Boş ağırlık (LB)", uk: "Вага без навантаження (LB)" }, apiKey: "CurbWeightLB" },
+            { key: "gvwr", translations: { en: "GVWR", az: "GVWR", pl: "GVWR", de: "GVWR", es: "GVWR", pt: "GVWR", tr: "GVWR", uk: "GVWR" }, apiKey: "GVWR" },
+            { key: "gvwrMax", translations: { en: "GVWR - Max", az: "GVWR - Max", pl: "GVWR - Max", de: "GVWR - Max", es: "GVWR - Máx", pt: "GVWR - Máx", tr: "GVWR - Maks", uk: "GVWR - Макс" }, apiKey: "GVWR_to" },
+            { key: "gcwr", translations: { en: "GCWR", az: "GCWR", pl: "GCWR", de: "GCWR", es: "GCWR", pt: "GCWR", tr: "GCWR", uk: "GCWR" }, apiKey: "GCWR" },
+            { key: "gcwrMax", translations: { en: "GCWR - Max", az: "GCWR - Max", pl: "GCWR - Max", de: "GCWR - Max", es: "GCWR - Máx", pt: "GCWR - Máx", tr: "GCWR - Maks", uk: "GCWR - Макс" }, apiKey: "GCWR_to" },
+            { key: "axleConfig", translations: { en: "Axle Configuration", az: "Ox konfiqurasiyası", pl: "Konfiguracja osi", de: "Achskonfiguration", es: "Configuración de ejes", pt: "Configuração de eixos", tr: "Aks konfigürasyonu", uk: "Конфігурація осей" }, apiKey: "AxleConfiguration" },
+            { key: "axles", translations: { en: "Axles", az: "Oxlar", pl: "Osie", de: "Achsen", es: "Ejes", pt: "Eixos", tr: "Akslar", uk: "Вісь" }, apiKey: "Axles" }
+        ]
+    },
+    body: {
+        key: "body",
+        translations: { en: "Body Details", az: "Kuzov Detalları", pl: "Szczegóły Nadwozia", de: "Karosserie Details", es: "Detalles de Carrocería", pt: "Detalhes da Carroceria", tr: "Gövde Detayları", uk: "Деталі Кузова" },
+        fields: [
+            { key: "bodyCab", translations: { en: "Body/Cab Type", az: "Kuzov/Kabin növü", pl: "Typ nadwozia/kabiny", de: "Karosserie/Kabinentyp", es: "Tipo carrocería/cabina", pt: "Tipo carroceria/cabine", tr: "Gövde/Kabin tipi", uk: "Тип кузова/кабіни" }, apiKey: "BodyCabType" },
+            { key: "bedLength", translations: { en: "Bed Length (IN)", az: "Yük yeri uzunluğu (IN)", pl: "Długość skrzyni (IN)", de: "Laderausräume (IN)", es: "Longitud caja (IN)", pt: "Comprimento caçamba (IN)", tr: "Kasa uzunluğu (IN)", uk: "Довжина вантажного відсіку (IN)" }, apiKey: "BedLengthIN" },
+            { key: "bedType", translations: { en: "Bed Type", az: "Yük yeri növü", pl: "Typ skrzyni", de: "Laderausräumtyp", es: "Tipo de caja", pt: "Tipo de caçamba", tr: "Kasa tipi", uk: "Тип вантажного відсіку" }, apiKey: "BedType" }
+        ]
+    },
+    safety: {
+        key: "safety",
+        translations: { en: "Safety", az: "Təhlükəsizlik", pl: "Bezpieczeństwo", de: "Sicherheit", es: "Seguridad", pt: "Segurança", tr: "Güvenlik", uk: "Безпека" },
+        fields: [
+            { key: "airbagFront", translations: { en: "Airbag (Front)", az: "Hava yastığı (ön)", pl: "Poduszka (przód)", de: "Airbag (vorne)", es: "Airbag (frontal)", pt: "Airbag (frontal)", tr: "Hava yastığı (ön)", uk: "Подушка безпеки (передня)" }, apiKey: "AirBagLocFront" },
+            { key: "airbagSide", translations: { en: "Airbag (Side)", az: "Hava yastığı (yan)", pl: "Poduszka (boczna)", de: "Airbag (Seite)", es: "Airbag (lateral)", pt: "Airbag (lateral)", tr: "Hava yastığı (yan)", uk: "Подушка безпеки (бічна)" }, apiKey: "AirBagLocSide" },
+            { key: "airbagKnee", translations: { en: "Airbag (Knee)", az: "Hava yastığı (diz)", pl: "Poduszka (kolana)", de: "Airbag (Knie)", es: "Airbag (rodilla)", pt: "Airbag (joelho)", tr: "Hava yastığı (diz)", uk: "Подушка безпеки (коліна)" }, apiKey: "AirBagLocKnee" },
+            { key: "airbagCurtain", translations: { en: "Airbag (Curtain)", az: "Hava yastığı (pərdə)", pl: "Poduszka (zasłona)", de: "Airbag (Vorhang)", es: "Airbag (cortina)", pt: "Airbag (cortina)", tr: "Hava yastığı (perde)", uk: "Подушка безпеки (завіса)" }, apiKey: "AirBagLocCurtain" },
+            { key: "airbagSeat", translations: { en: "Airbag (Seat)", az: "Hava yastığı (oturacaq)", pl: "Poduszka (siedzisko)", de: "Airbag (Sitz)", es: "Airbag (asiento)", pt: "Airbag (assento)", tr: "Hava yastığı (koltuk)", uk: "Подушка безпеки (сидіння)" }, apiKey: "AirBagLocSeatCushion" },
+            { key: "seatBelts", translations: { en: "Seat Belts", az: "Təhlükəsizlik kəmərləri", pl: "Pasy bezpieczeństwa", de: "Sicherheitsgurte", es: "Cinturones", pt: "Cintos", tr: "Emniyet kemerleri", uk: "Ремені безпеки" }, apiKey: "SeatBeltsAll" },
+            { key: "pretensioner", translations: { en: "Pretensioner", az: "Pretensioner", pl: "Napinacz", de: "Gurtstraffer", es: "Pretensor", pt: "Pretensor", tr: "Gergi", uk: "Натягувач" }, apiKey: "Pretensioner" },
+            { key: "otherRestraint", translations: { en: "Other Info", az: "Digər məlumat", pl: "Inne informacje", de: "Sonstiges", es: "Otra información", pt: "Outras informações", tr: "Diğer bilgiler", uk: "Інша інформація" }, apiKey: "OtherRestraintSystemInfo" },
+            { key: "abs", translations: { en: "ABS", az: "ABS", pl: "ABS", de: "ABS", es: "ABS", pt: "ABS", tr: "ABS", uk: "ABS" }, apiKey: "ABS" },
+            { key: "esc", translations: { en: "ESC", az: "ESC", pl: "ESP", de: "ESP", es: "ESP", pt: "ESP", tr: "ESP", uk: "ESP" }, apiKey: "ESC" },
+            { key: "traction", translations: { en: "Traction Control", az: "Traction Control", pl: "Kontrol trakcji", de: "Traktionskontrolle", es: "Control tracción", pt: "Controle tração", tr: "Çekiş kontrolü", uk: "Контроль тяги" }, apiKey: "TractionControl" },
+            { key: "edr", translations: { en: "EDR", az: "EDR", pl: "EDR", de: "EDR", es: "EDR", pt: "EDR", tr: "EDR", uk: "EDR" }, apiKey: "EDR" },
+            { key: "tpms", translations: { en: "TPMS", az: "TPMS", pl: "TPMS", de: "TPMS", es: "TPMS", pt: "TPMS", tr: "TPMS", uk: "TPMS" }, apiKey: "TPMS" },
+            { key: "safetyNote", translations: { en: "Safety Note", az: "Aktiv təhlükəsizlik qeydi", pl: "Uwaga bezpieczeństwa", de: "Sicherheitsnotiz", es: "Nota seguridad", pt: "Nota segurança", tr: "Güvenlik notu", uk: "Примітка безпеки" }, apiKey: "ActiveSafetySysNote" }
+        ]
+    },
+    driverAssist: {
+        key: "driverAssist",
+        translations: { en: "Driver Assistance Systems", az: "Sürücü Köməkçi Sistemləri", pl: "Systemy Wspomagania Kierowcy", de: "Fahrerassistenzsysteme", es: "Sistemas de Asistencia al Conductor", pt: "Sistemas de Assistência ao Condutor", tr: "Sürücü Destek Sistemleri", uk: "Системи Допомоги Водію" },
+        fields: [
+            { key: "driverAssist", translations: { en: "Driver Assist", az: "Sürücü köməkçisi", pl: "Wspomaganie kierowcy", de: "Fahrerassistenz", es: "Asistencia conductor", pt: "Assistência condutor", tr: "Sürücü yardımı", uk: "Допомога водію" }, apiKey: "DriverAssist" },
+            { key: "adaptiveCruise", translations: { en: "Adaptive Cruise", az: "Adaptiv kruiz", pl: "Adaptacyjny tempomat", de: "Adaptiver Tempomat", es: "Control crucero adaptativo", pt: "Controle de cruzeiro adaptativo", tr: "Adaptif hız sabitleyici", uk: "Адаптивний круїз" }, apiKey: "AdaptiveCruiseControl" },
+            { key: "cib", translations: { en: "CIB", az: "CIB", pl: "CIB", de: "CIB", es: "CIB", pt: "CIB", tr: "CIB", uk: "CIB" }, apiKey: "CIB" },
+            { key: "dynamicBrake", translations: { en: "Dynamic Brake Support", az: "Dinamik əyləc dəstəyi", pl: "Dynamiczne wspomaganie hamowania", de: "Dynamische Bremsunterstützung", es: "Soporte frenado dinámico", pt: "Suporte frenagem dinâmica", tr: "Dinamik fren desteği", uk: "Динамічна підтримка гальмування" }, apiKey: "DynamicBrakeSupport" },
+            { key: "collisionWarning", translations: { en: "Collision Warning", az: "Toqquşma xəbərdarlığı", pl: "Ostrzeżenie kolizji", de: "Kollisionswarnung", es: "Alerta colisión", pt: "Alerta colisão", tr: "Çarpışma uyarısı", uk: "Попередження зіткнення" }, apiKey: "ForwardCollisionWarning" },
+            { key: "laneCentering", translations: { en: "Lane Centering", az: "Zolaq mərkəzləşdirmə", pl: "Centrowanie pasa", de: "Spurmittierung", es: "Centrado carril", pt: "Centralização faixa", tr: "Şerit merkezleme", uk: "Центрування смуги" }, apiKey: "LaneCenteringAssistance" },
+            { key: "laneDeparture", translations: { en: "Lane Departure Warning", az: "Zolaq xəbərdarlığı", pl: "Ostrzeżenie opuszczenia pasa", de: "Spurwechselwarnung", es: "Alerta salida carril", pt: "Alerta saída faixa", tr: "Şerit terk uyarısı", uk: "Попередження про зміну смуги" }, apiKey: "LaneDepartureWarning" },
+            { key: "laneKeep", translations: { en: "Lane Keep", az: "Zolaq saxlama", pl: "Utrzymanie pasa", de: "Spurhalteassistent", es: "Mantenimiento carril", pt: "Manutenção faixa", tr: "Şerit koruma", uk: "Утримання смуги" }, apiKey: "LaneKeepSystem" },
+            { key: "blindSpotInt", translations: { en: "Blind Spot Intervention", az: "Kor nöqtə müdaxiləsi", pl: "Interwencja martwego pola", de: "Toter-Winkel-Eingriff", es: "Intervención ángulo muerto", pt: "Intervenção ângulo morto", tr: "Kör nokta müdahalesi", uk: "Втручання сліпої зони" }, apiKey: "BlindSpotIntervention" },
+            { key: "blindSpotMon", translations: { en: "Blind Spot Monitor", az: "Kor nöqtə monitorinqi", pl: "Monitor martwego pola", de: "Toter-Winkel-Monitor", es: "Monitor ángulo muerto", pt: "Monitor ângulo morto", tr: "Kör nokta monitörü", uk: "Монітор сліпої зони" }, apiKey: "BlindSpotMon" },
+            { key: "rearAeb", translations: { en: "Rear AEB", az: "Arxa çarpışma əyləci", pl: "Tylne hamowanie awaryjne", de: "Hintere Notbremsung", es: "Frenado emergencia trasero", pt: "Frenagem emergência traseira", tr: "Arka çarpışma freni", uk: "Заднє аварійне гальмування" }, apiKey: "RearAutomaticEmergencyBraking" },
+            { key: "rearCross", translations: { en: "Rear Cross Traffic Alert", az: "Arxa trafik xəbərdarlığı", pl: "Ostrzeżenie skrzyżowania tył", de: "Querkehrausfahrunterstützung", es: "Alerta tráfico cruzado trasero", pt: "Alerta tráfego cruzado traseiro", tr: "Arka çapraz trafik uyarısı", uk: "Попередження про задній хрестовий рух" }, apiKey: "RearCrossTrafficAlert" },
+            { key: "rearView", translations: { en: "Rear View System", az: "Arxa görüş sistemi", pl: "System widoku tył", de: "Rückfahrsystem", es: "Sistema vista trasera", pt: "Sistema visão traseira", tr: "Arka görüş sistemi", uk: "Система заднього огляду" }, apiKey: "RearVisibilitySystem" },
+            { key: "parkAssist", translations: { en: "Park Assist", az: "Park köməkçisi", pl: "Asystent parkowania", de: "Einparkhilfe", es: "Asistente aparcamiento", pt: "Assistente estacionamento", tr: "Park yardımcısı", uk: "Асистент паркування" }, apiKey: "ParkAssist" },
+            { key: "pedestrianAeb", translations: { en: "Pedestrian AEB", az: "Piyada avtomatik əyləc", pl: "Hamowanie pieszego", de: "Fußgänger-Notbremsung", es: "Frenado peatón", pt: "Frenagem pedestre", tr: "Yaya otomatik fren", uk: "Аварійне гальмування для пішоходів" }, apiKey: "PedestrianAutomaticEmergencyBraking" },
+            { key: "autoReverse", translations: { en: "Auto Reverse", az: "Avtomatik geri dönmə", pl: "Automatyczne cofanie", de: "Automatische Rückwärtsfahrt", es: "Reversa automática", pt: "Ré inversa automática", tr: "Otomatik geri", uk: "Автоматичний реверс" }, apiKey: "AutoReverseSystem" },
+            { key: "pedestrianAlert", translations: { en: "Pedestrian Alert", az: "Piyada səs xəbərdarlığı", pl: "Ostrzeżenie pieszego", de: "Fußgängerwarnsignal", es: "Alerta peatón sonido", pt: "Alerta pedestre som", tr: "Yaya ses uyarısı", uk: "Звукове попередження для пішоходів" }, apiKey: "AutomaticPedestrianAlertingSound" },
+            { key: "saeLevel", translations: { en: "SAE Automation Level", az: "SAE Avtomatlaşdırma", pl: "Poziom SAE", de: "SAE-Automatisierungsstufe", es: "Nivel SAE", pt: "Nível SAE", tr: "SAE Otomasyon seviyesi", uk: "Рівень автоматизації SAE" }, apiKey: "SAEAutomationLevel" },
+            { key: "saeLevelMax", translations: { en: "SAE Automation - Max", az: "SAE Avtomatlaşdırma - Max", pl: "SAE - Max", de: "SAE - Max", es: "SAE - Máx", pt: "SAE - Máx", tr: "SAE - Maks", uk: "SAE - Макс" }, apiKey: "SAEAutomationLevel_to" }
+        ]
+    },
+    lighting: {
+        key: "lighting",
+        translations: { en: "Lighting", az: "İşıqlandırma", pl: "Oświetlenie", de: "Beleuchtung", es: "Iluminación", pt: "Iluminação", tr: "Aydınlatma", uk: "Освітлення" },
+        fields: [
+            { key: "daytimeLights", translations: { en: "Daytime Running Lights", az: "Gündüz işığı", pl: "Światła dzienne", de: "Tagfahrlicht", es: "Luces diurnas", pt: "Luzes diurnas", tr: "Gündüz farları", uk: "Протитуманні фари" }, apiKey: "DaytimeRunningLight" },
+            { key: "adaptiveHeadlights", translations: { en: "Adaptive Headlights", az: "Adaptiv fara", pl: "Adaptacyjne reflektory", de: "Adaptierende Scheinwerfer", es: "Faros adaptativos", pt: "Faróis adaptativos", tr: "Adaptif farlar", uk: "Адаптивні фари" }, apiKey: "AdaptiveHeadlights" },
+            { key: "adaptiveBeam", translations: { en: "Adaptive Driving Beam", az: "Adaptiv sürücü şüası", pl: "Adaptacyjny snop", de: "Adaptiver Lichtkegel", es: "Haz adaptativo", pt: "Feixe adaptativo", tr: "Adaptif sürüş ışını", uk: "Адаптивний промінь" }, apiKey: "AdaptiveDrivingBeam" },
+            { key: "semiAutoHeadlamp", translations: { en: "Semi-Auto Headlamp", az: "Yarımavtomatik fara", pl: "Półautomatyczne reflektory", de: "Halbautomatische Scheinwerfer", es: "Semiautomático faros", pt: "Semiautomático faróis", tr: "Yarı otomatik far", uk: "Напівавтоматичні фари" }, apiKey: "SemiautomaticHeadlampBeamSwitching" },
+            { key: "lowerBeamSource", translations: { en: "Lower Beam Source", az: "Aşağı şüa mənbəyi", pl: "Źródło dolnego światła", de: "Unteres Lichtquelle", es: "Fuente haz bajo", pt: "Fonte feixe baixo", tr: "Alt demet kaynağı", uk: "Джерело нижнього променя" }, apiKey: "LowerBeamHeadlampLightSource" }
+        ]
+    },
+    brakes: {
+        key: "brakes",
+        translations: { en: "Brake System", az: "Əyləc Sistemi", pl: "Układ Hamulcowy", de: "Bremssystem", es: "Sistema de Frenos", pt: "Sistema de Freios", tr: "Fren Sistemi", uk: "Гальмівна Система" },
+        fields: [
+            { key: "brakeType", translations: { en: "Brake System", az: "Əyləc sistemi", pl: "Układ hamulcowy", de: "Bremssystem", es: "Sistema frenos", pt: "Sistema freios", tr: "Fren sistemi", uk: "Гальмівна система" }, apiKey: "BrakeSystemType" },
+            { key: "brakeDesc", translations: { en: "Brake Description", az: "Əyləc təsviri", pl: "Opis hamulca", de: "Beschreibung Bremse", es: "Descripción frenos", pt: "Descrição freios", tr: "Fren tanımı", uk: "Опис гальм" }, apiKey: "BrakeSystemDesc" },
+            { key: "combinedBraking", translations: { en: "Combined Braking", az: "Kombinə əyləc", pl: "Zintegrowane hamowanie", de: "Kombiniertes Bremsen", es: "Frenado combinado", pt: "Frenagem combinada", tr: "Kombine fren", uk: "Комбіноване гальмування" }, apiKey: "CombinedBrakingSystem" }
+        ]
+    },
+    manufacturing: {
+        key: "manufacturing",
+        translations: { en: "Manufacturing", az: "İstehsal", pl: "Produkcja", de: "Fertigung", es: "Fabricación", pt: "Fabricação", tr: "Üretim", uk: "Виробництво" },
+        fields: [
+            { key: "manufacturer", translations: { en: "Manufacturer", az: "İstehsalçı", pl: "Producent", de: "Hersteller", es: "Fabricante", pt: "Fabricante", tr: "Üretici", uk: "Виробник" }, apiKey: "Manufacturer" },
+            { key: "manufacturerId", translations: { en: "Manufacturer ID", az: "İstehsalçı ID", pl: "ID producenta", de: "Hersteller-ID", es: "ID fabricante", pt: "ID fabricante", tr: "Üretici ID", uk: "ID виробника" }, apiKey: "ManufacturerId" },
+            { key: "plantCity", translations: { en: "Plant City", az: "Zavod şəhəri", pl: "Miasto fabryki", de: "Werkstadt", es: "Ciudad planta", pt: "Cidade fábrica", tr: "Fabrika şehri", uk: "Місто заводу" }, apiKey: "PlantCity" },
+            { key: "plantCountry", translations: { en: "Plant Country", az: "Zavod ölkəsi", pl: "Kraj fabryki", de: "Werkland", es: "País planta", pt: "País fábrica", tr: "Fabrika ülkesi", uk: "Країна заводу" }, apiKey: "PlantCountry" },
+            { key: "plantState", translations: { en: "Plant State", az: "Zavod ştatı", pl: "Stan fabryki", de: "Werkbundesland", es: "Estado planta", pt: "Estado fábrica", tr: "Fabrika eyaleti", uk: "Штат заводу" }, apiKey: "PlantState" },
+            { key: "plantCompany", translations: { en: "Plant Company", az: "Zavod şirkəti", pl: "Firma fabryki", de: "Werkfirma", es: "Compañía planta", pt: "Empresa fábrica", tr: "Fabrika şirketi", uk: "Компанія заводу" }, apiKey: "PlantCompanyName" }
+        ]
+    },
+    electric: {
+        key: "electric",
+        translations: { en: "Electric Vehicle", az: "Elektrik Avtomobil", pl: "Pojazd Elektryczny", de: "Elektrofahrzeug", es: "Vehículo Eléctrico", pt: "Veículo Elétrico", tr: "Elektrikli Araç", uk: "Електромобіль" },
+        fields: [
+            { key: "electrification", translations: { en: "Electrification Level", az: "Elektrifikasiya səviyyəsi", pl: "Poziom elektryfikacji", de: "Elektrifizierungsstufe", es: "Nivel electrificación", pt: "Nível eletrificação", tr: "Elektriklenme seviyesi", uk: "Рівень електрифікації" }, apiKey: "ElectrificationLevel" },
+            { key: "evDrive", translations: { en: "EV Drive Unit", az: "EV sürücü vahidi", pl: "Jednostka napędowa EV", de: "EV-Antriebseinheit", es: "Unidad tracción EV", pt: "Unidade tração EV", tr: "EV tahrik ünitesi", uk: "Електричний привід" }, apiKey: "EVDriveUnit" },
+            { key: "batteryType", translations: { en: "Battery Type", az: "Batareya növü", pl: "Typ baterii", de: "Batterietyp", es: "Tipo batería", pt: "Tipo bateria", tr: "Batarya tipi", uk: "Тип батареї" }, apiKey: "BatteryType" },
+            { key: "batteryKwh", translations: { en: "Battery (KWh)", az: "Batareya (KWh)", pl: "Bateria (KWh)", de: "Batterie (KWh)", es: "Batería (KWh)", pt: "Bateria (KWh)", tr: "Batarya (KWh)", uk: "Батарея (КВт·год)" }, apiKey: "BatteryKWh" },
+            { key: "batteryKwhMax", translations: { en: "Battery (KWh) - Max", az: "Batareya (KWh) - Max", pl: "Bateria (KWh) - Max", de: "Batterie (KWh) - Max", es: "Batería (KWh) - Máx", pt: "Bateria (KWh) - Máx", tr: "Batarya (KWh) - Maks", uk: "Батарея (КВт·год) - Макс" }, apiKey: "BatteryKWh_to" },
+            { key: "batteryV", translations: { en: "Battery (V)", az: "Batareya (V)", pl: "Bateria (V)", de: "Batterie (V)", es: "Batería (V)", pt: "Bateria (V)", tr: "Batarya (V)", uk: "Батарея (В)" }, apiKey: "BatteryV" },
+            { key: "batteryVMax", translations: { en: "Battery (V) - Max", az: "Batareya (V) - Max", pl: "Bateria (V) - Max", de: "Batterie (V) - Max", es: "Batería (V) - Máx", pt: "Bateria (V) - Máx", tr: "Batarya (V) - Maks", uk: "Батарея (В) - Макс" }, apiKey: "BatteryV_to" },
+            { key: "batteryA", translations: { en: "Battery (A)", az: "Batareya (A)", pl: "Bateria (A)", de: "Batterie (A)", es: "Batería (A)", pt: "Bateria (A)", tr: "Batarya (A)", uk: "Батарея (А)" }, apiKey: "BatteryA" },
+            { key: "batteryAMax", translations: { en: "Battery (A) - Max", az: "Batareya (A) - Max", pl: "Bateria (A) - Max", de: "Batterie (A) - Max", es: "Batería (A) - Máx", pt: "Bateria (A) - Máx", tr: "Batarya (A) - Maks", uk: "Батарея (А) - Макс" }, apiKey: "BatteryA_to" },
+            { key: "batteryCells", translations: { en: "Battery Cells", az: "Batareya hüceyrələri", pl: "Komórki baterii", de: "Batteriezellen", es: "Celdas batería", pt: "Células bateria", tr: "Batarya hücreleri", uk: "Елементи батареї" }, apiKey: "BatteryCells" },
+            { key: "batteryModules", translations: { en: "Battery Modules", az: "Batareya modulları", pl: "Moduły baterii", de: "Batteriemodule", es: "Módulos batería", pt: "Módulos bateria", tr: "Batarya modülleri", uk: "Модулі батареї" }, apiKey: "BatteryModules" },
+            { key: "batteryPacks", translations: { en: "Battery Packs", az: "Batareya paketləri", pl: "Pakiety baterii", de: "Batteriepacks", es: "Paquetes batería", pt: "Pacotes bateria", tr: "Batarya paketleri", uk: "Батарейні пакети" }, apiKey: "BatteryPacks" },
+            { key: "batteryInfo", translations: { en: "Battery Info", az: "Batareya məlumatı", pl: "Informacje o baterii", de: "Batterieinfo", es: "Info batería", pt: "Info bateria", tr: "Batarya bilgisi", uk: "Інформація про батарею" }, apiKey: "BatteryInfo" },
+            { key: "chargerLevel", translations: { en: "Charger Level", az: "Şarj səviyyəsi", pl: "Poziom ładowania", de: "Ladelevel", es: "Nivel cargador", pt: "Nível carregador", tr: "Şarj seviyesi", uk: "Рівень зарядки" }, apiKey: "ChargerLevel" },
+            { key: "chargerPower", translations: { en: "Charger Power (KW)", az: "Şarj gücü (KW)", pl: "Moc ładowania (KW)", de: "Ladeleistung (KW)", es: "Potencia cargador (KW)", pt: "Potência carregador (KW)", tr: "Şarj gücü (KW)", uk: "Потужність зарядки (КВт)" }, apiKey: "ChargerPowerKW" }
+        ]
+    },
+    motorcycle: {
+        key: "motorcycle",
+        translations: { en: "Motorcycle", az: "Motosiklet", pl: "Motocykl", de: "Motorrad", es: "Motocicleta", pt: "Motocicleta", tr: "Motosiklet", uk: "Мотоцикл" },
+        fields: [
+            { key: "chassisType", translations: { en: "Chassis Type", az: "Motosiklet şassi", pl: "Typ ramy", de: "Chassityp", es: "Tipo chasis", pt: "Tipo chassis", tr: "Şasi tipi", uk: "Тип рами" }, apiKey: "MotorcycleChassisType" },
+            { key: "suspensionType", translations: { en: "Suspension Type", az: "Motosiklet asma", pl: "Typ zawieszenia", de: "Fahrwerksart", es: "Tipo suspensión", pt: "Tipo suspensão", tr: "Süspansiyon tipi", uk: "Тип підвіски" }, apiKey: "MotorcycleSuspensionType" },
+            { key: "customType", translations: { en: "Custom Type", az: "Xüsusi motosiklet", pl: "Typ custom", de: "Custom-Typ", es: "Tipo custom", pt: "Tipo custom", tr: "Özel tip", uk: "Кастомний тип" }, apiKey: "CustomMotorcycleType" },
+            { key: "otherInfo", translations: { en: "Other Info", az: "Digər məlumat", pl: "Inne informacje", de: "Sonstiges", es: "Otra información", pt: "Outras informações", tr: "Diğer bilgiler", uk: "Інша інформація" }, apiKey: "OtherMotorcycleInfo" },
+            { key: "wheelieMitigation", translations: { en: "Wheelie Mitigation", az: "Wheelie azaltma", pl: "Redukcja wheelie", de: "Wheelie-Minderung", es: "Mitigación wheelie", pt: "Mitigação wheelie", tr: "Wheelie azaltma", uk: "Зменшення wheelie" }, apiKey: "WheelieMitigation" }
+        ]
+    },
+    bus: {
+        key: "bus",
+        translations: { en: "Bus", az: "Avtobus", pl: "Autobus", de: "Bus", es: "Autobús", pt: "Ônibus", tr: "Otobüs", uk: "Автобус" },
+        fields: [
+            { key: "busType", translations: { en: "Bus Type", az: "Avtobus növü", pl: "Typ autobusu", de: "Bustyp", es: "Tipo autobús", pt: "Tipo ônibus", tr: "Otobüs tipi", uk: "Тип автобуса" }, apiKey: "BusType" },
+            { key: "busLength", translations: { en: "Bus Length", az: "Avtobus uzunluğu", pl: "Długość autobusu", de: "Buslänge", es: "Longitud autobús", pt: "Comprimento ônibus", tr: "Otobüs uzunluğu", uk: "Довжина автобуса" }, apiKey: "BusLength" },
+            { key: "floorConfig", translations: { en: "Floor Configuration", az: "Döşəmə konfiqurasiyası", pl: "Konfiguracja podłogi", de: "Bodenkonfiguration", es: "Configuración suelo", pt: "Configuração piso", tr: "Zemin konfigürasyonu", uk: "Конфігурація підлоги" }, apiKey: "BusFloorConfigType" },
+            { key: "otherInfo", translations: { en: "Other Info", az: "Digər məlumat", pl: "Inne informacje", de: "Sonstiges", es: "Otra información", pt: "Outras informações", tr: "Diğer bilgiler", uk: "Інша інформація" }, apiKey: "OtherBusInfo" }
+        ]
+    },
+    trailer: {
+        key: "trailer",
+        translations: { en: "Trailer", az: "Qoşqu", pl: "Przyczepa", de: "Anhänger", es: "Remolque", pt: "Reboque", tr: "Römork", uk: "Причіп" },
+        fields: [
+            { key: "trailerType", translations: { en: "Trailer Type", az: "Qoşqu növü", pl: "Typ przyczepy", de: "Anhängertyp", es: "Tipo remolque", pt: "Tipo reboque", tr: "Römork tipi", uk: "Тип причепа" }, apiKey: "TrailerType" },
+            { key: "trailerBody", translations: { en: "Trailer Body", az: "Qoşqu kuzovu", pl: "Nadwozie przyczepy", de: "Anhängeraufbau", es: "Carrocería remolque", pt: "Carroceria reboque", tr: "Römork gövdesi", uk: "Кузов причепа" }, apiKey: "TrailerBodyType" },
+            { key: "trailerLength", translations: { en: "Trailer Length", az: "Qoşqu uzunluğu", pl: "Długość przyczepy", de: "Anhängerlänge", es: "Longitud remolque", pt: "Comprimento reboque", tr: "Römork uzunluğu", uk: "Довжина причепа" }, apiKey: "TrailerLength" },
+            { key: "otherInfo", translations: { en: "Other Info", az: "Digər məlumat", pl: "Inne informacje", de: "Sonstiges", es: "Otra información", pt: "Outras informações", tr: "Diğer bilgiler", uk: "Інша інформація" }, apiKey: "OtherTrailerInfo" }
+        ]
+    },
+    other: {
+        key: "other",
+        translations: { en: "Other", az: "Digər", pl: "Inne", de: "Sonstiges", es: "Otros", pt: "Outros", tr: "Diğer", uk: "Інше" },
+        fields: [
+            { key: "steering", translations: { en: "Steering Location", az: "Sükan yeri", pl: "Położenie kierownicy", de: "Lenkungslage", es: "Posición volante", pt: "Posição volante", tr: "Direksiyon konumu", uk: "Розташування керма" }, apiKey: "SteeringLocation" },
+            { key: "entertainment", translations: { en: "Entertainment System", az: "Əyləncə sistemi", pl: "System rozrywki", de: "Infotainment", es: "Sistema entretenimiento", pt: "Sistema entretenimento", tr: "Eğlence sistemi", uk: "Система розваг" }, apiKey: "EntertainmentSystem" },
+            { key: "keyless", translations: { en: "Keyless Ignition", az: "Açarsız işə salma", pl: "Bezkлючowe uruchamianie", de: "Schlüsselloses Starten", es: "Encendido sin llave", pt: "Ignição sem chave", tr: "Anahtarsız çalıştırma", uk: "Запуск без ключа" }, apiKey: "KeylessIgnition" },
+            { key: "topSpeed", translations: { en: "Top Speed (MPH)", az: "Maksimum sürət (MPH)", pl: "Prędkość maks (MPH)", de: "Höchstgeschwindigkeit (MPH)", es: "Velocidad máxima (MPH)", pt: "Velocidade máxima (MPH)", tr: "Maksimum hız (MPH)", uk: "Максимальна швидкість (миль/год)" }, apiKey: "TopSpeedMPH" },
+            { key: "basePrice", translations: { en: "Base Price", az: "Baza qiyməti", pl: "Cena bazowa", de: "Basispreis", es: "Precio base", pt: "Preço base", tr: "Taban fiyat", uk: "Базова ціна" }, apiKey: "BasePrice" },
+            { key: "market", translations: { en: "Destination Market", az: "Təyinat bazarı", pl: "Rynek docelowy", de: "Zielland", es: "Mercado destino", pt: "Mercado destino", tr: "Hedef pazar", uk: "Цільовий ринок" }, apiKey: "DestinationMarket" },
+            { key: "clunkers", translations: { en: "Cash for Clunkers", az: "Cash for Clunkers", pl: "Cash for Clunkers", de: "Cash for Clunkers", es: "Cash for Clunkers", pt: "Cash for Clunkers", tr: "Cash for Clunkers", uk: "Cash for Clunkers" }, apiKey: "CashForClunkers" },
+            { key: "nonLand", translations: { en: "Non-Land Use", az: "Qeyri-torpaq istifadəsi", pl: "Nie-lądowe użycie", de: "Nicht-Landnutzung", es: "Uso no terrestre", pt: "Uso não terrestre", tr: "Kara dışı kullanım", uk: "Непішоходне використання" }, apiKey: "NonLandUse" },
+            { key: "canAacn", translations: { en: "CAN/AACN", az: "CAN/AACN", pl: "CAN/AACN", de: "CAN/AACN", es: "CAN/AACN", pt: "CAN/AACN", tr: "CAN/AACN", uk: "CAN/AACN" }, apiKey: "CAN_AACN" },
+            { key: "suggestedVin", translations: { en: "Suggested VIN", az: "Təklif olunan VIN", pl: "Sugestia VIN", de: "Vorgeschlagene VIN", es: "VIN sugerido", pt: "VIN sugerido", tr: "Önerilen VIN", uk: "Пропонований VIN" }, apiKey: "SuggestedVIN" },
+            { key: "vinDesc", translations: { en: "VIN Description", az: "VIN təsviri", pl: "Opis VIN", de: "VIN-Beschreibung", es: "Descripción VIN", pt: "Descrição VIN", tr: "VIN tanımı", uk: "Опис VIN" }, apiKey: "VehicleDescriptor" },
+            { key: "possibleValues", translations: { en: "Possible Values", az: "Mümkün dəyərlər", pl: "Możliwe wartości", de: "Mögliche Werte", es: "Valores posibles", pt: "Valores possíveis", tr: "Olası değerler", uk: "Можливі значення" }, apiKey: "PossibleValues" },
+            { key: "additionalError", translations: { en: "Additional Error", az: "Əlavə xəta", pl: "Dodatkowy błąd", de: "Zusätzlicher Fehler", es: "Error adicional", pt: "Erro adicional", tr: "Ek hata", uk: "Додаткова помилка" }, apiKey: "AdditionalErrorText" },
+            { key: "errorCode", translations: { en: "Error Code", az: "Xəta kodu", pl: "Kod błędu", de: "Fehlercode", es: "Código error", pt: "Código erro", tr: "Hata kodu", uk: "Код помилки" }, apiKey: "ErrorCode" },
+            { key: "note", translations: { en: "Note", az: "Qeyd", pl: "Uwaga", de: "Notiz", es: "Nota", pt: "Nota", tr: "Not", uk: "Примітка" }, apiKey: "Note" },
+            { key: "ncsaMake", translations: { en: "NCSA Make", az: "NCSA Marka", pl: "NCSA Marka", de: "NCSA Marke", es: "NCSA Marca", pt: "NCSA Marca", tr: "NCSA Marka", uk: "NCSA Марка" }, apiKey: "NCSAMake" },
+            { key: "ncsaModel", translations: { en: "NCSA Model", az: "NCSA Model", pl: "NCSA Model", de: "NCSA Modell", es: "NCSA Modelo", pt: "NCSA Modelo", tr: "NCSA Model", uk: "NCSA Модель" }, apiKey: "NCSAModel" },
+            { key: "ncsaNote", translations: { en: "NCSA Note", az: "NCSA Qeyd", pl: "NCSA Uwaga", de: "NCSA Notiz", es: "NCSA Nota", pt: "NCSA Nota", tr: "NCSA Not", uk: "NCSA Примітка" }, apiKey: "NCSANote" },
+            { key: "ncsaException", translations: { en: "NCSA Exception", az: "NCSA İstisna", pl: "NCSA Wyjątek", de: "NCSA Ausnahme", es: "NCSA Excepción", pt: "NCSA Exceção", tr: "NCSA İstisna", uk: "NCSA Виняток" }, apiKey: "NCSAMappingException" },
+            { key: "ncsaApprovedBy", translations: { en: "NCSA Approved By", az: "NCSA Təsdiq edən", pl: "NCSA Zatwierdzone przez", de: "NCSA Genehmigt von", es: "NCSA Aprobado por", pt: "NCSA Aprovado por", tr: "NCSA Onaylayan", uk: "NCSA Затверджено" }, apiKey: "NCSAMapExcApprovedBy" },
+            { key: "ncsaApprovedOn", translations: { en: "NCSA Approved On", az: "NCSA Təsdiq tarixi", pl: "NCSA Zatwierdzone", de: "NCSA Genehmigt am", es: "NCSA Aprobado el", pt: "NCSA Aprovado em", tr: "NCSA Onay tarihi", uk: "NCSA Затверджено" }, apiKey: "NCSAMapExcApprovedOn" },
+            { key: "makeId", translations: { en: "Make ID", az: "Marka ID", pl: "ID Marki", de: "Marke-ID", es: "ID Marca", pt: "ID Marca", tr: "Marka ID", uk: "ID Марки" }, apiKey: "MakeID" },
+            { key: "modelId", translations: { en: "Model ID", az: "Model ID", pl: "ID Modelu", de: "Modell-ID", es: "ID Modelo", pt: "ID Modelo", tr: "Model ID", uk: "ID Моделі" }, apiKey: "ModelID" }
+        ]
+    }
+}
 
 export const years = Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i)
 
