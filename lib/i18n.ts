@@ -586,6 +586,10 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "vin.show_raw": "Xam Məlumatı Göstər",
     "vin.hide_raw": "Xam Məlumatı Gizlət",
     "vin.copy_json": "JSON-ı Kopyala",
+    "vinCode": "VIN kodu",
+    "carStatus": "Satış/İcarə növü",
+    "selectCarStatus": "Satış və ya icarə seçin",
+    "select": "Seçin"
   },
   en: {
     "Admins": "Admins",
@@ -1158,6 +1162,11 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "vin.show_raw": "Show Raw Data",
     "vin.hide_raw": "Hide Raw Data",
     "vin.copy_json": "Copy JSON",
+    "vinCode": "VIN code",
+    "carStatus": "Sale / Rent",
+    "selectCarStatus": "Select sale or rent",
+    "select": "Select",
+
 
   },
   de: {
@@ -1731,6 +1740,11 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "vin.show_raw": "Rohdaten anzeigen",
     "vin.hide_raw": "Rohdaten ausblenden",
     "vin.copy_json": "JSON kopieren",
+    "vinCode": "VIN-Code",
+    "carStatus": "Verkauf / Vermietung",
+    "selectCarStatus": "Verkauf oder Vermietung wählen",
+    "select": "Wählen"
+
 
   },
   es: {
@@ -2304,6 +2318,11 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "vin.show_raw": "Mostrar Datos Crudos",
     "vin.hide_raw": "Ocultar Datos Crudos",
     "vin.copy_json": "Copiar JSON",
+    "vinCode": "Código VIN",
+    "carStatus": "Venta / Alquiler",
+    "selectCarStatus": "Seleccionar venta o alquiler",
+    "select": "Seleccionar"
+
   },
   tr: {
     "FullName": "Tam isim",
@@ -2876,6 +2895,11 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "vin.show_raw": "Ham Veriyi Göster",
     "vin.hide_raw": "Ham Veriyi Gizle",
     "vin.copy_json": "JSON Kopyala",
+    "vinCode": "VIN kodu",
+    "carStatus": "Satış / Kiralama",
+    "selectCarStatus": "Satış veya kiralama seç",
+    "select": "Seç"
+
   },
   pt: {
     "FullName": "Nome completo",
@@ -3448,6 +3472,11 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "vin.show_raw": "Mostrar Dados Brutos",
     "vin.hide_raw": "Ocultar Dados Brutos",
     "vin.copy_json": "Copiar JSON",
+    "vinCode": "Código VIN",
+    "carStatus": "Venda / Aluguel",
+    "selectCarStatus": "Selecionar venda ou aluguel",
+    "select": "Selecionar"
+
   },
   pl: {
     "FullName": "Pełne imię i nazwisko",
@@ -4020,6 +4049,11 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "vin.show_raw": "Pokaż Surowe Dane",
     "vin.hide_raw": "Ukryj Surowe Dane",
     "vin.copy_json": "Kopiuj JSON",
+    "vinCode": "Kod VIN",
+    "carStatus": "Sprzedaż / Wynajem",
+    "selectCarStatus": "Wybierz sprzedaż lub wynajem",
+    "select": "Wybierz"
+
   },
   uk: {
     "FullName": "Повне ім'я",
@@ -4494,6 +4528,11 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "vin.show_raw": "Показати Сирі Дані",
     "vin.hide_raw": "Приховати Сирі Дані",
     "vin.copy_json": "Копіювати JSON",
+    "vinCode": "VIN код",
+    "carStatus": "Продаж / Оренда",
+    "selectCarStatus": "Виберіть продаж або оренда",
+    "select": "Вибрати"
+
   }
 } as const;
 

@@ -8,6 +8,7 @@ type GetAllCarsParams = {
   status?: string;
   brand?: string;
   model?: string;
+  SaleType?: string
   year?: number;
   fuel?: string;
   gearbox?: string;
@@ -282,6 +283,7 @@ class ApiClient {
     status?: string;
     search?: string;
     brand?: string;
+    SaleType?: string;
     model?: string;
     year?: number;
     fuel?: string;
@@ -299,6 +301,7 @@ class ApiClient {
     if (params.limit) query.append("limit", params.limit.toString());
     if (params.status) query.append("status", params.status);
     if (params.search) query.append("search", params.search);
+    if (params.SaleType) query.append("SaleType", params.SaleType);
     if (params.brand) query.append("brand", params.brand);
     if (params.model) query.append("model", params.model);
     if (params.year) query.append("year", params.year.toString());
@@ -324,6 +327,7 @@ class ApiClient {
     if (params.search) query.append("search", params.search);
     if (params.brand) query.append("brand", params.brand);
     if (params.model) query.append("model", params.model);
+    if (params.SaleType) query.append("SaleType", params.SaleType);
     if (params.year !== undefined) query.append("year", params.year.toString());
     if (params.fuel) query.append("fuel", params.fuel);
     if (params.gearbox) query.append("gearbox", params.gearbox);
@@ -431,14 +435,14 @@ class ApiClient {
     message: string;
     carTitle?: string;
     from?: string;
-    sellerName?:string;
+    sellerName?: string;
     name?: string;
     phone?: string
   }) {
-    const res = await this.request('/api/send-email', {  
+    const res = await this.request('/api/send-email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload), 
+      body: JSON.stringify(payload),
     });
 
     if (res && typeof res === 'object' && 'ok' in res && !(res as any).ok) {

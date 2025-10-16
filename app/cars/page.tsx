@@ -30,8 +30,10 @@ import {
   gearboxOptions as gearboxStatic,
   conditions as conditionsStatic,
   colors as colorsStatic,
+  carStatus as carStatusStatic,
   cities as citiesStatic,
   years as yearsStatic,
+  carStatus,
 } from "@/lib/car-data"
 import BrandSelect from "@/components/BrandSelect"
 import ModelSelect from "@/components/ModelSelect"
@@ -125,6 +127,7 @@ function CarCard({
   transmissionsList,
   conditionsList,
   colorsList,
+  carStatusList,
   citiesList,
   onFavoriteToggle
 }: {
@@ -135,6 +138,7 @@ function CarCard({
   transmissionsList: OptionItem[]
   conditionsList: OptionItem[]
   colorsList: OptionItem[]
+  carStatusList: OptionItem[]
   citiesList: OptionItem[]
   onFavoriteToggle: (carId: number, currentlyFavorited: boolean) => Promise<void>
 }) {
@@ -184,6 +188,7 @@ function CarCard({
   const gearboxLabel = findTranslation(transmissionsList, car.gearbox ?? "", language) || (car.gearbox ?? "")
   const conditionLabel = findTranslation(conditionsList, car.condition ?? "", language) || (car.condition ?? "")
   const colorLabel = findTranslation(colorsList, car.color ?? "", language) || (car.color ?? "")
+  const carStatusLabel = findTranslation(carStatusList, car.SaleType ?? "", language) || (car.SaleType ?? "")
   const locationLabel = findTranslation(citiesList, car.location ?? car.city ?? "", language) || (car.location ?? car.city ?? "")
   const viewcount = car.viewcount || 0
 
@@ -330,6 +335,7 @@ export default function CarsPage() {
   const [selectedModel, setSelectedModel] = useState("all")
   const [selectedLocation, setSelectedLocation] = useState("all")
   const [selectedColor, setSelectedColor] = useState("all")
+  const [selectedCarStatus, setSelectedCarStatus] = useState<string>("all");
   const [sortBy, setSortBy] = useState("newest")
   const [currentPage, setCurrentPage] = useState(1)
   const [showFilters, setShowFilters] = useState(false)
@@ -346,6 +352,7 @@ export default function CarsPage() {
   const transmissionsList = useMemo(() => sortByLabel(gearboxStatic as any[], lang), [lang])
   const conditionsList = useMemo(() => sortByLabel(conditionsStatic as any[], lang), [lang])
   const colorsList = useMemo(() => sortByLabel(colorsStatic as any[], lang), [lang])
+  const carStatusList = useMemo(() => sortByLabel(carStatusStatic as any[], lang), [lang])
   const citiesList = useMemo(() => sortByLabel(citiesStatic as any[], lang), [lang])
   const [profileData, setProfileData] = useState<User | null>(null)
   const [favorites, setFavorites] = useState<Set<number>>(new Set())
@@ -394,6 +401,7 @@ export default function CarsPage() {
       if (selectedCondition !== "all") params.status = selectedCondition
       if (selectedLocation !== "all") params.location = selectedLocation
       if (selectedColor !== "all") params.color = selectedColor
+      if (selectedCarStatus !== "all") params.SaleType = selectedCarStatus
       if (priceRange.min) params.minPrice = Number(priceRange.min)
       if (priceRange.max) params.maxPrice = Number(priceRange.max)
       if (sortBy) params.sortBy = sortBy
@@ -516,7 +524,7 @@ export default function CarsPage() {
 
   useEffect(() => {
     fetchCars()
-  }, [currentPage, searchTerm, selectedBrand, selectedModel, selectedYear, selectedFuel, selectedGearbox, selectedCondition, selectedLocation, selectedColor, priceRange.min, priceRange.max, sortBy, favorites])
+  }, [currentPage, searchTerm, selectedBrand, selectedModel, selectedYear, selectedFuel, selectedGearbox, selectedCondition, selectedLocation, selectedColor, selectedCarStatus, priceRange.min, priceRange.max, sortBy, favorites])
 
   const totalPages = isServerPagination
     ? Math.max(1, Math.ceil((totalCount ?? 0) / itemsPerPage))
@@ -689,6 +697,20 @@ export default function CarsPage() {
                   </Select>
                 </div>
                 <div>
+                  <label className="text-sm font-medium mb-2 block">{t("carStatus")}</label>
+                  <Select value={selectedCarStatus} onValueChange={(v) => { setSelectedCarStatus(v); setCurrentPage(1); }}>
+                    <SelectTrigger><SelectValue placeholder={t("selectCarStatus")} /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{t("all")}</SelectItem>
+                      {carStatusList.map((c) => (
+                        <SelectItem key={c.key} value={c.key}>
+                          {c.translations[lang] ?? c.translations.en}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
                   <label className="text-sm font-medium mb-2 block">{`${t("priceRange")} (AZN)`}</label>
                   <div className="flex gap-2">
                     <Input placeholder={t("min")} value={priceRange.min} onChange={(e) => setPriceRange((prev) => ({ ...prev, min: e.target.value }))} />
@@ -746,6 +768,7 @@ export default function CarsPage() {
                       transmissionsList={transmissionsList}
                       conditionsList={conditionsList}
                       colorsList={colorsList}
+                      carStatusList={carStatusList}
                       citiesList={citiesList}
                       onFavoriteToggle={toggleFavoriteForCar}
                     />

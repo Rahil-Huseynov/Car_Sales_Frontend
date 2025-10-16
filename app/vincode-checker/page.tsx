@@ -76,17 +76,6 @@ export default function VinCheckerPage() {
         }
     }
 
-    const copyToClipboard = async () => {
-        if (!rawData) return
-        try {
-            await navigator.clipboard.writeText(rawData)
-            setSuccess(t("vin.copy_success"))
-            setTimeout(() => setSuccess(""), 3000)
-        } catch {
-            setError(t("vin.copy_error"))
-        }
-    }
-
     const formatValue = (value: string | undefined): string => {
         if (!value || value === "" || value === "Not Applicable") {
             return "-"

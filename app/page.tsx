@@ -26,7 +26,7 @@ import { Navbar } from "@/components/navbar";
 import { translateString } from "@/lib/i18n";
 import { apiClient } from "@/lib/api-client";
 import { useAuth } from "@/lib/auth-context";
-import { cities, colors, conditions, fuels, gearboxOptions, years } from "@/lib/car-data";
+import { carStatus, cities, colors, conditions, fuels, gearboxOptions, years } from "@/lib/car-data";
 import BrandSelect from "@/components/BrandSelect";
 import ModelSelect from "@/components/ModelSelect";
 import { useDefaultLanguage } from "@/components/useLanguage";
@@ -254,6 +254,7 @@ export default function HomePage() {
   const [selectedCondition, setSelectedCondition] = useState<string>("all");
   const [selectedLocation, setSelectedLocation] = useState<string>("all");
   const [selectedColor, setSelectedColor] = useState<string>("all");
+  const [selectedCarStatus, setSelectedCarStatus] = useState<string>("all");
   const [priceRange, setPriceRange] = useState({ min: "", max: "" });
   const { lang } = useDefaultLanguage();
   const t = (key: string) => translateString(lang, key);
@@ -282,6 +283,7 @@ export default function HomePage() {
         gearbox: selectedGearbox !== "all" ? selectedGearbox : undefined,
         condition: selectedCondition !== "all" ? selectedCondition : undefined,
         color: selectedColor !== "all" ? selectedColor : undefined,
+        SaleType: selectedCarStatus != "all" ? selectedCarStatus : undefined,
         location: selectedLocation !== "all" ? selectedLocation : undefined,
         minPrice: priceRange.min ? Number(priceRange.min) : undefined,
         maxPrice: priceRange.max ? Number(priceRange.max) : undefined,
@@ -426,7 +428,7 @@ export default function HomePage() {
 
   useEffect(() => {
     fetchCarsFromApi();
-  }, [page, selectedBrand, selectedModel, selectedYear, selectedFuel, selectedGearbox, selectedCondition, selectedLocation, selectedColor, priceRange.min, priceRange.max, searchTerm, sortBy, favorites]);
+  }, [page, selectedBrand, selectedModel, selectedYear, selectedFuel, selectedGearbox, selectedCondition, selectedLocation, selectedColor, selectedCarStatus, priceRange.min, priceRange.max, searchTerm, sortBy, favorites]);
 
   useEffect(() => {
     fetchFavorites();
@@ -554,6 +556,22 @@ export default function HomePage() {
         </div>
 
         <div>
+          <label className="text-sm font-medium mb-2 block text-gray-700">{t("carStatus")}</label>
+          <Select value={selectedCarStatus} onValueChange={(v) => { setSelectedCarStatus(v); setPage(1); }}>
+            <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectCarStatus")} /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t("all")}</SelectItem>
+              {sortByLabel(carStatus as any[], lang).map(item => (
+                <SelectItem key={item.key} value={item.key}>
+                  {item.translations[lang] ?? item.translations.en}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+
+        <div>
           <label className="text-sm font-medium mb-2 block text-gray-700">{t("priceRange")}</label>
           <div className="flex gap-2">
             <Input placeholder={t("min")} value={priceRange.min} onChange={(e) => { setPriceRange(prev => ({ ...prev, min: e.target.value })); setPage(1); }} className="border-gray-200 focus:border-blue-400 transition-colors duration-300" />
@@ -563,7 +581,7 @@ export default function HomePage() {
 
         <Button variant="outline" className="w-full bg-transparent border-blue-200 text-blue-600 hover:bg-blue-50 btn-animate transition-all duration-300 hover:scale-105" onClick={() => {
           setSelectedBrand("all"); setSelectedModel("all"); setSelectedYear("all"); setSelectedFuel("all");
-          setSelectedGearbox("all"); setSelectedCondition("all"); setSelectedLocation("all"); setSelectedColor("all");
+          setSelectedGearbox("all"); setSelectedCondition("all"); setSelectedLocation("all"); setSelectedColor("all"); setSelectedCarStatus("all")
           setPriceRange({ min: "", max: "" }); setSearchTerm(""); setSortBy("createdAt_desc"); setPage(1);
           onClose?.();
         }}>{t("clearFilters")}</Button>
@@ -719,6 +737,21 @@ export default function HomePage() {
                   </div>
 
                   <div>
+                    <label className="text-sm font-medium mb-2 block text-gray-700">{t("carStatus")}</label>
+                    <Select value={selectedCarStatus} onValueChange={(v) => { setSelectedCarStatus(v); setPage(1); }}>
+                      <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectCarStatus")} /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t("all")}</SelectItem>
+                        {sortByLabel(carStatus as any[], lang).map(item => (
+                          <SelectItem key={item.key} value={item.key}>
+                            {item.translations[lang] ?? item.translations.en}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
                     <label className="text-sm font-medium mb-2 block text-gray-700">{t("priceRange")}</label>
                     <div className="flex gap-2">
                       <Input placeholder={t("min")} value={priceRange.min} onChange={(e) => { setPriceRange(prev => ({ ...prev, min: e.target.value })); setPage(1); }} className="border-gray-200 focus:border-blue-400 transition-colors duration-300" />
@@ -728,7 +761,7 @@ export default function HomePage() {
 
                   <Button variant="outline" className="w-full bg-transparent border-blue-200 text-blue-600 hover:bg-blue-50 btn-animate transition-all duration-300 hover:scale-105" onClick={() => {
                     setSelectedBrand("all"); setSelectedModel("all"); setSelectedYear("all"); setSelectedFuel("all");
-                    setSelectedGearbox("all"); setSelectedCondition("all"); setSelectedLocation("all"); setSelectedColor("all");
+                    setSelectedGearbox("all"); setSelectedCondition("all"); setSelectedLocation("all"); setSelectedColor("all"); setSelectedCarStatus("all");
                     setPriceRange({ min: "", max: "" }); setSearchTerm(""); setSortBy("createdAt_desc"); setPage(1);
                   }}>{t("clearFilters")}</Button>
                 </CardContent>
@@ -841,6 +874,21 @@ export default function HomePage() {
                   </div>
 
                   <div>
+                    <label className="text-sm font-medium mb-2 block text-gray-700">{t("carStatus")}</label>
+                    <Select value={selectedCarStatus} onValueChange={(v) => { setSelectedCarStatus(v); setPage(1); }}>
+                      <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300"><SelectValue placeholder={t("selectCarStatus")} /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t("all")}</SelectItem>
+                        {sortByLabel(carStatus as any[], lang).map(item => (
+                          <SelectItem key={item.key} value={item.key}>
+                            {item.translations[lang] ?? item.translations.en}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
                     <label className="text-sm font-medium mb-2 block text-gray-700">{t("priceRange")}</label>
                     <div className="flex gap-2">
                       <Input placeholder={t("min")} value={priceRange.min} onChange={(e) => { setPriceRange(prev => ({ ...prev, min: e.target.value })); setPage(1); }} className="border-gray-200 focus:border-blue-400 transition-colors duration-300" />
@@ -852,7 +900,7 @@ export default function HomePage() {
                     <Button className="flex-1" onClick={() => setMobileFiltersOpen(false)}>{t("apply") ?? "Apply"}</Button>
                     <Button variant="outline" className="flex-1" onClick={() => {
                       setSelectedBrand("all"); setSelectedModel("all"); setSelectedYear("all"); setSelectedFuel("all");
-                      setSelectedGearbox("all"); setSelectedCondition("all"); setSelectedLocation("all"); setSelectedColor("all");
+                      setSelectedGearbox("all"); setSelectedCondition("all"); setSelectedLocation("all"); setSelectedColor("all"); setSelectedCarStatus("all");
                       setPriceRange({ min: "", max: "" }); setSearchTerm(""); setSortBy("createdAt_desc"); setPage(1);
                       setMobileFiltersOpen(false);
                     }}>{t("clearFilters")}</Button>

@@ -182,7 +182,7 @@ export function Navbar() {
                   <Link href="/" className="text-lg font-medium hover:text-blue-600 transition-colors">{t("home")}</Link>
                   <Link href="/cars" className="text-lg font-medium hover:text-blue-600 transition-colors">{t("cars")}</Link>
                   <Link href="/sell" className="text-lg font-medium hover:text-blue-600 transition-colors">{t("sell")}</Link>
-                  <Link href="/vincode-checker" className="text-gray-700 text-sm lg:text-base hover:text-blue-600 transition-colors font-medium">{t("vin.title")}</Link>s
+                  <Link href="/vincode-checker" className="text-gray-700 text-sm lg:text-base hover:text-blue-600 transition-colors font-medium">{t("vin.title")}</Link>
                   {/* <Link href="/about" className="text-lg font-medium hover:text-blue-600 transition-colors">{t("about")}</Link> */}
                   <Link href="/contact" className="text-lg font-medium hover:text-blue-600 transition-colors">{t("contact")}</Link>
 

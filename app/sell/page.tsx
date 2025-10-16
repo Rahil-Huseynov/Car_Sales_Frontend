@@ -18,6 +18,7 @@ import { apiClient } from "@/lib/api-client"
 import { useAuth } from "@/lib/auth-context"
 import {
   bodyTypes,
+  carStatus,
   cities,
   colors,
   conditions,
@@ -167,6 +168,7 @@ export default function SellPage() {
   const [loadingProfile, setLoadingProfile] = useState(true)
   const [selectedBrand, setSelectedBrand] = useState<string>("all")
   const [selectedModel, setSelectedModel] = useState<string>("all")
+  const [vin, setVin] = useState("")
   const [formData, setFormData] = useState({
     brand: "",
     model: "",
@@ -174,6 +176,8 @@ export default function SellPage() {
     price: "",
     mileage: "",
     fuel: "",
+    vinCode: "",
+    SaleType: "",
     transmission: "",
     condition: "",
     color: "",
@@ -193,6 +197,10 @@ export default function SellPage() {
 
   const { lang, setLang } = useDefaultLanguage();
   const t = (key: string) => translateString(lang, key);
+
+  const validateVIN = (v: string): boolean => {
+    return /^[A-HJ-NPR-Z0-9]{17}$/i.test(v)
+  }
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -301,11 +309,18 @@ export default function SellPage() {
     const yearVal = (formData.year || "").toString().trim()
     const priceVal = (formData.price || "").toString().trim()
     const mileageVal = (formData.mileage || "").toString().trim()
+    const cleanVin = vin.trim().toUpperCase()
 
-    if (!brandVal || !modelVal || !yearVal || !priceVal || !mileageVal) {
+    if (!brandVal || !modelVal || !yearVal || !priceVal || !mileageVal || !formData.SaleType || !formData.fuel || !formData.condition || !formData.color || !formData.location) {
       toast.warn(t("fillRequired"), { position: "top-right", autoClose: 3000 })
       return
     }
+
+    if (cleanVin && (cleanVin.length !== 17 || !validateVIN(cleanVin))) {
+      toast.error(t("vin.invalid_format"), { position: "top-right", autoClose: 3000 })
+      return
+    }
+
     const priceNum = Number(priceVal)
     const mileageNum = Number(mileageVal)
     if (isNaN(priceNum) || priceNum <= 0) {
@@ -316,12 +331,20 @@ export default function SellPage() {
       toast.warn(t("mileageValid"), { position: "top-right" })
       return
     }
+
+    if (images.length === 0) {
+      toast.warn(t("imagesRequired"), { position: "top-right", autoClose: 3000 })
+      return
+    }
+
     try {
       const payload = {
         brand: brandVal || null,
         model: modelVal || null,
         year: Number(yearVal),
         price: priceNum,
+        vinCode: cleanVin || null,
+        SaleType: formData.SaleType,
         mileage: mileageNum,
         fuel: formData.fuel || null,
         condition: formData.condition || null,
@@ -418,7 +441,7 @@ export default function SellPage() {
 
                 <div>
                   <Label htmlFor="year">{t("year")}</Label>
-                  <Select value={String(formData.year ?? "")} onValueChange={(v) => setFormData((p) => ({ ...p, year: v }))} required>
+                  <Select value={String(formData.year ?? "")} onValueChange={(v) => setFormData((p) => ({ ...p, year: v }))}>
                     <SelectTrigger>
                       <SelectValue placeholder={t("selectYear")} />
                     </SelectTrigger>
@@ -434,17 +457,28 @@ export default function SellPage() {
 
                 <div>
                   <Label htmlFor="price">{t("priceWithCurrency") || t("price")}</Label>
-                  <Input id="price" type="number" required min={0} value={formData.price} onChange={(e) => setFormData((p) => ({ ...p, price: e.target.value }))} placeholder="50000" />
+                  <Input id="price" type="number" min={0} value={formData.price} onChange={(e) => setFormData((p) => ({ ...p, price: e.target.value }))} placeholder="50000" />
                 </div>
 
                 <div>
                   <Label htmlFor="mileage">{t("mileage") || "Mileage (km)"}</Label>
-                  <Input id="mileage" required min={0} type="number" value={formData.mileage} onChange={(e) => setFormData((p) => ({ ...p, mileage: e.target.value }))} placeholder="50000" />
+                  <Input id="mileage" min={0} type="number" value={formData.mileage} onChange={(e) => setFormData((p) => ({ ...p, mileage: e.target.value }))} placeholder="50000" />
+                </div>
+
+                <div>
+                  <Label htmlFor="vinCode">{t("vinCode")}</Label>
+                  <Input
+                    type="text"
+                    value={vin}
+                    onChange={(e) => setVin(e.target.value.toUpperCase())}
+                    placeholder={t("vin.placeholder")}
+                    maxLength={17}
+                  />
                 </div>
 
                 <div>
                   <Label htmlFor="fuel">{t("fuel")}</Label>
-                  <Select value={formData.fuel ?? ""} onValueChange={(v) => setFormData((p) => ({ ...p, fuel: v }))} required>
+                  <Select value={formData.fuel ?? ""} onValueChange={(v) => setFormData((p) => ({ ...p, fuel: v }))}>
                     <SelectTrigger>
                       <SelectValue placeholder={t("selectFuel")} />
                     </SelectTrigger>
@@ -460,7 +494,7 @@ export default function SellPage() {
 
                 <div>
                   <Label htmlFor="condition">{t("condition")}</Label>
-                  <Select value={formData.condition ?? ""} onValueChange={(v) => setFormData((p) => ({ ...p, condition: v }))} required>
+                  <Select value={formData.condition ?? ""} onValueChange={(v) => setFormData((p) => ({ ...p, condition: v }))}>
                     <SelectTrigger>
                       <SelectValue placeholder={t("selectCondition")} />
                     </SelectTrigger>
@@ -476,7 +510,7 @@ export default function SellPage() {
 
                 <div>
                   <Label htmlFor="color">{t("color")}</Label>
-                  <Select value={formData.color ?? ""} onValueChange={(v) => setFormData((p) => ({ ...p, color: v }))} required>
+                  <Select value={formData.color ?? ""} onValueChange={(v) => setFormData((p) => ({ ...p, color: v }))}>
                     <SelectTrigger>
                       <SelectValue placeholder={t("selectColor")} />
                     </SelectTrigger>
@@ -540,7 +574,7 @@ export default function SellPage() {
 
                 <div>
                   <Label htmlFor="city">{t("city")}</Label>
-                  <Select value={formData.location ?? ""} onValueChange={(v) => setFormData((p) => ({ ...p, location: v }))} required>
+                  <Select value={formData.location ?? ""} onValueChange={(v) => setFormData((p) => ({ ...p, location: v }))}>
                     <SelectTrigger>
                       <SelectValue placeholder={t("selectCity")} />
                     </SelectTrigger>
@@ -553,6 +587,23 @@ export default function SellPage() {
                     </SelectContent>
                   </Select>
                 </div>
+
+                <div>
+                  <Label htmlFor="SaleType">{t("carStatus")}</Label>
+                  <Select value={formData.SaleType ?? ""} onValueChange={(v) => setFormData((p) => ({ ...p, SaleType: v }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t("selectCarStatus")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {carStatus.map((c) => (
+                        <SelectItem key={c.key} value={c.key}>
+                          {c.translations[lang] ?? c.translations.en}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
               </CardContent>
             </Card>
 
@@ -579,7 +630,7 @@ export default function SellPage() {
                     <Upload className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                     <p className="text-gray-600 mb-2">{t("dragDrop")}</p>
                     <p className="text-sm text-gray-500 mb-4">{t("supportedFormats")}</p>
-                    <input required={images.length === 0} type="file" multiple accept="image/*" onChange={handleImageUpload} className="hidden" id="image-upload" disabled={images.length >= 10} />
+                    <input type="file" multiple accept="image/*" onChange={handleImageUpload} className="hidden" id="image-upload" disabled={images.length >= 10} />
                     <Button type="button" variant="outline" className="bg-transparent" onClick={() => document.getElementById("image-upload")?.click()} disabled={images.length >= 10}>
                       <Plus className="h-4 w-4 mr-2" />
                       {t("chooseImages")}
@@ -663,4 +714,4 @@ export default function SellPage() {
       </div>
     </div>
   )
-} 1
+}

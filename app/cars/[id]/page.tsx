@@ -40,6 +40,7 @@ import {
   fuels as fuelsStatic,
   gearboxOptions as gearboxStatic,
   conditions as conditionsStatic,
+  carStatus as carStatusStatic,
   colors as colorsStatic,
   cities as citiesStatic,
   bodyTypes as bodyTypesStatic,
@@ -89,6 +90,8 @@ type CarType = {
   gearbox?: string
   transmission?: string
   color?: string
+  vinCode?: string
+  SaleType?: string
   location?: string
   bodyType?: string
   condition?: string
@@ -900,6 +903,7 @@ export default function CarDetailPage() {
   const fuelLabel = findTranslationFromList(fuelsStatic, car.fuel ?? "", lang) || t(car.fuel ?? "")
   const gearboxLabel = findTranslationFromList(gearboxStatic, car.gearbox ?? car.transmission ?? "", lang) || (car.gearbox ?? car.transmission ?? t("-"))
   const conditionLabel = findTranslationFromList(conditionsStatic, car.condition ?? "", lang) || t(car.condition ?? "")
+  const CarStatusLabel = findTranslationFromList(carStatusStatic, car.SaleType ?? "", lang) || t(car.SaleType ?? "")
   const colorLabel = findTranslationFromList(colorsStatic, car.color ?? "", lang) || t(car.color ?? "")
   const locationLabel = findTranslationFromList(citiesStatic, car.location ?? car.location ?? "", lang) || t(car.location ?? car.location ?? "")
   const viewcountLabel = car.viewcount || 0
@@ -1168,6 +1172,16 @@ export default function CarDetailPage() {
                 <div className="flex justify-between">
                   <span className="text-gray-600">{t("SeenCount")}:</span>
                   <span className="font-semibold">{viewcountLabel}</span>
+                </div>
+                {car.vinCode && car.vinCode.length > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">{t("vinCode")}:</span>
+                    <span className="font-semibold">{car.vinCode}</span>
+                  </div>
+                )}
+                <div className="flex justify-between">
+                  <span className="text-gray-600">{t("carStatus")}:</span>
+                  <span className="font-semibold">{CarStatusLabel}</span>
                 </div>
                 {car.createdAt ? (
                   <div className="flex justify-between">
