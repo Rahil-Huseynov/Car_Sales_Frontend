@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, User, Settings, LogOut, Plus, Heart } from "lucide-react";
+import { Menu, User, Settings, LogOut, Plus, Heart, Rss } from "lucide-react";
 import Link from "next/link";
 import { ModernLogo } from "./modern-logo";
 import { LanguageSwitcher } from "./language-switcher";
@@ -136,7 +136,7 @@ export function Navbar() {
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
                         <Link href="/profile/my-ads">
-                          <Plus className="h-4 w-4 mr-2" />
+                          <Rss className="h-4 w-4 mr-2" />
                           {t("myAds")}
                         </Link>
                       </DropdownMenuItem>
@@ -205,7 +205,7 @@ export function Navbar() {
                           </Button>
                           <Button variant="outline" className="w-full justify-start bg-transparent" asChild>
                             <Link href="/profile/my-ads">
-                              <Plus className="h-4 w-4 mr-2" />
+                              <Rss className="h-4 w-4 mr-2" />
                               {t("myAds")}
                             </Link>
                           </Button>

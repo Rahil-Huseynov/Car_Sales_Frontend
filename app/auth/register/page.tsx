@@ -99,7 +99,7 @@ export default function RegisterPage() {
         if (timeoutRef.current) window.clearTimeout(timeoutRef.current)
         timeoutRef.current = window.setTimeout(() => {
           setStatusMessage(null)
-          router.push("/profile")
+          router.push("/auth/login")
         }, 1200)
       } else {
         const msg = response?.message || t("registrationFailed")

@@ -41,6 +41,7 @@ export default function ModelSelect({
   const [hasMore, setHasMore] = useState(true);
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
+  const [touched, setTouched] = useState(false);
 
   const inputRef = useRef<HTMLInputElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -123,6 +124,7 @@ export default function ModelSelect({
 
   const handleValueChange = (v: string) => {
     onChange(v === ALL_VALUE ? "" : v);
+    setTouched(true);
     setOpen(false);
   };
 
@@ -135,50 +137,69 @@ export default function ModelSelect({
     }, 100);
   };
 
+  const effectiveValue = value === "" ? ALL_VALUE : (items.includes(value) ? value : ALL_VALUE);
+
+  useEffect(() => {
+    if (value !== "" && items.length > 0 && !items.includes(value) && !loading) {
+      onChange("");
+    }
+  }, [value, items, loading, onChange]);
+
+  useEffect(() => {
+    if (value !== "") {
+      setTouched(true);
+    }
+  }, []);
+
   return (
-    <Select
-      value={value === "" ? ALL_VALUE : value}
-      onValueChange={handleValueChange}
-      open={open}
-      onOpenChange={(o: boolean) => setOpen(Boolean(o))}
-    >
-      <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300">
-        <SelectValue placeholder={t("placeholderAllItems") || placeholder} />
-      </SelectTrigger>
+    <>
+      <Select
+        value={effectiveValue}
+        onValueChange={handleValueChange}
+        open={open}
+        onOpenChange={(o: boolean) => {
+          setOpen(Boolean(o));
+          if (o) setTouched(true);
+        }}
+      >
+        <SelectTrigger className="border-gray-200 focus:border-blue-400 transition-colors duration-300">
+          <SelectValue placeholder={t("placeholderAllItems") || placeholder} />
+        </SelectTrigger>
 
-      <SelectContent side="bottom" align="start" className="p-0">
-        <div className="px-3 py-2 border-b border-gray-100 bg-white">
-          <input
-            ref={inputRef}
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            onFocus={handleInputFocus}
-            onBlur={handleInputBlur}
-            onMouseDown={stopEvent}
-            onPointerDown={stopEvent}
-            onKeyDown={(e) => e.stopPropagation()}
-            placeholder={t("searchbuttonPlaceholder") || searchPlaceholder}
-            className="w-full text-sm p-2 border rounded-md border-gray-200 focus:outline-none focus:ring-1 focus:ring-blue-400"
-          />
-        </div>
+        <SelectContent side="bottom" align="start" className="p-0">
+          <div className="px-3 py-2 border-b border-gray-100 bg-white">
+            <input
+              ref={inputRef}
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onFocus={handleInputFocus}
+              onBlur={handleInputBlur}
+              onMouseDown={stopEvent}
+              onPointerDown={stopEvent}
+              onKeyDown={(e) => e.stopPropagation()}
+              placeholder={t("searchbuttonPlaceholder") || searchPlaceholder}
+              className="w-full text-sm p-2 border rounded-md border-gray-200 focus:outline-none focus:ring-1 focus:ring-blue-400"
+            />
+          </div>
 
-        <div ref={scrollRef} onScroll={onScroll} className="max-h-60 overflow-auto" style={{ minWidth: 220 }}>
-          <SelectItem value={ALL_VALUE}>{t("placeholderAllItems") || "ALL"}</SelectItem>
+          <div ref={scrollRef} onScroll={onScroll} className="max-h-60 overflow-auto" style={{ minWidth: 220 }}>
+            <SelectItem value={ALL_VALUE}>{t("placeholderAllItems") || placeholder}</SelectItem>
 
-          {items.map((m) => (
-            <SelectItem key={m} value={m}>
-              {m}
-            </SelectItem>
-          ))}
+            {items.map((m) => (
+              <SelectItem key={m} value={m}>
+                {m}
+              </SelectItem>
+            ))}
 
-          {loading && <div className="p-2 text-center text-sm text-gray-500">{t("loading") || "Loading"}...</div>}
+            {loading && <div className="p-2 text-center text-sm text-gray-500">{t("loading") || "Loading"}...</div>}
 
-          {!hasMore && !loading && items.length === 0 && (
-            <div className="p-2 text-center text-sm text-gray-500">{t("noModels") || "No models found"}</div>
-          )}
-        </div>
-      </SelectContent>
-    </Select>
+            {!hasMore && !loading && items.length === 0 && (
+              <div className="p-2 text-center text-sm text-gray-500">{t("noModels") || "No models found"}</div>
+            )}
+          </div>
+        </SelectContent>
+      </Select>
+    </>
   );
 }

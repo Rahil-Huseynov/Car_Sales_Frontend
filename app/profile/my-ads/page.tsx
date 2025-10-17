@@ -748,21 +748,6 @@ export default function MyAdsPage() {
     } else if (typeof editingData.features === "string" && editingData.features.trim().length > 0) {
       featuresPayload = editingData.features.split(",").map((s: string) => s.trim()).filter(Boolean);
     }
-    const imagesUrls = images.map((img) => {
-      const url = img.url || "";
-      if (!url) return url;
-      try {
-        if (url.startsWith("http")) {
-          return url;
-        }
-        let trimmed = url;
-        if (IMAGE_BASE && trimmed.startsWith(IMAGE_BASE)) trimmed = trimmed.slice(IMAGE_BASE.length);
-        trimmed = trimmed.replace(/^\/+/, "");
-        return trimmed;
-      } catch {
-        return url;
-      }
-    });
 
     const payload: any = {
       brand: editingData.brand,
@@ -781,11 +766,8 @@ export default function MyAdsPage() {
       ban: editingData.ban,
       engine: editingData.engine,
       gearbox: editingData.gearbox,
+      images: images.map((img) => ({ id: img.id })),
     };
-
-    if (imagesUrls.length > 0) {
-      payload.imagesUrls = imagesUrls;
-    }
 
     try {
       let updated: any = null;
