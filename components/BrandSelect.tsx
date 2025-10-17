@@ -8,10 +8,9 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { apiClient } from "@/lib/api-client";
-import { useLanguage } from "@/hooks/use-language";
-import { getTranslation, translateString } from "@/lib/i18n";
+import { translateString } from "@/lib/i18n";
 import { useDefaultLanguage } from "./useLanguage";
+import { CarsDataService } from "./CarsDataService";
 
 type Props = {
   value: string;
@@ -20,13 +19,15 @@ type Props = {
   searchPlaceholder?: string;
 };
 
+const service = new CarsDataService();
+
 export default function BrandSelect({
   value,
   onChange,
   placeholder = "All",
   searchPlaceholder = "Search...",
 }: Props) {
-  const { lang, setLang } = useDefaultLanguage();
+  const { lang } = useDefaultLanguage();
   const t = (key: string) => translateString(lang, key);
 
   const LIMIT = 10;
@@ -40,23 +41,6 @@ export default function BrandSelect({
   const [localFilter, setLocalFilter] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const debounceRef = useRef<number | null>(null);
-  const requestIdRef = useRef(0);
-
-  const normalizeResponse = (res: any): string[] => {
-    if (!res) return [];
-    if (Array.isArray(res)) return res.map((x) => (typeof x === "string" ? x : (x.name ?? x.key ?? String(x))));
-    if (res.items && Array.isArray(res.items)) return res.items.map((x: any) => (typeof x === "string" ? x : (x.name ?? x.key ?? String(x))));
-    if (res.data && Array.isArray(res.data)) return res.data.map((x: any) => (typeof x === "string" ? x : (x.name ?? x.key ?? String(x))));
-    if (typeof res === "object") {
-      try {
-        const keys = Object.keys(res).filter((k) => typeof k === "string");
-        if (keys.length > 0) return keys;
-      } catch {
-        return [];
-      }
-    }
-    return [];
-  };
 
   const ensureValuePresent = (arr: string[]) => {
     if (value && value.trim().length > 0 && value !== ALL_VALUE && !arr.includes(value)) {
@@ -65,51 +49,23 @@ export default function BrandSelect({
     return arr;
   };
 
-  const loadPage = async (p: number, searchTerm?: string) => {
+  const loadPage = (p: number, searchTerm?: string) => {
     const isSearch = Boolean(searchTerm && searchTerm.trim().length > 0);
     if (loading) return;
     if (!hasMore && !isSearch && p !== 1) return;
     setLoading(true);
-    const thisRequestId = ++requestIdRef.current;
 
-    try {
-      let res: any;
-      if (isSearch) {
-        if (typeof (apiClient as any).carsMarkSearch !== "function") {
-          throw new Error("apiClient.carsMarkSearch is not available");
-        }
-        res = await (apiClient as any).carsMarkSearch(searchTerm!.trim());
-      } else {
-        if (typeof (apiClient as any).carsMark !== "function") {
-          throw new Error("apiClient.carsMark is not available");
-        }
-        res = await (apiClient as any).carsMark(p, LIMIT);
-      }
+    const res = service.getAllKeysSortedPaginated(p, LIMIT, searchTerm);
+    const arr = res.items;
 
-      if (thisRequestId !== requestIdRef.current) return;
+    setItems((prev) => {
+      let next = ensureValuePresent(isSearch || p === 1 ? arr : [...prev, ...arr]);
+      return next;
+    });
 
-      const arr = normalizeResponse(res);
-      const unique = Array.from(new Set(arr));
-
-      setItems((prev) => {
-        let next: string[] = [];
-        if (isSearch) next = unique;
-        else next = p === 1 ? unique : Array.from(new Set([...prev, ...unique]));
-        return ensureValuePresent(next);
-      });
-
-      if (isSearch) {
-        setHasMore(false);
-        setPage(1);
-      } else {
-        setHasMore(unique.length >= LIMIT);
-        setPage(p);
-      }
-    } catch (err) {
-      console.error("Brand load failed:", err);
-    } finally {
-      if (thisRequestId === requestIdRef.current) setLoading(false);
-    }
+    setHasMore(res.items.length >= LIMIT && p < res.totalPages);
+    setPage(p);
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -139,7 +95,6 @@ export default function BrandSelect({
       const trimmed = search.trim();
       if (trimmed.length > 0) loadPage(1, trimmed);
       else {
-        requestIdRef.current++;
         loadPage(1);
       }
     }, 350);
@@ -173,7 +128,6 @@ export default function BrandSelect({
             onChange={(e) => setSearch(e.target.value)}
             onFocus={() => {
               if (items.length === 0 && !loading) {
-                requestIdRef.current++;
                 loadPage(1);
               }
             }}

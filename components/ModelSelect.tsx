@@ -8,9 +8,9 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { apiClient } from "@/lib/api-client";
 import { translateString } from "@/lib/i18n";
 import { useDefaultLanguage } from "./useLanguage";
+import { CarsDataService } from "./CarsDataService";
 
 type Props = {
   value: string;
@@ -19,6 +19,8 @@ type Props = {
   placeholder?: string;
   searchPlaceholder?: string;
 };
+
+const service = new CarsDataService();
 
 export default function ModelSelect({
   value,
@@ -43,71 +45,41 @@ export default function ModelSelect({
   const inputRef = useRef<HTMLInputElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const debounceRef = useRef<number | null>(null);
-  const requestIdRef = useRef(0);
 
-  const normalizeResponse = (res: any): { items: string[]; meta?: any } => {
-    if (!res) return { items: [], meta: undefined };
-    if (res.items && Array.isArray(res.items)) return { items: res.items.map((x: any) => (typeof x === "string" ? x : x?.name ?? x?.key ?? String(x))), meta: res.meta ?? res.pagination ?? undefined };
-    if (res.data && Array.isArray(res.data)) return { items: res.data.map((x: any) => (typeof x === "string" ? x : x?.name ?? x?.key ?? String(x))), meta: res.meta ?? res.pagination ?? undefined };
-    if (Array.isArray(res)) return { items: res.map((x: any) => (typeof x === "string" ? x : x?.name ?? x?.key ?? String(x))) };
-    if (typeof res === "object") {
-      try {
-        const vals = Object.values(res).flat?.();
-        if (Array.isArray(vals)) return { items: vals.map((v: any) => (typeof v === "string" ? v : v?.name ?? v?.key ?? String(v))) };
-      } catch {}
-    }
-    return { items: [], meta: undefined };
-  };
-  const callApi = async (pageParam: number, limitParam: number, brandArg?: string, searchQ?: string) => {
-    if (brandArg && brandArg !== "all" && typeof (apiClient as any).carsSpesificData === "function") {
-      return await (apiClient as any).carsSpesificData(pageParam, limitParam, brandArg, searchQ);
-    }
-    if (typeof (apiClient as any).carsModelSearch === "function" && searchQ) {
-      return await (apiClient as any).carsModelSearch(searchQ, undefined);
-    }
-
-    return await (apiClient as any).carsModel(pageParam, limitParam);
-  };
-
-  const loadPage = async (p: number, brd?: string, searchQ?: string) => {
+  const loadPage = (p: number, brd?: string, searchQ?: string) => {
     const isSearch = Boolean(searchQ && searchQ.trim().length > 0);
     if (loading) return;
     if (!hasMore && p !== 1 && !isSearch) return;
 
     setLoading(true);
-    const thisRequestId = ++requestIdRef.current;
 
-    try {
-      const res = await callApi(p, LIMIT, brd && brd !== "" && brd !== "all" ? brd : undefined, searchQ);
-      if (thisRequestId !== requestIdRef.current) return;
+    const res = brd && brd !== "" && brd !== "all"
+      ? service.getValuesByKeyPaginated(brd, p, LIMIT, searchQ)
+      : service.getAllValuesSortedPaginated(p, LIMIT, searchQ);
 
-      const { items: arr, meta } = normalizeResponse(res);
-      const arrLength = Array.isArray(arr) ? arr.length : 0;
+    const arr = res.items;
+    const arrLength = arr.length;
 
-      if (p === 1) {
-        const unique = Array.from(new Set(arr));
-        setItems(unique);
-        setHasMore(arrLength >= LIMIT);
-        setPage(1);
-      } else {
-        setItems((prev) => {
-          const prevSet = new Set(prev);
-          const newItems = arr.filter((it: string) => !prevSet.has(it));
-          if (newItems.length === 0) {
-            setHasMore(false);
-            return prev;
-          }
-          const merged = Array.from(new Set([...prev, ...newItems]));
-          setHasMore(arrLength >= LIMIT);
-          setPage(p);
-          return merged;
-        });
-      }
-    } catch (err) {
-      console.error("Model load failed:", err);
-    } finally {
-      if (thisRequestId === requestIdRef.current) setLoading(false);
+    if (p === 1) {
+      const unique = Array.from(new Set(arr));
+      setItems(unique);
+      setHasMore(arrLength >= LIMIT && p < res.totalPages);
+      setPage(1);
+    } else {
+      setItems((prev) => {
+        const prevSet = new Set(prev);
+        const newItems = arr.filter((it: string) => !prevSet.has(it));
+        if (newItems.length === 0) {
+          setHasMore(false);
+          return prev;
+        }
+        const merged = Array.from(new Set([...prev, ...newItems]));
+        setHasMore(arrLength >= LIMIT && p < res.totalPages);
+        setPage(p);
+        return merged;
+      });
     }
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -115,38 +87,22 @@ export default function ModelSelect({
     setItems([]);
     setPage(1);
     setHasMore(true);
-    requestIdRef.current++;
     loadPage(1, brand && brand !== "" ? brand : undefined);
   }, [brand]);
 
-  const performSearch = async (q: string) => {
+  const performSearch = (q: string) => {
     const trimmed = q.trim();
     if (trimmed === "") {
       setItems([]);
       setPage(1);
       setHasMore(true);
-      requestIdRef.current++;
       loadPage(1, brand && brand !== "" ? brand : undefined);
       return;
     }
 
     setLoading(true);
-    const thisRequestId = ++requestIdRef.current;
-
-    try {
-      const res = await callApi(1, LIMIT, brand && brand !== "" ? brand : undefined, trimmed);
-      if (thisRequestId !== requestIdRef.current) return;
-
-      const { items: arr } = normalizeResponse(res);
-      const unique = Array.from(new Set(arr));
-      setItems(unique);
-      setHasMore(unique.length >= LIMIT);
-      setPage(1);
-    } catch (err) {
-      console.error("Model search failed:", err);
-    } finally {
-      if (thisRequestId === requestIdRef.current) setLoading(false);
-    }
+    loadPage(1, brand && brand !== "" ? brand : undefined, trimmed);
+    setLoading(false);
   };
 
   useEffect(() => {
