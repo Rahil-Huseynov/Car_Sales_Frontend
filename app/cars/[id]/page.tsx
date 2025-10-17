@@ -581,6 +581,110 @@ function ContactModal({ isOpen, onClose, toEmail, sellerName, subject, prefillPh
   )
 }
 
+type ImageModalProps = {
+  isOpen: boolean
+  onClose: () => void
+  images: string[]
+  currentIndex: number
+  onPrev: () => void
+  onNext: () => void
+  title: string
+}
+
+function ImageModal({ isOpen, onClose, images, currentIndex, onPrev, onNext, title }: ImageModalProps) {
+  const overlayRef = useRef<HTMLDivElement | null>(null)
+  const lastActiveRef = useRef<HTMLElement | null>(null)
+  const { lang } = useDefaultLanguage();
+  const t = (key: string) => translateString(lang, key);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose()
+      if (e.key === "ArrowLeft") onPrev()
+      if (e.key === "ArrowRight") onNext()
+      if (e.key === "Tab") {
+        const focusable = overlayRef.current?.querySelectorAll<HTMLElement>(
+          "button, [href], [tabindex]:not([tabindex='-1'])",
+        )
+        if (!focusable || focusable.length === 0) return
+        const first = focusable[0]
+        const last = focusable[focusable.length - 1]
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault()
+          last.focus()
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault()
+          first.focus()
+        }
+      }
+    }
+    if (isOpen) {
+      lastActiveRef.current = document.activeElement as HTMLElement
+      document.addEventListener("keydown", onKey)
+      document.body.style.overflow = "hidden"
+    }
+    return () => {
+      document.removeEventListener("keydown", onKey)
+      lastActiveRef.current?.focus?.()
+      document.body.style.overflow = ""
+    }
+  }, [isOpen, onClose, onPrev, onNext])
+
+  if (!isOpen) return null
+
+  const handleOverlayClick = (e: React.MouseEvent) => {
+    if (e.target === overlayRef.current) onClose()
+  }
+
+  return (
+    <div
+      ref={overlayRef}
+      onClick={handleOverlayClick}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+      aria-modal="true"
+      role="dialog"
+    >
+      <div className="relative w-full h-full max-w-7xl max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between px-4 py-2 bg-black/50 text-white">
+          <h3 className="text-lg font-semibold">{title}</h3>
+          <button onClick={onClose} className="rounded-full p-2 hover:bg-gray-700" aria-label="Close image modal">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="flex-1 relative flex items-center justify-center">
+          <Image
+            src={images[currentIndex] || "/placeholder.svg"}
+            alt={`${title} - Image ${currentIndex + 1}`}
+            fill
+            className="object-contain"
+          />
+          <Button
+            size="icon"
+            variant="secondary"
+            className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white"
+            onClick={onPrev}
+            aria-label={t("previousImage")}
+          >
+            <ChevronLeft className="h-6 w-6" />
+          </Button>
+          <Button
+            size="icon"
+            variant="secondary"
+            className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white"
+            onClick={onNext}
+            aria-label={t("nextImage")}
+          >
+            <ChevronRight className="h-6 w-6" />
+          </Button>
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-3 py-1 rounded-md text-sm">
+            {currentIndex + 1} / {images.length}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function CarDetailPage() {
   const params = useParams()
   const router = useRouter()
@@ -593,6 +697,7 @@ export default function CarDetailPage() {
   const [isShareOpen, setIsShareOpen] = useState(false)
   const [shareUrl, setShareUrl] = useState<string>("")
   const [contactOpen, setContactOpen] = useState(false)
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false)
   const [descExpanded, setDescExpanded] = useState(false)
   const descRef = useRef<HTMLDivElement | null>(null)
   const animDuration = 300
@@ -925,7 +1030,8 @@ export default function CarDetailPage() {
                     alt={`${car.brand} ${car.model} - Image ${currentImageIndex + 1}`}
                     width={600}
                     height={400}
-                    className="w-full h-64 md:h-96 object-contain rounded-t-lg"
+                    className="w-full h-64 md:h-96 object-contain rounded-t-lg cursor-pointer"
+                    onClick={() => setIsImageModalOpen(true)}
                   />
                   <Button
                     size="icon"
@@ -1221,6 +1327,15 @@ export default function CarDetailPage() {
         prefillPhone={sellerPhone}
         subject={`${car.brand} ${car.model}`}
         carTitle={`${car.brand} ${car.model}`}
+      />
+      <ImageModal
+        isOpen={isImageModalOpen}
+        onClose={() => setIsImageModalOpen(false)}
+        images={images}
+        currentIndex={currentImageIndex}
+        onPrev={prevImage}
+        onNext={nextImage}
+        title={`${car.brand} ${car.model}`}
       />
       <ToastContainer position="top-right" autoClose={3000} />
     </div>

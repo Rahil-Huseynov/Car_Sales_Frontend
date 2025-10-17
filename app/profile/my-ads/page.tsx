@@ -43,7 +43,7 @@ import BrandSelect from "@/components/BrandSelect"
 import ModelSelect from "@/components/ModelSelect"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { bodyTypes, cities, colors, conditions, engineOptions, features, fuels, gearboxOptions, years } from "@/lib/car-data"
+import { bodyTypes, carStatus, cities, colors, conditions, engineOptions, features, fuels, gearboxOptions, years } from "@/lib/car-data"
 import { Input } from "@/components/ui/input"
 import { FeatureOption, VirtualScrollFeatures } from "@/app/sell/page"
 import CountrySelect from "@/components/CountryCodeSelect"
@@ -579,6 +579,8 @@ export default function MyAdsPage() {
         fuel: car.fuel ?? "",
         condition: car.condition ?? "",
         color: car.color ?? "",
+        vinCode: car.vinCode || null,
+        SaleType: car.SaleType,
         location: car.location ?? "",
         description: car.description ?? "",
         features: car.features || [],
@@ -769,6 +771,8 @@ export default function MyAdsPage() {
       price: Number(editingData.price) || undefined,
       mileage: Number(editingData.mileage) || undefined,
       fuel: editingData.fuel,
+      vinCode: editingData.vinCode || null,
+      SaleType: editingData.SaleType,
       condition: editingData.condition,
       color: editingData.color,
       location: editingData.location,
@@ -823,6 +827,8 @@ export default function MyAdsPage() {
               price: updated.price ?? a.price,
               mileage: updated.mileage ?? a.mileage,
               color: updated.color ?? a.color,
+              vinCode: updated.vinCode || null,
+              SaleType: updated.SaleType,
               fuel: updated.fuel ?? a.fuel,
               condition: updated.condition ?? a.condition,
               location: updated.location ?? a.location,
@@ -1016,6 +1022,17 @@ export default function MyAdsPage() {
                   </div>
 
                   <div>
+                    <Label htmlFor="vinCode">{t("vinCode")}</Label>
+                    <Input
+                      type="text"
+                      value={editingData.vinCode}
+                      onChange={(e) => handleInputChange("vinCode", e.target.value)}
+                      placeholder={t("vin.placeholder")}
+                      maxLength={17}
+                    />
+                  </div>
+
+                  <div>
                     <Label htmlFor="fuel">{t("fuel")}</Label>
                     <Select value={editingData.fuel} onValueChange={(v) => handleInputChange("fuel", v)} required>
                       <SelectTrigger>
@@ -1126,6 +1143,23 @@ export default function MyAdsPage() {
                       </SelectContent>
                     </Select>
                   </div>
+
+                  <div>
+                    <Label htmlFor="SaleType">{t("carStatus")}</Label>
+                    <Select value={editingData.SaleType ?? ""} onValueChange={(v) => handleInputChange("SaleType", v)} required>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("selectCarStatus")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {carStatus.map((c) => (
+                          <SelectItem key={c.key} value={c.key}>
+                            {c.translations[lang] ?? c.translations.en}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                 </CardContent>
               </Card>
 
