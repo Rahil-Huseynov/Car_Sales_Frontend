@@ -19,6 +19,7 @@ import {
   ChevronRight,
   Cog,
   X,
+  Zap,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -33,6 +34,7 @@ import { useDefaultLanguage } from "@/components/useLanguage";
 import { useRouter } from "next/navigation";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { CarStatusBadge } from "@/components/car-status-badge";
 
 type CarImage = { id: number; url: string };
 type UserCar = {
@@ -42,6 +44,7 @@ type UserCar = {
   brand: string;
   model: string;
   year?: number;
+  SaleType?: string;
   price?: number;
   mileage?: number;
   fuel?: string;
@@ -160,84 +163,134 @@ function CarCard({
   const imageUrl = buildImageUrl(currentRaw);
   const nextImage = (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); setCurrentImageIndex((p) => (p + 1) % images.length); };
   const prevImage = (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); setCurrentImageIndex((p) => (p - 1 + images.length) % images.length); };
-  const fuelLabel = findTranslation(fuels as any[], car.fuel ?? "", language) || (car.fuel ?? "");
-  const gearboxLabel = findTranslation(gearboxOptions as any[], car.gearbox ?? "", language) || (car.gearbox ?? "");
-  const conditionLabel = findTranslation(conditions as any[], car.condition ?? "", language) || (car.condition ?? "");
-  const colorLabel = findTranslation(colors as any[], car.color ?? "", language) || (car.color ?? "");
-  const locationLabel = findTranslation(cities as any[], car.location ?? "", language) || (car.location ?? "");
-  const viewcountLabel = car.viewcount || 0;
 
   return (
-    <Card className={`overflow-hidden card-hover border-0 bg-white/90 backdrop-blur-sm transition-all duration-500 ${isLoaded ? "animate-fadeInUp opacity-100" : "opacity-0"}`} style={{ animationDelay: `${index * 0.05}s` }}>
-      <div className="relative group">
-        <div className="overflow-hidden">
-          <Image src={imageUrl} alt={`${car.brand} ${car.model}`} width={300} height={200} className="w-full h-48 object-contain transition-transform duration-700 group-hover:scale-110" />
-        </div>
+    <Card
+      className={`overflow-hidden border-0 bg-white shadow-md hover:shadow-xl transition-all duration-300 ${isLoaded ? "animate-fadeInUp opacity-100" : "opacity-0"
+        }`}
+      style={{ animationDelay: `${index * 0.05}s` }}
+    >
+      <div className="relative group overflow-hidden bg-gray-100 h-56">
+        <Image
+          src={imageUrl || "/placeholder.svg"}
+          alt={`${car.brand} ${car.model}`}
+          width={400}
+          height={224}
+          className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
+        />
 
         {images.length > 1 && (
           <>
-            <Button size="icon" variant="ghost" className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 h-8 w-8 hover:scale-110" onClick={prevImage}>
-              <ChevronLeft className="h-4 w-4" />
+            <Button
+              size="icon"
+              variant="ghost"
+              className="absolute opacity-1 left-2 top-1/2 -translate-y-1/2 bg-blue-900 hover:bg-blue-800 text-white hover:text-white md:opacity-0 group-hover:opacity-100 transition-all duration-300 h-9 w-9 rounded-full shadow-md"
+              onClick={prevImage}
+            >
+              <ChevronLeft className="h-5 w-5" />
             </Button>
-            <Button size="icon" variant="ghost" className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 h-8 w-8 hover:scale-110" onClick={nextImage}>
-              <ChevronRight className="h-4 w-4" />
+
+            <Button
+              size="icon"
+              variant="ghost"
+              className="absolute opacity-1 right-2 top-1/2 -translate-y-1/2 bg-blue-900 hover:bg-blue-800 text-white hover:text-white md:opacity-0 group-hover:opacity-100 transition-all duration-300 h-9 w-9 rounded-full shadow-md"
+              onClick={nextImage}
+            >
+              <ChevronRight className="h-5 w-5" />
             </Button>
+
           </>
         )}
 
-        <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex gap-1">
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
           {images.map((_, idx) => (
-            <button key={idx} className={`w-2 h-2 rounded-full transition-all duration-300 ${idx === currentImageIndex ? "bg-white scale-125" : "bg-white/50 hover:bg-white/75"}`} onClick={(e) => { e.preventDefault(); e.stopPropagation(); setCurrentImageIndex(idx); }} />
+            <button
+              key={idx}
+              className={`rounded-full transition-all duration-300 ${idx === currentImageIndex
+                ? "bg-gray-400 w-2 h-2"
+                : "bg-gray-300 w-1.5 h-1.5 hover:bg-gray-400"
+                }`}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                setCurrentImageIndex(idx)
+              }}
+            />
           ))}
         </div>
 
-        <div className="absolute bottom-3 left-3 bg-black/70 text-white px-2 py-1 rounded-md text-xs flex items-center gap-1 backdrop-blur-sm">
+
+        <div className="absolute top-3 right-3 bg-black/60 text-white px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1 backdrop-blur-sm">
           <Camera className="h-3 w-3" />
           {currentImageIndex + 1}/{images.length}
         </div>
 
-        <Button size="icon" variant="ghost" className={`absolute top-3 right-3 bg-white/90 hover:bg-white backdrop-blur-sm z-10 transition-all duration-300 hover:scale-110 ${isFavorited ? 'text-red-500 hover:text-red-600' : 'hover:text-red-500'}`} onClick={handleFavorite}>
-          <Heart className="h-4 w-4" fill={isFavorited ? 'currentColor' : 'none'} />
+        <Button
+          size="icon"
+          variant="ghost"
+          className={`absolute top-3 left-3 bg-white/90 hover:bg-white rounded-full h-9 w-9 shadow-md transition-all duration-300 ${isFavorited ? "text-red-500" : "text-gray-600 hover:text-red-500"
+            }`}
+          onClick={handleFavorite}
+        >
+          <Heart className="h-5 w-5" fill={isFavorited ? "currentColor" : "none"} />
         </Button>
+        <div className="absolute bottom-3 left-3">
+          <CarStatusBadge saleType={car.SaleType} language={language} />
+        </div>
+
       </div>
-
-      <CardHeader className="pb-2">
-        <div className="items-start">
-          <h3 className="font-bold h-16 text-lg text-gray-800">
-            {car.brand}  {car.model.length > 32 ? car.model.slice(0, 40) + "..." : car.model}
+      <CardContent className="p-4">
+        <div className="mb-3">
+          <h3 className="font-bold text-lg text-gray-900 line-clamp-2">
+            {car.brand} {car.model}
           </h3>
-          <div className="flex items-center justify-between gap-1">
-            <p className="text-sm text-gray-600">{car.year} • {conditionLabel}</p>
-            <div className="flex items-center gap-1">
-              <Eye color="#4B5563" className="flex items-center h-4 w-4 text-blue-500" />
-              <p className="text-gray-600">{viewcountLabel}</p>
-            </div>
+          <p className="text-sm text-gray-500 mt-1">{car.year}</p>
+        </div>
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <Zap className="h-4 w-4 text-blue-500 flex-shrink-0" />
+            <span className="truncate">
+              {(car.mileage ?? 0).toLocaleString()} {t("km") || "km"}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <Fuel className="h-4 w-4 text-blue-500 flex-shrink-0" />
+            <span className="truncate">{car.fuel || "—"}</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <Cog className="h-4 w-4 text-blue-500 flex-shrink-0" />
+            <span className="truncate">{car.gearbox || "—"}</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <MapPin className="h-4 w-4 text-blue-500 flex-shrink-0" />
+            <span className="truncate">{car.location || "—"}</span>
           </div>
         </div>
-      </CardHeader>
 
-
-      <CardContent className="pt-0 pb-24">
-        <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-4">
-          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><Car className="h-4 w-4 text-blue-500" />{(car.mileage ?? 0).toLocaleString()} {t("km") || "km"}</div>
-          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><Fuel className="h-4 w-4 text-blue-500" />{fuelLabel}</div>
-          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><Cog className="h-4 w-4 text-blue-500" />{gearboxLabel}</div>
-          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><MapPin className="h-4 w-4 text-blue-500" />{locationLabel}</div>
-        </div>
-        <div className="flex items-center justify-between">
-          <Badge variant="outline" className="mb-2 border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors duration-300">{colorLabel}</Badge>
-          <div className="text-right">
-            <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">{(car.price ?? 0).toLocaleString()} ₼</p>
+        <div className="flex items-center justify-between mb-4">
+          <Badge variant="secondary" className="text-xs">
+            {car.color || "Unknown"}
+          </Badge>
+          <div className="flex items-center gap-1 text-sm text-gray-600">
+            <Eye className="h-4 w-4" />
+            <span>{car.viewcount || 0}</span>
           </div>
+        </div>
+
+        <div className="mb-4">
+          <p className="text-2xl font-bold text-gray-900">{(car.price ?? 0).toLocaleString()} ₼</p>
         </div>
       </CardContent>
-
-      <CardFooter className="absolute bottom-3 left-0 w-full gap-2 px-4">
-        <Button asChild className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 btn-animate transition-all duration-300 hover:scale-105">
-          <Link href={`/cars/${car.id}`}><Eye className="h-4 w-4 mr-2" />{t("details")}</Link>
+      <CardFooter className="p-4 pt-0">
+        <Button
+          asChild
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium transition-all duration-300"
+        >
+          <Link href={`/cars/${car.id}`}>{t("details") || "View Details"}</Link>
         </Button>
       </CardFooter>
     </Card>
+
   );
 }
 
@@ -317,6 +370,7 @@ export default function HomePage() {
         location: car.location ?? "",
         gearbox: car.gearbox ?? "",
         city: car.city ?? "",
+        SaleType: car.SaleType ?? car.saleType ?? car.sale_type ?? car.type ?? "",
         viewcount: car.viewcount,
         description: car.description ?? "",
         features: car.features ?? [],

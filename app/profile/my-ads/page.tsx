@@ -31,6 +31,7 @@ import {
   Crown,
   Star,
   Cog,
+  Zap,
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -92,6 +93,7 @@ type RawUserCar = {
   condition?: string
   status?: string
   createdAt?: string
+  SaleType?: string
   views?: number
   calls?: number
   messages?: number
@@ -128,6 +130,7 @@ type UserCar = {
   gearbox?: string
   viewcount?: number
   color?: string
+  SaleType?: string
   location?: string
   city?: string
   description?: string
@@ -160,6 +163,7 @@ type CarAd = {
   year: number
   price: number
   mileage: number
+  SaleType?: string
   fuel: string
   transmission: string
   gearbox: string
@@ -194,11 +198,13 @@ const buildImageUrl = (maybe: RawCarImage | undefined): string | null => {
 import {
   status as statusStatic,
 } from "@/lib/car-data"
+import { CarStatusBadge } from "@/components/car-status-badge"
 function AdCard({
   ad,
   onEdit,
   onDelete,
   onMarkSold,
+  language,
   index,
   isDeleting,
   isSelling,
@@ -207,6 +213,7 @@ function AdCard({
   onEdit: (id: number) => void
   onDelete: (id: number) => void
   onMarkSold: (id: number) => void
+  language: string;
   index: number
   isDeleting?: boolean
   isSelling?: boolean
@@ -271,87 +278,92 @@ function AdCard({
   const locationLabel = findTranslationFromList(cities as any[], ad.location ?? "", lang) || (ad.location ?? "");
   const viewcountLabel = ad.viewcount || 0
   return (
-    <Card
-      className={`overflow-hidden card-hover border-0 bg-white/90 backdrop-blur-sm transition-all duration-500 ${isLoaded ? "animate-fadeInUp opacity-100" : "opacity-0"
-        }`}
+    <Card className={`overflow-hidden border-0 bg-white shadow-md hover:shadow-xl transition-all duration-300 ${isLoaded ? "animate-fadeInUp opacity-100" : "opacity-0"
+      }`}
       style={{ animationDelay: `${index * 0.05}s` }}
     >
-      <div className="relative group">
-        <div className="overflow-hidden">
-          <Image
-            src={imageSrc}
-            alt={`${ad.brand} ${ad.model}`}
-            width={600}
-            height={400}
-            className="w-full h-48 object-contain transition-transform duration-700 group-hover:scale-110"
-            unoptimized={isRemote}
-          />
-        </div>
-
-        <Badge className={`absolute top-3 left-3 ${getStatusColor(ad.status)} z-10 flex items-center gap-1`}>
-          {getStatusIcon(ad.status)}
-          {statusLabel}
-        </Badge>
+      <div className="relative group overflow-hidden bg-gray-100 h-56">
+        <Image
+          src={imageSrc}
+          alt={`${ad.brand} ${ad.model}`}
+          width={600}
+          height={400}
+          className="w-full h-48 object-contain transition-transform duration-700 group-hover:scale-110"
+          unoptimized={isRemote}
+        />
 
         {ad.images.length > 1 && (
           <>
             <Button
               size="icon"
               variant="ghost"
-              className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 h-8 w-8"
+              className="absolute opacity-1 left-2 top-1/2 -translate-y-1/2 bg-blue-900 hover:bg-blue-800 text-white hover:text-white md:opacity-0 group-hover:opacity-100 transition-all duration-300 h-9 w-9 rounded-full shadow-md"
               onClick={prevImage}
-              title={t("previousImage") || "Previous image"}
-              aria-label={t("previousImage") || "Previous image"}
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-5 w-5" />
             </Button>
 
             <Button
               size="icon"
               variant="ghost"
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 h-8 w-8"
+              className="absolute opacity-1 right-2 top-1/2 -translate-y-1/2 bg-blue-900 hover:bg-blue-800 text-white hover:text-white md:opacity-0 group-hover:opacity-100 transition-all duration-300 h-9 w-9 rounded-full shadow-md"
               onClick={nextImage}
-              title={t("nextImage") || "Next image"}
-              aria-label={t("nextImage") || "Next image"}
             >
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-5 w-5" />
             </Button>
+
           </>
         )}
-
-        <div className="absolute bottom-3 left-3 bg-black/70 text-white px-2 py-1 rounded-md text-xs flex items-center gap-1">
+        <div className="absolute top-3 right-3 bg-black/60 text-white px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1 backdrop-blur-sm">
           <Camera className="h-3 w-3" />
           {currentImageIndex + 1}/{Math.max(1, ad.images.length)}
         </div>
+
+        <div className="absolute bottom-3 left-3">
+          <CarStatusBadge saleType={ad.SaleType} language={language} />
+        </div>
+
       </div>
-
-      <CardHeader className="pb-2">
-        <div className="items-start">
-            <h3 className="font-bold h-16 text-lg text-gray-800">
-              {ad.brand} {ad.model.length > 32 ? ad.model.slice(0, 40) + "..." : ad.model}
-            </h3>
-            <div className="flex items-center justify-between gap-1">
-              <p className="text-sm text-gray-600">{ad.year} • {conditionLabel}</p>
-              <div className="flex items-center gap-1">
-                <Eye color="#4B5563" className="flex items-center h-4 w-4 text-blue-500" />
-                <p className="text-gray-600">{viewcountLabel}</p>
-              </div>
-            </div>
+      <CardContent className="p-4">
+        <div className="mb-3">
+          <h3 className="font-bold text-lg text-gray-900 line-clamp-2">
+            {ad.brand} {ad.model.length > 32 ? ad.model.slice(0, 40) + "..." : ad.model}
+          </h3>
+          <p className="text-sm text-gray-500 mt-1">{ad.year} • {conditionLabel}</p>
         </div>
-      </CardHeader>
-
-      <CardContent className="pt-0">
-        <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-4">
-          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><Car className="h-4 w-4 text-blue-500" />{(ad.mileage ?? 0).toLocaleString()} {t("km") || "km"}</div>
-          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><Fuel className="h-4 w-4 text-blue-500" />{fuelLabel}</div>
-          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><Cog className="h-4 w-4 text-blue-500" />{gearboxLabel}</div>
-          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><MapPin className="h-4 w-4 text-blue-500" />{locationLabel}</div>
-        </div>
-        <div className="flex items-center justify-between">
-          <Badge variant="outline" className="mb-2 border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors duration-300">{colorLabel}</Badge>
-          <div className="text-right">
-            <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">{(ad.price ?? 0).toLocaleString()} ₼</p>
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <Zap className="h-4 w-4 text-blue-500 flex-shrink-0" />
+            <span className="truncate">
+              {(ad.mileage ?? 0).toLocaleString()} {t("km") || "km"}
+            </span>
           </div>
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <Fuel className="h-4 w-4 text-blue-500 flex-shrink-0" />
+            <span className="truncate">{fuelLabel || "—"}</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <Cog className="h-4 w-4 text-blue-500 flex-shrink-0" />
+            <span className="truncate">{gearboxLabel || "—"}</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <MapPin className="h-4 w-4 text-blue-500 flex-shrink-0" />
+            <span className="truncate">{locationLabel || "—"}</span>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between mb-4">
+          <Badge variant="secondary" className="text-xs">
+            {colorLabel || "Unknown"}
+          </Badge>
+          <div className="flex items-center gap-1 text-sm text-gray-600">
+            <Eye className="h-4 w-4" />
+            <span>{viewcountLabel || 0}</span>
+          </div>
+        </div>
+
+        <div className="mb-4">
+          <p className="text-2xl font-bold text-gray-900">{(ad.price ?? 0).toLocaleString()} ₼</p>
         </div>
       </CardContent>
 
@@ -439,10 +451,10 @@ function Modal({ open, onClose, title, children }: any) {
 export default function MyAdsPage() {
   const [ads, setAds] = useState<CarAd[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<"all" 
-  | "basic" 
-  | "premium" 
-  | "sold">("all")
+  const [activeTab, setActiveTab] = useState<"all"
+    | "basic"
+    | "premium"
+    | "sold">("all")
   const [deletingIds, setDeletingIds] = useState<number[]>([])
   const [sellingIds, setSellingIds] = useState<number[]>([])
   const [editingId, setEditingId] = useState<number | null>(null)
@@ -508,6 +520,7 @@ export default function MyAdsPage() {
             status,
             createdAt: c.createdAt,
             views: c.views ?? 0,
+            SaleType: c.SaleType ?? "",
             calls: c.calls ?? 0,
             messages: c.messages ?? 0,
             viewcount: c.viewcount ?? 0,
@@ -618,10 +631,10 @@ export default function MyAdsPage() {
   }
 
   const filteredAds = ads.filter((ad) => (activeTab === "all" ? true : ad.status === activeTab))
-  const getTabCount = (status: "all" 
-     |"basic" 
-     | "premium" 
-     | "sold") => (status === "all" ? ads.length : ads.filter((a) => a.status === status).length)
+  const getTabCount = (status: "all"
+    | "basic"
+    | "premium"
+    | "sold") => (status === "all" ? ads.length : ads.filter((a) => a.status === status).length)
 
   const handleInputChange = (k: string, v: any) => {
     setEditingData((prev: any) => ({ ...prev, [k]: v }))
@@ -880,7 +893,7 @@ export default function MyAdsPage() {
       <ToastContainer position="top-right" autoClose={4000} hideProgressBar={false} newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
 
       <section className="bg-gradient-to-br from-green-500 via-green-600 rounded-md to-green-700 text-white py-12 md:py-16 relative overflow-hidden">
-        <div className="container mx-auto px-4 relative z-10 flex justify-between items-center">
+        <div className="container mx-auto px-4 relative z-10 grid gap-2 sm:flex justify-between items-center">
           <h1 className="text-3xl md:text-4xl font-bold flex items-center gap-3">
             <BarChart3 className="h-8 w-8 text-green-200" />
             {t("myAds")}
@@ -896,11 +909,11 @@ export default function MyAdsPage() {
       </section>
 
       <div className="container mx-auto px-4 py-8">
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "all" 
-          | "basic" 
-          | "premium" 
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "all"
+          | "basic"
+          | "premium"
           | "sold")} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-8">
+          <TabsList className="grid grid-cols-1 sm:grid-cols-2 h-full w-full md:grid-cols-3 mb-8">
             <TabsTrigger value="all" className="flex items-center gap-2">
               <ReceiptText className="h-4 w-4" />
               {t("all")} ({getTabCount("all")})
@@ -935,7 +948,7 @@ export default function MyAdsPage() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredAds.map((ad, index) => (
-                  <AdCard key={ad.id} ad={ad} onEdit={handleEdit} onDelete={handleDelete} onMarkSold={handleMarkSold} index={index} isDeleting={deletingIds.includes(ad.id)} isSelling={sellingIds.includes(ad.id)} />
+                  <AdCard key={ad.id} ad={ad} onEdit={handleEdit} onDelete={handleDelete} onMarkSold={handleMarkSold} index={index} isDeleting={deletingIds.includes(ad.id)} isSelling={sellingIds.includes(ad.id)} language={lang} />
                 ))}
               </div>
             )}

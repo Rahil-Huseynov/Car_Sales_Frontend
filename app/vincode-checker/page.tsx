@@ -25,7 +25,7 @@ export default function VinCheckerPage() {
     const [success, setSuccess] = useState<string>("")
     const { lang } = useDefaultLanguage();
     const t = (key: string) => translateString(lang, key);
-    
+
     const validateVIN = (v: string): boolean => {
         return /^[A-HJ-NPR-Z0-9]{17}$/i.test(v)
     }
@@ -152,7 +152,7 @@ export default function VinCheckerPage() {
                             </Card>
                         </div>
                     )}
-                    
+
                     {result && (
                         <div className="max-w-6xl mx-auto animate-fadeInUp">
                             <Card className="shadow-sm border-0 bg-white/90 backdrop-blur-sm">
@@ -181,6 +181,22 @@ export default function VinCheckerPage() {
                                                 </div>
                                             </div>
                                         ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    )}
+                    {!result && !loading && (
+                        <div className="max-w-6xl mx-auto">
+                            <Card className="shadow-sm border-0 bg-white/90 backdrop-blur-sm">
+                                <CardContent className="p-12 text-center">
+                                    <Car className="h-16 w-16 mx-auto text-blue-500 mb-4" />
+                                    <h3 className="text-xl font-semibold text-gray-800 mb-2">{t("vin.title")}</h3>
+                                    <p className="text-gray-600 mb-4">
+                                        {t("vin.description")}
+                                    </p>
+                                    <div className="text-sm text-gray-500">
+                                        <p>{t("vin.vin_rule")}</p>
                                     </div>
                                 </CardContent>
                             </Card>

@@ -21,6 +21,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Cog,
+  Zap,
 } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { apiClient } from "@/lib/api-client"
@@ -42,6 +43,7 @@ import { useDefaultLanguage } from "@/components/useLanguage"
 import { useRouter } from "next/navigation"
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
+import { CarStatusBadge } from "@/components/car-status-badge"
 
 type CarImage = { id: number; url: string } | string
 type UserCar = {
@@ -129,12 +131,14 @@ function CarCard({
   colorsList,
   carStatusList,
   citiesList,
+  index,
   onFavoriteToggle
 }: {
   car: UserCar
   t: (k: string) => string
   language: string
   fuelsList: OptionItem[]
+  index: number
   transmissionsList: OptionItem[]
   conditionsList: OptionItem[]
   colorsList: OptionItem[]
@@ -191,10 +195,19 @@ function CarCard({
   const carStatusLabel = findTranslation(carStatusList, car.SaleType ?? "", language) || (car.SaleType ?? "")
   const locationLabel = findTranslation(citiesList, car.location ?? car.city ?? "", language) || (car.location ?? car.city ?? "")
   const viewcount = car.viewcount || 0
+  const [isLoaded, setIsLoaded] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoaded(true), index * 80);
+    return () => clearTimeout(timer);
+  }, [index]);
 
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-      <div className="relative group">
+    <Card
+      className={`overflow-hidden border-0 bg-white shadow-md hover:shadow-xl transition-all duration-300 ${isLoaded ? "animate-fadeInUp opacity-100" : "opacity-0"
+        }`}
+      style={{ animationDelay: `${index * 0.05}s` }}
+    >
+      <div className="relative group overflow-hidden bg-gray-100 h-56">
         <Image
           src={imageUrls[currentImageIndex] || "/placeholder.svg"}
           alt={`${car.brand ?? ""} ${car.model ?? ""}`}
@@ -202,48 +215,48 @@ function CarCard({
           height={200}
           className="w-full h-48 object-contain"
         />
-        {car.featured && (
-          <Badge className="absolute top-2 left-2 bg-yellow-500 z-10">
-            {t("featured")}
-          </Badge>
-        )}
 
         {imageUrls.length > 1 && (
           <>
             <Button
               size="icon"
               variant="ghost"
-              className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"
+              className="absolute opacity-1 left-2 top-1/2 -translate-y-1/2 bg-blue-900 hover:bg-blue-800 text-white hover:text-white md:opacity-0 group-hover:opacity-100 transition-all duration-300 h-9 w-9 rounded-full shadow-md"
               onClick={prevImage}
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-5 w-5" />
             </Button>
+
             <Button
               size="icon"
               variant="ghost"
-              className="absolute right-1 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"
+              className="absolute opacity-1 right-2 top-1/2 -translate-y-1/2 bg-blue-900 hover:bg-blue-800 text-white hover:text-white md:opacity-0 group-hover:opacity-100 transition-all duration-300 h-9 w-9 rounded-full shadow-md"
               onClick={nextImage}
             >
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-5 w-5" />
             </Button>
+
           </>
         )}
 
-        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1">
-          {imageUrls.map((_, index) => (
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+          {imageUrls.map((_, idx) => (
             <button
-              key={index}
-              className={`w-2 h-2 rounded-full transition-all ${index === currentImageIndex ? "bg-white" : "bg-white/50"}`}
+              key={idx}
+              className={`rounded-full transition-all duration-300 ${idx === currentImageIndex
+                ? "bg-gray-400 w-2 h-2"
+                : "bg-gray-300 w-1.5 h-1.5 hover:bg-gray-400"
+                }`}
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
-                setCurrentImageIndex(index)
+                setCurrentImageIndex(idx)
               }}
             />
           ))}
         </div>
 
-        <div className="absolute bottom-2 left-2 bg-black/70 text-white px-2 py-1 rounded-md text-xs flex items-center gap-1">
+        <div className="absolute top-3 right-3 bg-black/60 text-white px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1 backdrop-blur-sm">
           <Camera className="h-3 w-3" />
           {currentImageIndex + 1}/{Math.max(1, imageUrls.length)}
         </div>
@@ -251,72 +264,65 @@ function CarCard({
         <Button
           size="icon"
           variant="ghost"
-          className={`absolute top-2 right-2 bg-white/80 hover:bg-white z-10 ${isFavorited ? 'text-red-500' : ''}`}
+          className={`absolute top-3 left-3 bg-white/90 hover:bg-white rounded-full h-9 w-9 shadow-md transition-all duration-300 ${isFavorited ? "text-red-500" : "text-gray-600 hover:text-red-500"
+            }`}
           onClick={handleFavorite}
         >
-          <Heart className="h-4 w-4" fill={isFavorited ? 'currentColor' : 'none'} />
+          <Heart className="h-5 w-5" fill={isFavorited ? "currentColor" : "none"} />
         </Button>
+        <div className="absolute bottom-3 left-3">
+          <CarStatusBadge saleType={car.SaleType} language={language} />
+        </div>
+
       </div>
-
-      <CardHeader className="pb-2">
-        <div className="items-start">
-          <h3 className="font-bold h-16 text-lg text-gray-800">
-            {car.brand} {car.model?.length && car.model.length > 32 ? car.model.slice(0, 40) + "..." : car.model ?? ""}
+      <CardContent className="p-4">
+        <div className="mb-3">
+          <h3 className="font-bold text-lg text-gray-900 line-clamp-2">
+            {car.brand} {car.model}
           </h3>
-          <div className="flex items-center justify-between gap-1">
-            <p className="text-sm text-gray-600">{car.year} • {conditionLabel}</p>
-            <div className="flex items-center gap-1">
-              <Eye color="#4B5563" className="flex items-center h-4 w-4 text-blue-500" />
-              <p className="text-gray-600">{viewcount}</p>
-            </div>
-          </div>
+          <p className="text-sm text-gray-500 mt-1">{car.year}</p>
         </div>
-      </CardHeader>
-
-      <CardContent className="pt-0">
-        <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-4">
-          <div className="flex items-center gap-1">
-            <Car className="h-4 w-4" />
-            {(car.mileage ?? 0).toLocaleString()} {t("km") || "km"}
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <Zap className="h-4 w-4 text-blue-500 flex-shrink-0" />
+            <span className="truncate">
+              {(car.mileage ?? 0).toLocaleString()} {t("km") || "km"}
+            </span>
           </div>
-          <div className="flex items-center gap-1">
-            <Fuel className="h-4 w-4" />
-            {fuelLabel}
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <Fuel className="h-4 w-4 text-blue-500 flex-shrink-0" />
+            <span className="truncate">{car.fuel || "—"}</span>
           </div>
-          <div className="flex items-center gap-1">
-            <Cog className="h-4 w-4" />
-            {gearboxLabel}
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <Cog className="h-4 w-4 text-blue-500 flex-shrink-0" />
+            <span className="truncate">{car.gearbox || "—"}</span>
           </div>
-          <div className="flex items-center gap-1">
-            <MapPin className="h-4 w-4" />
-            {locationLabel}
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <MapPin className="h-4 w-4 text-blue-500 flex-shrink-0" />
+            <span className="truncate">{car.location || "—"}</span>
           </div>
         </div>
 
-        <div className="flex items-center justify-between">
-          <Badge
-            variant="outline"
-            className="mb-2 border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors duration-300"
-          >
-            {colorLabel}
+        <div className="flex items-center justify-between mb-4">
+          <Badge variant="secondary" className="text-xs">
+            {car.color || "Unknown"}
           </Badge>
-          <div className="text-right">
-            <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
-              {(car.price ?? 0).toLocaleString()} ₼
-            </p>
+          <div className="flex items-center gap-1 text-sm text-gray-600">
+            <Eye className="h-4 w-4" />
+            <span>{car.viewcount || 0}</span>
           </div>
+        </div>
+
+        <div className="mb-4">
+          <p className="text-2xl font-bold text-gray-900">{(car.price ?? 0).toLocaleString()} ₼</p>
         </div>
       </CardContent>
-
-      <CardFooter className="mt-auto pl-4 pr-4 border-t border-gray-100 bg-white sticky bottom-0">
+      <CardFooter className="p-4 pt-0">
         <Button
           asChild
-          className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 btn-animate transition-all duration-300 hover:scale-105"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium transition-all duration-300"
         >
-          <Link href={`/cars/${car.id}`}>
-            <Eye className="h-4 w-4 mr-2" />
-            {t("details")}
-          </Link>
+          <Link href={`/cars/${car.id}`}>{t("details") || "View Details"}</Link>
         </Button>
       </CardFooter>
     </Card>
@@ -758,13 +764,14 @@ export default function CarsPage() {
             ) : (
               <>
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
-                  {paginatedCars.map((car) => (
+                  {paginatedCars.map((car, idx) => (
                     <CarCard
                       key={car.id}
                       car={car}
                       t={t}
                       language={lang}
                       fuelsList={fuelsList}
+                      index={idx}
                       transmissionsList={transmissionsList}
                       conditionsList={conditionsList}
                       colorsList={colorsList}

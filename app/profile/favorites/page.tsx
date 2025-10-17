@@ -22,6 +22,7 @@ import {
   Clipboard,
   Check,
   X,
+  Zap,
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -29,6 +30,7 @@ import { useDefaultLanguage } from "@/components/useLanguage"
 import { translateString } from "@/lib/i18n"
 import { apiClient } from "@/lib/api-client"
 import { toast } from "react-toastify"
+import { CarStatusBadge } from "@/components/car-status-badge"
 
 type ImageObj = { id?: number; url: string }
 type CarFromApi = {
@@ -38,6 +40,7 @@ type CarFromApi = {
   year?: number
   price?: number
   mileage?: number
+  SaleType?: string
   fuel?: string
   transmission?: string
   color?: string
@@ -389,47 +392,45 @@ function FavoriteCarCard({
 
   return (
     <Card
-      className={`overflow-hidden card-hover border-0 bg-white/90 backdrop-blur-sm transition-all duration-500 ${isLoaded ? "animate-fadeInUp opacity-100" : "opacity-0"
+      className={`overflow-hidden border-0 bg-white shadow-md hover:shadow-xl transition-all duration-300 ${isLoaded ? "animate-fadeInUp opacity-100" : "opacity-0"
         }`}
-      style={{ animationDelay: `${index * 0.1}s` }}
+      style={{ animationDelay: `${index * 0.05}s` }}
     >
-      <div className="relative group">
-        <div className="overflow-hidden">
-          <Image
-            src={car.images?.[currentImageIndex] || "/placeholder.svg"}
-            alt={`${car.brand} ${car.model}`}
-            width={300}
-            height={200}
-            unoptimized
-            className="w-full h-48 object-contain transition-transform duration-700 group-hover:scale-110"
-          />
-        </div>
-
+      <div className="relative group overflow-hidden bg-gray-100 h-56">
+        <Image
+          src={car.images?.[currentImageIndex] || "/placeholder.svg"}
+          alt={`${car.brand} ${car.model}`}
+          width={300}
+          height={200}
+          unoptimized
+          className="w-full h-48 object-contain transition-transform duration-700 group-hover:scale-110"
+        />
         {/* {car.condition === "premium" || car.condition === "Premium" || car.condition === "New" ? (
           <Badge className="absolute top-3 left-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0 z-10">
             {t("featured")}
           </Badge>
         ) : null} */}
 
-        {(car.images?.length || 0) > 1 && (
+        {images.length > 1 && (
           <>
             <Button
               size="icon"
               variant="ghost"
-              className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 h-8 w-8"
+              className="absolute opacity-1 left-2 top-1/2 -translate-y-1/2 bg-blue-900 hover:bg-blue-800 text-white hover:text-white md:opacity-0 group-hover:opacity-100 transition-all duration-300 h-9 w-9 rounded-full shadow-md"
               onClick={prevImage}
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-5 w-5" />
             </Button>
 
             <Button
               size="icon"
               variant="ghost"
-              className="absolute right-1 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white opacity-0 group-hover:opacity-100 transition-all duration-300 h-8 w-8"
+              className="absolute opacity-1 right-2 top-1/2 -translate-y-1/2 bg-blue-900 hover:bg-blue-800 text-white hover:text-white md:opacity-0 group-hover:opacity-100 transition-all duration-300 h-9 w-9 rounded-full shadow-md"
               onClick={nextImage}
             >
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-5 w-5" />
             </Button>
+
           </>
         )}
 
@@ -448,9 +449,12 @@ function FavoriteCarCard({
           ))}
         </div>
 
-        <div className="absolute bottom-3 left-3 bg-black/70 text-white px-2 py-1 rounded-md text-xs flex items-center gap-1">
+        <div className="absolute top-1 left-3 bg-black/70 text-white px-2 py-1 rounded-md text-xs flex items-center gap-1">
           <Camera className="h-3 w-3" />
           {currentImageIndex + 1}/{car.images?.length || 1}
+        </div>
+        <div className="absolute bottom-3 left-3">
+          <CarStatusBadge saleType={car.SaleType} language={language} />
         </div>
 
         <div className="absolute top-3 right-3 flex gap-2">
@@ -481,51 +485,57 @@ function FavoriteCarCard({
         </div>
       </div>
 
-
-      <CardHeader className="pb-2">
-        <div className="items-start">
-          <h3 className="font-bold h-16 text-lg text-gray-800">
-            {car.brand} {car.model.length > 32 ? car.model.slice(0, 40) + "..." : car.model}
+      <CardContent className="p-4">
+        <div className="mb-3">
+          <h3 className="font-bold text-lg text-gray-900 line-clamp-2">
+            {car.brand} {car.model}
           </h3>
-          <div className="flex items-center justify-between gap-1">
-            <p className="text-sm text-gray-600">{car.year} • {conditionLabel}</p>
-            <div className="flex items-center gap-1">
-              <Eye color="#4B5563" className="flex items-center h-4 w-4 text-blue-500" />
-              <p className="text-gray-600">{viewcountLabel}</p>
-            </div>
+          <p className="text-sm text-gray-500 mt-1">{car.year}</p>
+        </div>
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <Zap className="h-4 w-4 text-blue-500 flex-shrink-0" />
+            <span className="truncate">
+              {(car.mileage ?? 0).toLocaleString()} {t("km") || "km"}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <Fuel className="h-4 w-4 text-blue-500 flex-shrink-0" />
+            <span className="truncate">{car.fuel || "—"}</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <Cog className="h-4 w-4 text-blue-500 flex-shrink-0" />
+            <span className="truncate">{car.gearbox || "—"}</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <MapPin className="h-4 w-4 text-blue-500 flex-shrink-0" />
+            <span className="truncate">{car.location || "—"}</span>
           </div>
         </div>
-      </CardHeader>
 
-      <CardContent className="pt-0">
-        <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-4">
-          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><Car className="h-4 w-4 text-blue-500" />{(car.mileage ?? 0).toLocaleString()} {t("km") || "km"}</div>
-          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><Fuel className="h-4 w-4 text-blue-500" />{fuelLabel}</div>
-          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><Cog className="h-4 w-4 text-blue-500" />{gearboxLabel}</div>
-          <div className="flex items-center gap-1 transition-colors duration-300 hover:text-blue-600"><MapPin className="h-4 w-4 text-blue-500" />{locationLabel}</div>
-        </div>
-        <div className="flex items-center justify-between">
-          <Badge variant="outline" className="mb-2 border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors duration-300">{colorLabel}</Badge>
-          <div className="text-right">
-            <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">{(car.price ?? 0).toLocaleString()} ₼</p>
+        <div className="flex items-center justify-between mb-4">
+          <Badge variant="secondary" className="text-xs">
+            {car.color || "Unknown"}
+          </Badge>
+          <div className="flex items-center gap-1 text-sm text-gray-600">
+            <Eye className="h-4 w-4" />
+            <span>{car.viewcount || 0}</span>
           </div>
+        </div>
+
+        <div className="mb-4">
+          <p className="text-2xl font-bold text-gray-900">{(car.price ?? 0).toLocaleString()} ₼</p>
         </div>
       </CardContent>
-
-
-      <CardFooter className="pt-0 gap-2">
+      <CardFooter className="p-4 pt-0">
         <Button
           asChild
-          className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 btn-animate"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium transition-all duration-300"
         >
-          <Link href={`/cars/${allCarsListId}`}>
-            <Eye className="h-4 w-4 mr-2" />
-            {translateString(useDefaultLanguage().lang, "details")}
-          </Link>
+          <Link href={`/cars/${car.id}`}>{t("details") || "View Details"}</Link>
         </Button>
       </CardFooter>
-    </Card>
-  )
+    </Card>)
 }
 
 
