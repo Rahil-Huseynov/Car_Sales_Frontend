@@ -20,6 +20,14 @@ type GetAllCarsParams = {
   sortBy?: string;
 };
 
+type ContactPayload = {
+  name: string;
+  email: string;
+  phone?: string;
+  subject: string;
+  message: string;
+};
+
 export class ApiError extends Error {
   status: number
   data?: any
@@ -319,6 +327,91 @@ class ApiClient {
     });
   }
 
+
+  async GetForSaleCars(params: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    search?: string;
+    brand?: string;
+    SaleType?: string;
+    model?: string;
+    year?: number;
+    fuel?: string;
+    gearbox?: string;
+    condition?: string;
+    color?: string;
+    location?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    sortBy?: string;
+  } = {}) {
+    const query = new URLSearchParams();
+
+    if (params.page) query.append("page", params.page.toString());
+    if (params.limit) query.append("limit", params.limit.toString());
+    if (params.status) query.append("status", params.status);
+    if (params.search) query.append("search", params.search);
+    if (params.SaleType) query.append("SaleType", params.SaleType);
+    if (params.brand) query.append("brand", params.brand);
+    if (params.model) query.append("model", params.model);
+    if (params.year) query.append("year", params.year.toString());
+    if (params.fuel) query.append("fuel", params.fuel);
+    if (params.gearbox) query.append("gearbox", params.gearbox);
+    if (params.condition) query.append("condition", params.condition);
+    if (params.color) query.append("color", params.color);
+    if (params.location) query.append("location", params.location);
+    if (params.minPrice) query.append("minPrice", params.minPrice.toString());
+    if (params.maxPrice) query.append("maxPrice", params.maxPrice.toString());
+    if (params.sortBy) query.append("sortBy", params.sortBy);
+
+    return this.request(`/car/for-sale?${query.toString()}`, {
+      method: "GET",
+    });
+  }
+
+  async GetForRentCars(params: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    search?: string;
+    brand?: string;
+    SaleType?: string;
+    model?: string;
+    year?: number;
+    fuel?: string;
+    gearbox?: string;
+    condition?: string;
+    color?: string;
+    location?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    sortBy?: string;
+  } = {}) {
+    const query = new URLSearchParams();
+
+    if (params.page) query.append("page", params.page.toString());
+    if (params.limit) query.append("limit", params.limit.toString());
+    if (params.status) query.append("status", params.status);
+    if (params.search) query.append("search", params.search);
+    if (params.SaleType) query.append("SaleType", params.SaleType);
+    if (params.brand) query.append("brand", params.brand);
+    if (params.model) query.append("model", params.model);
+    if (params.year) query.append("year", params.year.toString());
+    if (params.fuel) query.append("fuel", params.fuel);
+    if (params.gearbox) query.append("gearbox", params.gearbox);
+    if (params.condition) query.append("condition", params.condition);
+    if (params.color) query.append("color", params.color);
+    if (params.location) query.append("location", params.location);
+    if (params.minPrice) query.append("minPrice", params.minPrice.toString());
+    if (params.maxPrice) query.append("maxPrice", params.maxPrice.toString());
+    if (params.sortBy) query.append("sortBy", params.sortBy);
+
+    return this.request(`/car/for-rent?${query.toString()}`, {
+      method: "GET",
+    });
+  }
+
   async getPremiumCars(params: Omit<GetAllCarsParams, "status"> = {}) {
     const query = new URLSearchParams();
 
@@ -343,6 +436,14 @@ class ApiClient {
     return this.request(path, { method: "GET" });
   }
 
+
+  async sendContactMessage(payload: ContactPayload) {
+    return this.request('/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  }
 
   async addcardata(formData: any) {
     const token = tokenManager.getAccessToken()

@@ -270,9 +270,9 @@ function CarCard({
         >
           <Heart className="h-5 w-5" fill={isFavorited ? "currentColor" : "none"} />
         </Button>
-        <div className="absolute bottom-3 left-3">
+        {/* <div className="absolute bottom-3 left-3">
           <CarStatusBadge saleType={car.SaleType} language={language} />
-        </div>
+        </div> */}
 
       </div>
       <CardContent className="p-4">
@@ -413,11 +413,11 @@ export default function CarsPage() {
       if (sortBy) params.sortBy = sortBy
 
       let resp: any = null
-      if (apiClient?.getAllCars) {
-        resp = await apiClient.getAllCars(params)
+      if (apiClient?.GetForSaleCars) {
+        resp = await apiClient.GetForSaleCars(params)
       } else {
         const qs = buildQuery(params)
-        const r = await fetch(`/car/all?${qs}`)
+        const r = await fetch(`/car/for-sale?${qs}`)
         resp = await r.json()
       }
 
@@ -565,7 +565,7 @@ export default function CarsPage() {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold mb-2">{t("cars")}</h1>
+              <h1 className="text-3xl md:text-4xl font-bold mb-2">{t("forSale")}</h1>
               <p className="text-gray-600">{t("carsSubtitle")}</p>
             </div>
             <div className="flex items-center gap-4">

@@ -13,6 +13,8 @@ import { getTranslation, translateString } from "@/lib/i18n"
 import { apiClient } from "@/lib/api-client"
 import { useAuth } from "@/lib/auth-context"
 import { useDefaultLanguage } from "@/components/useLanguage"
+import { ToastContainer, toast } from "react-toastify"
+import "react-toastify/dist/ReactToastify.css"
 
 type User = {
   id: number
@@ -38,7 +40,8 @@ export default function ContactPage() {
   })
   const [profileData, setProfileData] = useState<User | null>(null)
   const { logout } = useAuth()
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(true) 
+  const [submitLoading, setSubmitLoading] = useState(false) 
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -50,8 +53,9 @@ export default function ContactPage() {
       try {
         const data = await apiClient.getCurrentUser()
         setProfileData(data)
-      } catch {
+      } catch (err: any) {
         logout()
+        toast.error(t("contact.sessionExpired") || "Session expired. Please login again.")
       } finally {
         setLoading(false)
       }
@@ -61,13 +65,40 @@ export default function ContactPage() {
     return () => clearInterval(interval)
   }, [logout])
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-  }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (submitLoading) return;
+    setSubmitLoading(true);
+
+    try {
+      await apiClient.sendContactMessage(formData)
+      toast.success(t("contact.sentSuccess") || "Message sent — we will contact you soon.");
+      setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        (t("contact.sendError") || "Error sending message");
+      toast.error(msg);
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={true}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
 
       <section className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white py-16">
         <div className="container mx-auto px-4 text-center">
@@ -139,7 +170,7 @@ export default function ContactPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4" aria-busy={submitLoading}>
                 <div>
                   <Label htmlFor="name">{t("contact.name")}</Label>
                   <Input
@@ -184,6 +215,7 @@ export default function ContactPage() {
                   <Label htmlFor="message">{t("contact.messageLabel")}</Label>
                   <Textarea
                     id="message"
+                    className="resize-none"
                     value={formData.message}
                     onChange={(e) => setFormData((prev) => ({ ...prev, message: e.target.value }))}
                     rows={5}
@@ -191,9 +223,26 @@ export default function ContactPage() {
                   />
                 </div>
 
-                <Button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-blue-700">
-                  <Send className="h-4 w-4 mr-2" />
-                  {t("contact.send")}
+                <Button
+                  type="submit"
+                  className="w-full bg-gradient-to-r from-blue-600 to-blue-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                  disabled={submitLoading}
+                  aria-disabled={submitLoading}
+                >
+                  {submitLoading ? (
+                    <span className="flex items-center justify-center">
+                      <svg className="h-4 w-4 mr-2 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" opacity="0.25"></circle>
+                        <path d="M22 12a10 10 0 00-10-10" stroke="currentColor" strokeWidth="4" strokeLinecap="round"></path>
+                      </svg>
+                      {t("contact.sending") || "Loading..."}
+                    </span>
+                  ) : (
+                    <span className="flex items-center justify-center">
+                      <Send className="h-4 w-4 mr-2" />
+                      {t("contact.send")}
+                    </span>
+                  )}
                 </Button>
               </form>
             </CardContent>

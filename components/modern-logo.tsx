@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import logo from "../public/Logo/2.png"
+import logo from "../public/Logo/4.png"
 
 interface ModernLogoProps {
   className?: string
@@ -9,7 +9,7 @@ interface ModernLogoProps {
 
 export function ModernLogo({ className = "" }: ModernLogoProps) {
   return (
-    <div className={`flex items-center gap-3 ${className}`}>
+    <div className={`flex items-center gap-3 pr-6 ${className}`}>
       <div className="w-[100px] md:w-[110px] h-auto relative">
         {/* <Image 
           src={logo} 

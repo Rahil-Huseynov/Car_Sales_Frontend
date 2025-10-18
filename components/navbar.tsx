@@ -91,14 +91,15 @@ export function Navbar() {
           </Link>
 
           <nav className="hidden mobile:flex items-center gap-6">
-            <Link href="/" className="text-gray-700 text-sm lg:text-base hover:text-blue-600 transition-colors font-medium">{t("home")}</Link>
-            <Link href="/cars" className="text-gray-700 text-sm lg:text-base hover:text-blue-600 transition-colors font-medium">{t("cars")}</Link>
+            <Link href="/" className="text-gray-700 text-md hover:text-blue-600 transition-colors font-medium">{t("home")}</Link>
+            <Link href="/cars/for-sale" className="text-gray-700 text-md hover:text-blue-600 transition-colors font-medium">{t("forSale")}</Link>
+            <Link href="/cars/for-rent" className="text-gray-700 text-md hover:text-blue-600 transition-colors font-medium">{t("forRent")}</Link>
             {!isAdmin && (
-              <Link href="/sell" className="text-gray-700 text-sm lg:text-base hover:text-blue-600 transition-colors font-medium">{t("sell")}</Link>
+              <Link href="/sell" className="text-gray-700 text-md hover:text-blue-600 transition-colors font-medium">{t("sellOrRentOut")}</Link>
             )}
-            <Link href="/vincode-checker" className="text-gray-700 text-sm lg:text-base hover:text-blue-600 transition-colors font-medium">{t("vin.title")}</Link>
-            {/* <Link href="/about" className="text-gray-700 text-sm lg:text-base hover:text-blue-600 transition-colors font-medium">{t("about")}</Link> */}
-            <Link href="/contact" className="text-gray-700 text-sm lg:text-base hover:text-blue-600 transition-colors font-medium">{t("contact")}</Link>
+            <Link href="/vincode-checker" className="text-gray-700 text-md hover:text-blue-600 transition-colors font-medium">{t("vin.title")}</Link>
+            {/* <Link href="/about" className="text-gray-700 text-md hover:text-blue-600 transition-colors font-medium">{t("about")}</Link> */}
+            <Link href="/contact" className="text-gray-700 text-md hover:text-blue-600 transition-colors font-medium">{t("contact")}</Link>
           </nav>
 
           <div className="hidden mobile:flex items-center gap-3">
@@ -180,11 +181,12 @@ export function Navbar() {
               <SheetContent side="right" className="w-80">
                 <div className="flex flex-col gap-4 mt-8">
                   <Link href="/" className="text-lg font-medium hover:text-blue-600 transition-colors">{t("home")}</Link>
-                  <Link href="/cars" className="text-lg font-medium hover:text-blue-600 transition-colors">{t("cars")}</Link>
-                  <Link href="/sell" className="text-lg font-medium hover:text-blue-600 transition-colors">{t("sell")}</Link>
-                  <Link href="/vincode-checker" className="text-lg font-medium hover:text-blue-600 transition-colors">{t("vin.title")}</Link>
+                  <Link href="/cars/for-sale" className="text-lg font-medium hover:text-blue-600 transition-colors">{t("forSale")}</Link>
+                  <Link href="/cars/for-rent" className="text-lg font-medium hover:text-blue-600 transition-colors">{t("forRent")}</Link>
+                  <Link href="/sell" className="font-medium text-lg hover:text-blue-600 transition-colors">{t("sellOrRentOut")}</Link>
+                  <Link href="/vincode-checker" className="font-medium text-lg hover:text-blue-600 transition-colors">{t("vin.title")}</Link>
                   {/* <Link href="/about" className="text-lg font-medium hover:text-blue-600 transition-colors">{t("about")}</Link> */}
-                  <Link href="/contact" className="text-lg font-medium hover:text-blue-600 transition-colors">{t("contact")}</Link>
+                  <Link href="/contact" className="font-medium hover:text-blue-600 text-lg transition-colors">{t("contact")}</Link>
 
                   {isLoggedIn && profileData ? (
                     <div className="border-t pt-4 mt-4 space-y-2">

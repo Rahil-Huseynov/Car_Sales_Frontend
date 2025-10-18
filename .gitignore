@@ -25,6 +25,9 @@ yarn-error.log*
 # CarsData
 /lib/CarsData.json
 
+# Logo
+/public/Logo
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

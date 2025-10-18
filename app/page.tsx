@@ -343,7 +343,7 @@ export default function HomePage() {
         sortBy: sortBy === "createdAt_desc" ? undefined : sortBy,
       };
 
-      const res = await apiClient.getPremiumCars(params);
+      const res = await apiClient.getAllCars(params);
       let carsArray: any[] = [];
       if (Array.isArray(res)) {
         carsArray = res;
