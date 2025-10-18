@@ -190,7 +190,7 @@ export default function VinCheckerPage() {
                             </Card>
                         </div>
                     )}
-                    {!result && !loading && !showCaptcha && (
+                    {!result && !loading && (
                         <div className="max-w-6xl mx-auto">
                             <Card className="shadow-sm border-0 bg-white/90 backdrop-blur-sm">
                                 <CardContent className="p-12 text-center">
