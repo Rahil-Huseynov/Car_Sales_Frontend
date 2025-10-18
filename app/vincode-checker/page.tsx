@@ -36,16 +36,15 @@ export default function VinCheckerPage() {
         setCaptchaToken(token)
     }
 
-    useEffect(() => {
-        if (captchaToken) {
-            performFetch()
-        }
-    }, [captchaToken])
-
     const performFetch = async () => {
         setLoading(true)
         setResult(null)
 
+        if (!captchaToken) {
+            toast.error(t("captchaRequired") || "Please complete the CAPTCHA", { position: "top-right", autoClose: 4000 })
+            setLoading(false)
+            return
+        }
         try {
             const url = `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValuesExtended/${encodeURIComponent(vin)}?format=json`
             const res = await fetch(url)
@@ -129,6 +128,7 @@ export default function VinCheckerPage() {
                                 <Button
                                     type="submit"
                                     disabled={loading}
+                                    onClick={performFetch}
                                     className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transition-all duration-300 hover:scale-105 h-10"
                                 >
                                     {loading ? (
