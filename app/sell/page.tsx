@@ -35,6 +35,7 @@ import ModelSelect from "@/components/ModelSelect"
 import { useDebouncedCallback } from "use-debounce"
 import { useDefaultLanguage } from "@/components/useLanguage"
 import { tokenManager } from "@/lib/token-manager"
+import ReCAPTCHA from "react-google-recaptcha"
 
 type UserType = {
   id: number
@@ -219,6 +220,9 @@ export default function SellPage() {
   }, [logout])
 
   const [images, setImages] = useState<ImageItem[]>([])
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const recaptchaRef = useRef<ReCAPTCHA>(null)
 
   useEffect(() => {
     const access_token = tokenManager.getAccessToken();
@@ -301,8 +305,17 @@ export default function SellPage() {
     })
   }
 
+  const handleCaptcha = (token: string | null) => {
+    setCaptchaToken(token)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (!captchaToken) {
+      toast.error(t("captchaRequired") || "Please complete the CAPTCHA", { position: "top-right", autoClose: 4000 })
+      return
+    }
 
     const brandVal = (formData.brand || "").toString().trim() || (selectedBrand && selectedBrand !== "all" ? selectedBrand : "")
     const modelVal = (formData.model || "").toString().trim() || (selectedModel && selectedModel !== "all" ? selectedModel : "")
@@ -336,6 +349,8 @@ export default function SellPage() {
       toast.warn(t("imagesRequired"), { position: "top-right", autoClose: 3000 })
       return
     }
+
+    setIsSubmitting(true)
 
     try {
       const payload = {
@@ -376,6 +391,10 @@ export default function SellPage() {
     } catch (err: any) {
       console.error(err)
       toast.error(err?.message || t("errorOccurred"), { position: "top-right", autoClose: 5000 })
+    } finally {
+      setIsSubmitting(false)
+      recaptchaRef.current?.reset()
+      setCaptchaToken(null)
     }
   }
 
@@ -704,8 +723,17 @@ export default function SellPage() {
               </CardContent>
             </Card>
 
+            <div className="grid place-items-center w-full">
+              <ReCAPTCHA
+                ref={recaptchaRef}
+                sitekey={process.env.NEXT_PUBLIC_SITE_KEY!}
+                onChange={handleCaptcha}
+                theme="light"
+              />
+            </div>
+
             <div className="text-center">
-              <Button type="submit" size="lg" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 px-8">
+              <Button type="submit" size="lg" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 px-8" disabled={isSubmitting || !captchaToken}>
                 {t("postAds")}
               </Button>
             </div>
@@ -714,4 +742,4 @@ export default function SellPage() {
       </div>
     </div>
   )
-}
+} 

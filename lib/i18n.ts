@@ -589,7 +589,9 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "vinCode": "VIN kodu",
     "carStatus": "Satış/İcarə növü",
     "selectCarStatus": "Satış və ya icarə seçin",
-    "select": "Seçin"
+    "select": "Seçin",
+    "captchaRequired": "Zəhmət olmasa CAPTCHA-nı tamamlayın",
+    
   },
   en: {
     "Admins": "Admins",
@@ -1166,7 +1168,7 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "carStatus": "Sale / Rent",
     "selectCarStatus": "Select sale or rent",
     "select": "Select",
-
+    "captchaRequired": "Please complete the CAPTCHA"
 
   },
   de: {
@@ -1743,8 +1745,8 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "vinCode": "VIN-Code",
     "carStatus": "Verkauf / Vermietung",
     "selectCarStatus": "Verkauf oder Vermietung wählen",
-    "select": "Wählen"
-
+    "select": "Wählen",
+    "captchaRequired": "Bitte vervollständigen Sie das CAPTCHA",
 
   },
   es: {
@@ -2321,8 +2323,8 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "vinCode": "Código VIN",
     "carStatus": "Venta / Alquiler",
     "selectCarStatus": "Seleccionar venta o alquiler",
-    "select": "Seleccionar"
-
+    "select": "Seleccionar",
+    "captchaRequired": "Por favor complete el CAPTCHA",
   },
   tr: {
     "FullName": "Tam isim",
@@ -2898,8 +2900,8 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "vinCode": "VIN kodu",
     "carStatus": "Satış / Kiralama",
     "selectCarStatus": "Satış veya kiralama seç",
-    "select": "Seç"
-
+    "select": "Seç",
+    "captchaRequired": "Lütfen CAPTCHA'yı tamamlayın",
   },
   pt: {
     "FullName": "Nome completo",
@@ -3475,7 +3477,8 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "vinCode": "Código VIN",
     "carStatus": "Venda / Aluguel",
     "selectCarStatus": "Selecionar venda ou aluguel",
-    "select": "Selecionar"
+    "select": "Selecionar",
+    "captchaRequired": "Por favor complete o CAPTCHA",
 
   },
   pl: {
@@ -4052,8 +4055,8 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "vinCode": "Kod VIN",
     "carStatus": "Sprzedaż / Wynajem",
     "selectCarStatus": "Wybierz sprzedaż lub wynajem",
-    "select": "Wybierz"
-
+    "select": "Wybierz",
+    "captchaRequired": "Proszę ukończyć CAPTCHA",
   },
   uk: {
     "FullName": "Повне ім'я",
@@ -4531,8 +4534,8 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
     "vinCode": "VIN код",
     "carStatus": "Продаж / Оренда",
     "selectCarStatus": "Виберіть продаж або оренда",
-    "select": "Вибрати"
-
+    "select": "Вибрати",
+    "captchaRequired": "Будь ласка, заповніть CAPTCHA",
   }
 } as const;
 

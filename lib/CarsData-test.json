@@ -1,0 +1,28 @@
+[
+    {
+        "Lamborghini": [
+            "Huracán",
+            "Aventador",
+            "Urus",
+            "Revuelto"
+        ],
+        "Maserati": [
+            "Ghibli",
+            "Quattroporte",
+            "Levante",
+            "MC20",
+            "Grecale"
+        ],
+        "Alfa Romeo": [
+            "Giulia",
+            "Stelvio"
+        ],
+        "Fiat": [
+            "500",
+            "Panda",
+            "Tipo",
+            "500X",
+            "Punto"
+        ]
+    }
+]

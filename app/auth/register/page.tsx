@@ -16,6 +16,7 @@ import "react-toastify/dist/ReactToastify.css"
 import CountryCodeSelect from "@/components/CountryCodeSelect"
 import { translateString } from "@/lib/i18n"
 import { useDefaultLanguage } from "@/components/useLanguage"
+import ReCAPTCHA from "react-google-recaptcha"
 
 export default function RegisterPage() {
   const { lang, setLang } = useDefaultLanguage();
@@ -29,9 +30,11 @@ export default function RegisterPage() {
   const [phoneCode, setPhoneCode] = useState<string>("")
   const [phoneNumber, setPhoneNumber] = useState<string>("")
   const [agreeToTerms, setAgreeToTerms] = useState<boolean>(false)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
 
   const router = useRouter()
   const timeoutRef = useRef<number | null>(null)
+  const recaptchaRef = useRef<ReCAPTCHA>(null)
 
   useEffect(() => {
     return () => {
@@ -44,10 +47,23 @@ export default function RegisterPage() {
     timeoutRef.current = window.setTimeout(() => setStatusMessage(null), ms)
   }
 
+  const handleCaptcha = (token: string | null) => {
+    setCaptchaToken(token)
+  }
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setIsPending(true)
     setStatusMessage(null)
+
+    if (!captchaToken) {
+      setIsPending(false)
+      const msg = t("captchaRequired") || "Please complete the CAPTCHA"
+      setStatusMessage({ type: "error", text: msg })
+      toast.error(msg, { position: "top-right", autoClose: 4000 })
+      clearStatusAfter(4000)
+      return
+    }
 
     const form = event.currentTarget
     const formData = new FormData(form)
@@ -113,6 +129,9 @@ export default function RegisterPage() {
       setStatusMessage({ type: "error", text: errorMessage })
       toast.error(errorMessage, { position: "top-right", autoClose: 4000 })
       clearStatusAfter(4000)
+    } finally {
+      recaptchaRef.current?.reset()
+      setCaptchaToken(null)
     }
   }
 
@@ -255,7 +274,16 @@ export default function RegisterPage() {
                 </Label>
               </div>
 
-              <Button type="submit" className="w-full" disabled={isPending}>
+              <div className="grid place-items-center w-full">
+                <ReCAPTCHA
+                  ref={recaptchaRef}
+                  sitekey={process.env.NEXT_PUBLIC_SITE_KEY!}
+                  onChange={handleCaptcha}
+                  theme="light"
+                />
+              </div>
+
+              <Button type="submit" className="w-full" disabled={isPending || !captchaToken}>
                 {isPending ? t("registering") : t("register")}
               </Button>
             </form>

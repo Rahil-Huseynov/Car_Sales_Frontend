@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -14,6 +14,7 @@ import { Navbar } from "@/components/navbar"
 import { getTranslation, translateString } from "@/lib/i18n"
 import { useDefaultLanguage } from "@/components/useLanguage"
 import apiClient from "@/lib/api-client"
+import ReCAPTCHA from "react-google-recaptcha"
 
 export default function ForgotPasswordPage() {
   const { lang, setLang } = useDefaultLanguage();
@@ -24,6 +25,13 @@ export default function ForgotPasswordPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const [error, setError] = useState("")
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+
+  const recaptchaRef = useRef<ReCAPTCHA>(null)
+
+  const handleCaptcha = (token: string | null) => {
+    setCaptchaToken(token)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -36,6 +44,12 @@ export default function ForgotPasswordPage() {
       return
     }
 
+    if (!captchaToken) {
+      setError(t("captchaRequired") || "Please complete the CAPTCHA")
+      setIsLoading(false)
+      return
+    }
+
     try {
       await apiClient.forgotPassword(email);
       await new Promise((resolve) => setTimeout(resolve, 2000))
@@ -44,6 +58,8 @@ export default function ForgotPasswordPage() {
       setError(t("resetError"))
     } finally {
       setIsLoading(false)
+      recaptchaRef.current?.reset()
+      setCaptchaToken(null)
     }
   }
 
@@ -155,10 +171,20 @@ export default function ForgotPasswordPage() {
                     <p className="text-xs text-gray-500">{t("resetInstructions")}</p>
                   </div>
 
+
+                  <div className="grid place-items-center w-full">
+                    <ReCAPTCHA
+                      ref={recaptchaRef}
+                      sitekey={process.env.NEXT_PUBLIC_SITE_KEY!}
+                      onChange={handleCaptcha}
+                      theme="light"
+                    />
+                  </div>
+
                   <Button
                     type="submit"
                     className="w-full bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 btn-animate"
-                    disabled={isLoading}
+                    disabled={isLoading || !captchaToken}
                   >
                     {isLoading ? (
                       <div className="flex items-center gap-2">

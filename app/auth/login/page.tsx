@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import {
@@ -22,8 +22,9 @@ import "react-toastify/dist/ReactToastify.css"
 import { getTranslation, translateString } from "@/lib/i18n"
 import { useDefaultLanguage } from "@/components/useLanguage"
 
-import { useAuth } from "@/lib/auth-context" 
+import { useAuth } from "@/lib/auth-context"
 import { tokenManager } from "@/lib/token-manager"
+import ReCAPTCHA from "react-google-recaptcha"
 
 export default function LoginPage() {
   const { lang } = useDefaultLanguage()
@@ -31,8 +32,10 @@ export default function LoginPage() {
 
   const [showPassword, setShowPassword] = useState(false)
   const [isPending, setIsPending] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
   const router = useRouter()
   const { login, reloadUser } = useAuth()
+  const recaptchaRef = useRef<ReCAPTCHA>(null)
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -50,9 +53,19 @@ export default function LoginPage() {
     }
   }, [router, reloadUser])
 
+  const handleCaptcha = (token: string | null) => {
+    setCaptchaToken(token)
+  }
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsPending(true)
+
+    if (!captchaToken) {
+      toast.error(t("captchaRequired") || "Please complete the CAPTCHA", { position: "top-right", autoClose: 4000 })
+      setIsPending(false)
+      return
+    }
 
     const formData = new FormData(e.currentTarget)
     const email = String(formData.get("email") ?? "")
@@ -60,8 +73,7 @@ export default function LoginPage() {
     const remember = !!formData.get("remember")
 
     try {
-      const result = await login(email, password, remember)
-
+      const result = await login(email, password, remember) 
       if (result.success) {
         toast.success(t("loginSuccess"), { position: "top-right", autoClose: 2000 })
         const role = result.user?.role
@@ -82,6 +94,8 @@ export default function LoginPage() {
       })
     } finally {
       setIsPending(false)
+      recaptchaRef.current?.reset()
+      setCaptchaToken(null)
     }
   }
 
@@ -169,8 +183,15 @@ export default function LoginPage() {
                   {t("forgotPassword")}
                 </Link>
               </div>
-
-              <Button type="submit" className="w-full" disabled={isPending}>
+              <div className="grid place-items-center w-full">
+                <ReCAPTCHA
+                  ref={recaptchaRef}
+                  sitekey={process.env.NEXT_PUBLIC_SITE_KEY!}
+                  onChange={handleCaptcha}
+                  theme="light"
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={isPending || !captchaToken}>
                 {isPending ? t("loggingIn") : t("loginButton")}
               </Button>
             </form>

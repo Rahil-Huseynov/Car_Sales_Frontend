@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Loader2, Search, Copy, ChevronDown, ChevronUp, Car } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
@@ -10,6 +10,7 @@ import { Navbar } from "@/components/navbar"
 import { FIELD_CATEGORIES } from "@/lib/car-data"
 import { useDefaultLanguage } from "@/components/useLanguage"
 import { translateString } from "@/lib/i18n"
+import ReCAPTCHA from "react-google-recaptcha"
 
 interface VinResult {
     [key: string]: string | undefined
@@ -23,36 +24,33 @@ export default function VinCheckerPage() {
     const [showRaw, setShowRaw] = useState(false)
     const [error, setError] = useState<string>("")
     const [success, setSuccess] = useState<string>("")
+    const [showCaptcha, setShowCaptcha] = useState(false)
+    const [captchaToken, setCaptchaToken] = useState<string | null>(null)
     const { lang } = useDefaultLanguage();
     const t = (key: string) => translateString(lang, key);
+    const recaptchaRef = useRef<ReCAPTCHA>(null)
 
     const validateVIN = (v: string): boolean => {
         return /^[A-HJ-NPR-Z0-9]{17}$/i.test(v)
     }
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        const cleanVin = vin.trim().toUpperCase()
+    const handleCaptcha = (token: string | null) => {
+        setCaptchaToken(token)
+    }
 
-        setError("")
-        setSuccess("")
-
-        if (!cleanVin) {
-            setError(t("vin.enter_vin"))
-            return
+    useEffect(() => {
+        if (captchaToken) {
+            performFetch()
         }
+    }, [captchaToken])
 
-        if (cleanVin.length !== 17 || !validateVIN(cleanVin)) {
-            setError(t("vin.invalid_format"))
-            return
-        }
-
+    const performFetch = async () => {
         setLoading(true)
         setResult(null)
         setShowRaw(false)
 
         try {
-            const url = `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValuesExtended/${encodeURIComponent(cleanVin)}?format=json`
+            const url = `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValuesExtended/${encodeURIComponent(vin)}?format=json`
             const res = await fetch(url)
 
             if (!res.ok) throw new Error(`${t("vin.api_error")}${res.status}`)
@@ -73,7 +71,30 @@ export default function VinCheckerPage() {
             setError(`${t("vin.error")}: ${(err instanceof Error ? err.message : t("vin.unknown_error"))}`)
         } finally {
             setLoading(false)
+            recaptchaRef.current?.reset()
+            setCaptchaToken(null)
+            setShowCaptcha(false)
         }
+    }
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        const cleanVin = vin.trim().toUpperCase()
+
+        setError("")
+        setSuccess("")
+
+        if (!cleanVin) {
+            setError(t("vin.enter_vin"))
+            return
+        }
+
+        if (cleanVin.length !== 17 || !validateVIN(cleanVin)) {
+            setError(t("vin.invalid_format"))
+            return
+        }
+
+        setShowCaptcha(true)
     }
 
     const formatValue = (value: string | undefined): string => {
@@ -110,6 +131,16 @@ export default function VinCheckerPage() {
                                     maxLength={17}
                                     className="pl-12 pr-32 py-6 text-sm md:text-lg bg-white/95 backdrop-blur-sm border-0 shadow-lg rounded-xl"
                                 />
+                                {showCaptcha && (
+                                    <div className="mt-4 flex justify-center">
+                                        <ReCAPTCHA
+                                            ref={recaptchaRef}
+                                            sitekey={process.env.NEXT_PUBLIC_SITE_KEY!}
+                                            onChange={handleCaptcha}
+                                            theme="light"
+                                        />
+                                    </div>
+                                )}
                                 <Button
                                     type="submit"
                                     disabled={loading}
@@ -206,4 +237,4 @@ export default function VinCheckerPage() {
             </div>
         </>
     )
-}
+} 

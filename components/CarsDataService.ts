@@ -1,4 +1,4 @@
-import * as data from '../lib/CarsData.json';
+import * as data from '../lib/CarsData-test.json';
 
 type PaginatedResult<T> = {
     items: T[];

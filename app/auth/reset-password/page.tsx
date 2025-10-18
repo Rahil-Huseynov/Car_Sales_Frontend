@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   Card,
@@ -20,6 +20,7 @@ import Image from "next/image";
 import { Navbar } from "@/components/navbar";
 import { useDefaultLanguage } from "@/components/useLanguage";
 import { translateString } from "@/lib/i18n";
+import ReCAPTCHA from "react-google-recaptcha"
 
 export default function ResetPasswordPage() {
   const searchParams = useSearchParams();
@@ -31,8 +32,10 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [tokenValid, setTokenValid] = useState<boolean | null>(null);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const { lang, setLang } = useDefaultLanguage();
   const t = (key: string) => translateString(lang, key);
+  const recaptchaRef = useRef<ReCAPTCHA>(null)
 
   useEffect(() => {
     if (!token) {
@@ -67,10 +70,19 @@ export default function ResetPasswordPage() {
     );
   }
 
+  const handleCaptcha = (token: string | null) => {
+    setCaptchaToken(token)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage("");
     setError("");
+
+    if (!captchaToken) {
+      setError(t("captchaRequired") || "Please complete the CAPTCHA")
+      return
+    }
 
     setLoading(true);
 
@@ -86,6 +98,8 @@ export default function ResetPasswordPage() {
       setError(err.message || t("errorMessage"));
     } finally {
       setLoading(false);
+      recaptchaRef.current?.reset()
+      setCaptchaToken(null)
     }
   };
 
@@ -180,12 +194,19 @@ export default function ResetPasswordPage() {
                       </button>
                     </div>
                   </div>
-
+                  <div className="grid place-items-center w-full">
+                    <ReCAPTCHA
+                      ref={recaptchaRef}
+                      sitekey={process.env.NEXT_PUBLIC_SITE_KEY!}
+                      onChange={handleCaptcha}
+                      theme="light"
+                    />
+                  </div>
                   <div className="pt-2">
                     <Button
                       type="submit"
                       className="w-full bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800"
-                      disabled={loading}
+                      disabled={loading || !captchaToken}
                     >
                       {loading ? (
                         <div className="flex items-center gap-2">
