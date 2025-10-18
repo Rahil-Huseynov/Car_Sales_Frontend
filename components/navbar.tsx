@@ -99,7 +99,7 @@ export function Navbar() {
             )}
             <Link href="/vincode-checker" className="text-gray-700 text-md hover:text-blue-600 transition-colors font-medium">{t("vin.title")}</Link>
             {/* <Link href="/about" className="text-gray-700 text-md hover:text-blue-600 transition-colors font-medium">{t("about")}</Link> */}
-            <Link href="/contact" className="text-gray-700 text-md hover:text-blue-600 transition-colors font-medium">{t("contact")}</Link>
+            <Link href="/contact" className="text-gray-700 text-md hover:text-blue-600 transition-colors font-medium">{t("contact.title")}</Link>
           </nav>
 
           <div className="hidden mobile:flex items-center gap-3">
@@ -186,7 +186,7 @@ export function Navbar() {
                   <Link href="/sell" className="font-medium text-lg hover:text-blue-600 transition-colors">{t("sellOrRentOut")}</Link>
                   <Link href="/vincode-checker" className="font-medium text-lg hover:text-blue-600 transition-colors">{t("vin.title")}</Link>
                   {/* <Link href="/about" className="text-lg font-medium hover:text-blue-600 transition-colors">{t("about")}</Link> */}
-                  <Link href="/contact" className="font-medium hover:text-blue-600 text-lg transition-colors">{t("contact")}</Link>
+                  <Link href="/contact" className="font-medium hover:text-blue-600 text-lg transition-colors">{t("contact.title")}</Link>
 
                   {isLoggedIn && profileData ? (
                     <div className="border-t pt-4 mt-4 space-y-2">

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,6 +15,7 @@ import { useAuth } from "@/lib/auth-context"
 import { useDefaultLanguage } from "@/components/useLanguage"
 import { ToastContainer, toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
+import ReCAPTCHA from "react-google-recaptcha"
 
 type User = {
   id: number
@@ -29,6 +30,8 @@ type User = {
 export default function ContactPage() {
   const { language, changeLanguage } = useLanguage()
   const { lang, setLang } = useDefaultLanguage();
+  const recaptchaRef = useRef<ReCAPTCHA>(null)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
   const t = (key: string) => translateString(lang, key);
 
   const [formData, setFormData] = useState({
@@ -40,8 +43,12 @@ export default function ContactPage() {
   })
   const [profileData, setProfileData] = useState<User | null>(null)
   const { logout } = useAuth()
-  const [loading, setLoading] = useState(true) 
-  const [submitLoading, setSubmitLoading] = useState(false) 
+  const [loading, setLoading] = useState(true)
+  const [submitLoading, setSubmitLoading] = useState(false)
+
+  const handleCaptcha = (token: string | null) => {
+    setCaptchaToken(token)
+  }
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -70,6 +77,13 @@ export default function ContactPage() {
     if (submitLoading) return;
     setSubmitLoading(true);
 
+    if (!captchaToken) {
+      toast.error(t("captchaRequired") || "Please complete the CAPTCHA", { position: "top-right", autoClose: 4000 })
+      setSubmitLoading(false)
+      return
+    }
+
+
     try {
       await apiClient.sendContactMessage(formData)
       toast.success(t("contact.sentSuccess") || "Message sent — we will contact you soon.");
@@ -82,6 +96,8 @@ export default function ContactPage() {
       toast.error(msg);
     } finally {
       setSubmitLoading(false);
+      recaptchaRef.current?.reset()
+      setCaptchaToken(null)
     }
   };
 
@@ -222,11 +238,18 @@ export default function ContactPage() {
                     required
                   />
                 </div>
-
+                <div className="grid place-items-center w-full">
+                  <ReCAPTCHA
+                    ref={recaptchaRef}
+                    sitekey={process.env.NEXT_PUBLIC_SITE_KEY!}
+                    onChange={handleCaptcha}
+                    theme="light"
+                  />
+                </div>
                 <Button
                   type="submit"
                   className="w-full bg-gradient-to-r from-blue-600 to-blue-700 disabled:opacity-60 disabled:cursor-not-allowed"
-                  disabled={submitLoading}
+                  disabled={submitLoading || !captchaToken}
                   aria-disabled={submitLoading}
                 >
                   {submitLoading ? (
