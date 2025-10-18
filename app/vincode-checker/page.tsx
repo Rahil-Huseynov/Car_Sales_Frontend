@@ -24,6 +24,7 @@ export default function VinCheckerPage() {
     const [showRaw, setShowRaw] = useState(false)
     const [error, setError] = useState<string>("")
     const [success, setSuccess] = useState<string>("")
+    const [showCaptcha, setShowCaptcha] = useState(false)
     const [captchaToken, setCaptchaToken] = useState<string | null>(null)
     const { lang } = useDefaultLanguage();
     const t = (key: string) => translateString(lang, key);
@@ -72,6 +73,7 @@ export default function VinCheckerPage() {
             setLoading(false)
             recaptchaRef.current?.reset()
             setCaptchaToken(null)
+            setShowCaptcha(false)
         }
     }
 
@@ -92,7 +94,7 @@ export default function VinCheckerPage() {
             return
         }
 
-        recaptchaRef.current?.execute()
+        setShowCaptcha(true)
     }
 
     const formatValue = (value: string | undefined): string => {
@@ -129,13 +131,6 @@ export default function VinCheckerPage() {
                                     maxLength={17}
                                     className="pl-12 pr-32 py-6 text-sm md:text-lg bg-white/95 backdrop-blur-sm border-0 shadow-lg rounded-xl"
                                 />
-                                <ReCAPTCHA
-                                    ref={recaptchaRef}
-                                    sitekey={process.env.NEXT_PUBLIC_SITE_KEY!}
-                                    onChange={handleCaptcha}
-                                    theme="light"
-                                    size="invisible"
-                                />
                                 <Button
                                     type="submit"
                                     disabled={loading}
@@ -154,6 +149,15 @@ export default function VinCheckerPage() {
                                     )}
                                 </Button>
                             </form>
+                            <div className="mt-4 flex justify-center">
+                                <ReCAPTCHA
+                                    ref={recaptchaRef}
+                                    sitekey={process.env.NEXT_PUBLIC_SITE_KEY!}
+                                    onChange={handleCaptcha}
+                                    theme="light"
+                                />
+                            </div>
+
                         </div>
                     </div>
                 </section>
