@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useRef, useEffect } from "react"
-import { Loader2, Search, Copy, ChevronDown, ChevronUp, Car } from "lucide-react"
+import { Loader2, Search, Car } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -11,6 +11,8 @@ import { FIELD_CATEGORIES } from "@/lib/car-data"
 import { useDefaultLanguage } from "@/components/useLanguage"
 import { translateString } from "@/lib/i18n"
 import ReCAPTCHA from "react-google-recaptcha"
+import { toast, ToastContainer } from "react-toastify"
+import "react-toastify/dist/ReactToastify.css"
 
 interface VinResult {
     [key: string]: string | undefined
@@ -20,10 +22,6 @@ export default function VinCheckerPage() {
     const [vin, setVin] = useState("")
     const [loading, setLoading] = useState(false)
     const [result, setResult] = useState<VinResult | null>(null)
-    const [rawData, setRawData] = useState<string>("")
-    const [showRaw, setShowRaw] = useState(false)
-    const [error, setError] = useState<string>("")
-    const [success, setSuccess] = useState<string>("")
     const [showCaptcha, setShowCaptcha] = useState(false)
     const [captchaToken, setCaptchaToken] = useState<string | null>(null)
     const { lang } = useDefaultLanguage();
@@ -47,7 +45,6 @@ export default function VinCheckerPage() {
     const performFetch = async () => {
         setLoading(true)
         setResult(null)
-        setShowRaw(false)
 
         try {
             const url = `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValuesExtended/${encodeURIComponent(vin)}?format=json`
@@ -59,16 +56,15 @@ export default function VinCheckerPage() {
             const data = json.Results?.[0]
 
             if (!data) {
-                setError(t("vin.no_result"))
+                toast.error(t("vin.no_result"))
                 return
             }
 
             setResult(data)
-            setRawData(JSON.stringify(data, null, 2))
-            setSuccess(t("vin.success_load"))
+            toast.success(t("vin.success_load"))
         } catch (err) {
             console.error(err)
-            setError(`${t("vin.error")}: ${(err instanceof Error ? err.message : t("vin.unknown_error"))}`)
+            toast.error(`${t("vin.error")}: ${(err instanceof Error ? err.message : t("vin.unknown_error"))}`)
         } finally {
             setLoading(false)
             recaptchaRef.current?.reset()
@@ -81,19 +77,17 @@ export default function VinCheckerPage() {
         e.preventDefault()
         const cleanVin = vin.trim().toUpperCase()
 
-        setError("")
-        setSuccess("")
-
         if (!cleanVin) {
-            setError(t("vin.enter_vin"))
+            toast.error(t("vin.enter_vin"))
             return
         }
 
         if (cleanVin.length !== 17 || !validateVIN(cleanVin)) {
-            setError(t("vin.invalid_format"))
+            toast.error(t("vin.invalid_format"))
             return
         }
 
+        setVin(cleanVin)
         setShowCaptcha(true)
     }
 
@@ -107,6 +101,7 @@ export default function VinCheckerPage() {
     return (
         <>
             <Navbar />
+            <ToastContainer position="top-right" autoClose={5000} />
             <div className="min-h-screen bg-gray-50">
                 <section className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white py-12 md:py-20 relative overflow-hidden">
                     <div className="container mx-auto px-4 text-center relative z-10">
@@ -157,32 +152,11 @@ export default function VinCheckerPage() {
                                     theme="light"
                                 />
                             </div>
-
                         </div>
                     </div>
                 </section>
 
                 <div className="container mx-auto px-4 py-8">
-                    {error && (
-                        <div className="max-w-6xl mx-auto mb-6 animate-fadeInUp">
-                            <Card className="border-red-200 bg-red-50/80 backdrop-blur-sm">
-                                <CardContent className="p-4">
-                                    <p className="text-red-600 font-medium">{error}</p>
-                                </CardContent>
-                            </Card>
-                        </div>
-                    )}
-
-                    {success && (
-                        <div className="max-w-6xl mx-auto mb-6 animate-fadeInUp">
-                            <Card className="border-green-200 bg-green-50/80 backdrop-blur-sm">
-                                <CardContent className="p-4">
-                                    <p className="text-green-600 font-medium">{success}</p>
-                                </CardContent>
-                            </Card>
-                        </div>
-                    )}
-
                     {result && (
                         <div className="max-w-6xl mx-auto animate-fadeInUp">
                             <Card className="shadow-sm border-0 bg-white/90 backdrop-blur-sm">
@@ -216,7 +190,7 @@ export default function VinCheckerPage() {
                             </Card>
                         </div>
                     )}
-                    {!result && !loading && (
+                    {!result && !loading && !showCaptcha && (
                         <div className="max-w-6xl mx-auto">
                             <Card className="shadow-sm border-0 bg-white/90 backdrop-blur-sm">
                                 <CardContent className="p-12 text-center">
@@ -236,4 +210,4 @@ export default function VinCheckerPage() {
             </div>
         </>
     )
-} 
+}
